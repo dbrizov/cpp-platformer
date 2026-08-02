@@ -11,16 +11,16 @@ A C/C++ compiler with C++20 support (e.g. MSVC, GCC, or Clang)
 ### vcpkg
 1. Clone the `vcpkg` git repository.
 ```
-git clone https://github.com/microsoft/vcpkg.git vcpkg
+git clone https://github.com/microsoft/vcpkg.git $HOME\.vcpkg
 ```
 2. Run the `vcpkg` boostrap script.
 ```
-cd vcpkg
+cd $HOME\.vcpkg
 .\bootstrap-vcpkg.bat
 ```
 3. Set the `VCPKG_ROOT` environment variable and add it to `PATH`.
 ```
-$env:VCPKG_ROOT = "C:\path\to\vcpkg"
+$env:VCPKG_ROOT = "$HOME\.vcpkg"
 $env:PATH = "$env:VCPKG_ROOT;$env:PATH"
 ```
 > [!NOTE]
@@ -65,7 +65,7 @@ cd ~/.vcpkg
 5. Set the `VCPKG_ROOT` environment variable and add it to `PATH`.
 ```
 echo 'export VCPKG_ROOT="$HOME/.vcpkg"' >> ~/.bashrc
-echo 'export PATH="$PATH:$VCPKG_ROOT"' >> ~/.bashrc
+echo 'export PATH="$VCPKG_ROOT:$PATH"' >> ~/.bashrc
 ```
 6. Reload and verify.
 ```
@@ -91,7 +91,7 @@ cd ~/.vcpkg
 4. Set the `VCPKG_ROOT` environment variable and add it to `PATH`.
 ```
 echo 'export VCPKG_ROOT="$HOME/.vcpkg"' >> ~/.zshrc
-echo 'export PATH="$PATH:$VCPKG_ROOT"' >> ~/.zshrc
+echo 'export PATH="$VCPKG_ROOT:$PATH"' >> ~/.zshrc
 ```
 5. Reload and verify.
 ```

@@ -39,11 +39,11 @@
                 <h2>Windows</h2>
                 <h3>vcpkg</h3>
                 <p>Clone vcpkg and run its bootstrap script:</p>
-<pre>git clone https://github.com/microsoft/vcpkg.git vcpkg
-cd vcpkg
+<pre>git clone https://github.com/microsoft/vcpkg.git $HOME\.vcpkg
+cd $HOME\.vcpkg
 .\bootstrap-vcpkg.bat</pre>
                 <p>Set the <code>VCPKG_ROOT</code> environment variable and add it to <code>PATH</code>:</p>
-<pre>$env:VCPKG_ROOT = "C:\path\to\vcpkg"
+<pre>$env:VCPKG_ROOT = "$HOME\.vcpkg"
 $env:PATH = "$env:VCPKG_ROOT;$env:PATH"</pre>
                 <div class="callout">
                     Setting environment variables this way only affects the current terminal session. To make
@@ -74,7 +74,7 @@ cd ~/.vcpkg
 ./bootstrap-vcpkg.sh
 
 echo 'export VCPKG_ROOT="$HOME/.vcpkg"' >> ~/.bashrc
-echo 'export PATH="$PATH:$VCPKG_ROOT"' >> ~/.bashrc
+echo 'export PATH="$VCPKG_ROOT:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 vcpkg --version</pre>
 
@@ -88,7 +88,7 @@ cd ~/.vcpkg
 ./bootstrap-vcpkg.sh
 
 echo 'export VCPKG_ROOT="$HOME/.vcpkg"' >> ~/.zshrc
-echo 'export PATH="$PATH:$VCPKG_ROOT"' >> ~/.zshrc
+echo 'export PATH="$VCPKG_ROOT:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 vcpkg --version</pre>
 
@@ -102,13 +102,15 @@ cmake --preset debug-clang     <span class="cmt"># macOS / Clang</span>
 <span class="cmt"># Build</span>
 cmake --build --preset windows-debug-msvc-x64
 
-<span class="cmt"># Run</span>
-./build/debug/windows-msvc/Debug/hob2d.exe</pre>
+<span class="cmt"># Run (no arg loads the default project, 'sandbox')</span>
+./build/debug/windows-msvc/Debug/hob2d.exe
 
-                <div class="callout">
-                    Looking for the latest setup details? See the
-                    <a href="https://github.com/dbrizov/hob2d#readme">README on GitHub</a>.
-                </div>
+<span class="cmt"># Run a specific game project (bare name, or a path relative to the repo root)</span>
+./build/debug/windows-msvc/Debug/hob2d.exe --project sandbox</pre>
+                <p>The engine loads one game project from <code>content/projects/&lt;name&gt;/</code> at launch.
+                    The bundled sample is <code>content/projects/sandbox/</code>. Set the build's default game at
+                    configure time with <code>-DHOB_PROJECT=&lt;name&gt;</code>, or select it at runtime with
+                    <code>--project &lt;name&gt;</code> (a bare name resolves under <code>content/projects/</code>).</p>
             </div>
         </section>
     </main>

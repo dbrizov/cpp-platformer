@@ -20,7 +20,7 @@
     --syntax-number: #d2a6ff;
     --syntax-tag: #5ccfe6;
 
-    --radius: 14px;
+    --radius: 0;
     --maxw: 1080px;
     --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
@@ -66,8 +66,7 @@ a:hover {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(13, 15, 18, 0.72);
-    backdrop-filter: blur(10px);
+    background: var(--bg);
     border-bottom: 1px solid var(--border);
 }
 
@@ -121,17 +120,16 @@ a:hover {
     align-items: center;
     gap: 8px;
     padding: 11px 20px;
-    border-radius: 10px;
+    border-radius: 999px;
     font-weight: 600;
     font-size: 0.95rem;
     border: 1px solid transparent;
     cursor: pointer;
-    transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+    transition: background 0.12s ease, border-color 0.12s ease;
 }
 
 .btn:hover {
     text-decoration: none;
-    transform: translateY(-1px);
 }
 
 .btn-primary {
@@ -164,18 +162,6 @@ a:hover {
     overflow: hidden;
     text-align: center;
     padding: 110px 0 90px;
-}
-
-.hero::before {
-    content: "";
-    position: absolute;
-    top: -30%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 900px;
-    height: 600px;
-    background: radial-gradient(closest-side, var(--accent-soft), transparent 70%);
-    pointer-events: none;
 }
 
 .hero h1 {
@@ -284,12 +270,6 @@ section {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 20px;
-    transition: transform 0.14s ease, border-color 0.14s ease;
-}
-
-.card:hover {
-    transform: translateY(-3px);
-    border-color: var(--accent);
 }
 
 .card h4 {
@@ -361,7 +341,6 @@ code {
     background: var(--surface-2);
     color: var(--syntax-keyword);
     padding: 2px 6px;
-    border-radius: 6px;
 }
 
 .code-grid {
@@ -456,7 +435,6 @@ figure {
 .pill {
     background: var(--surface-2);
     border: 1px solid var(--border);
-    border-radius: 999px;
     padding: 6px 14px;
     font-size: 0.88rem;
     color: var(--muted);
