@@ -10,6 +10,7 @@
 #include "engine/components/sockets_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
+#include "engine/editor/editor.h"
 #include "engine/math/matrix2x3.h"
 #include "logging.h"
 
@@ -26,15 +27,23 @@ namespace hob {
         , m_audio(config.audio_config)
         , m_entity_spawner(*this)
         , m_lua_script_system(*this) {
+
         m_renderer.register_cvars(m_console);
         m_physics.register_cvars(m_console);
         m_audio.register_cvars(m_console);
         m_entity_spawner.register_cvars(m_console);
         m_lua_script_system.register_cvars(m_console);
         SocketsComponent::register_cvars(m_console);
+
+        if (config.editor_enabled) {
+            m_editor = std::make_unique<Editor>(*this);
+        }
     }
 
     Engine::~Engine() {
+        // Release the editor first: it holds ImGui/Lua state and must tear down while those systems are still alive.
+        m_editor.reset();
+
         // Tear down entities (and their components) while every subsystem is still alive.
         // Avoids dangling references during member destruction.
         // In particular - LuaScriptComponent's sol::table must release its Lua registry slot before
@@ -122,6 +131,10 @@ namespace hob {
                 m_console.draw();
             }
 
+            if (m_editor) {
+                m_editor->draw_gui();
+            }
+
             m_renderer.set_time(m_timer.get_game_time(), m_timer.get_real_time());
             if (m_renderer.acquire_command_buffer()) {
                 m_renderer.render_world_pass();
@@ -181,6 +194,10 @@ namespace hob {
 
     LuaScriptSystem& Engine::get_lua_script_system() {
         return m_lua_script_system;
+    }
+
+    Editor* Engine::get_editor() const {
+        return m_editor.get();
     }
 
     CameraComponent* Engine::get_active_camera() const {

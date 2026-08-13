@@ -108,7 +108,7 @@ cmake --preset debug-gcc       # Linux / GCC
 cmake --preset debug-clang     # macOS / Clang
 
 # Build
-cmake --build --preset windows-debug-msvc-x64
+cmake --build --preset debug-msvc-x64      # debug-gcc-x64, debug-clang-arm64-osx, ...
 
 # Run (no arg loads the default project, 'sandbox')
 ./build/debug/windows-msvc/Debug/hob2d.exe
@@ -120,3 +120,12 @@ cmake --build --preset windows-debug-msvc-x64
 The engine loads one game project from `content/projects/<name>/` at launch. The bundled sample is
 `content/projects/sandbox/`. Set the build's default game at configure time with `-DHOB_PROJECT=<name>`,
 or select it at runtime with `--project <name>` (a bare name resolves under `content/projects/`).
+
+## Editor
+An in-process editor is available. Enable it per run with the `--editor` flag on any build, or use a
+dedicated editor build (baked-in default, separate build folder) via the `*-editor` presets:
+```
+cmake --preset debug-msvc-editor           # debug-gcc-editor, debug-clang-editor, ...
+cmake --build --preset debug-msvc-editor-x64
+./build/debug/windows-msvc-editor/Debug/hob2d.exe   # boots into the editor
+```

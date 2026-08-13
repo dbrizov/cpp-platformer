@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "systems/audio/audio.h"
 #include "systems/console.h"
 #include "systems/entity_spawner.h"
@@ -15,6 +17,7 @@
 namespace hob {
     struct EngineConfig;
     class CameraComponent;
+    class Editor;
 
     class Engine {
         // Order matters
@@ -29,6 +32,8 @@ namespace hob {
         Audio m_audio;
         EntitySpawner m_entity_spawner;
         LuaScriptSystem m_lua_script_system;
+
+        std::unique_ptr<Editor> m_editor;
 
         CameraComponent* m_active_camera = nullptr;
         bool m_warned_no_active_camera = false;
@@ -49,6 +54,8 @@ namespace hob {
         Audio& get_audio();
         EntitySpawner& get_entity_spawner();
         LuaScriptSystem& get_lua_script_system();
+
+        Editor* get_editor() const;
 
         CameraComponent* get_active_camera() const;
         void set_active_camera(CameraComponent* camera);

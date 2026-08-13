@@ -33,6 +33,12 @@ set(HOB_PROJECT "sandbox" CACHE STRING "Game project to build/run (folder name u
 # Bake the default into the binary so a no-arg run loads the configured project.
 target_compile_definitions(${PROJECT_NAME} PRIVATE HOB_DEFAULT_PROJECT="${HOB_PROJECT}")
 
+# Enable/disable the editor (the editor presets set it ON).
+option(HOB_EDITOR "Enable/disable the editor" OFF)
+if (HOB_EDITOR)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE HOB_EDITOR)
+endif ()
+
 # Sync the content/engine folder (builtin Lua framework + assets) next to the executable after every build.
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:${PROJECT_NAME}>/content/engine"
