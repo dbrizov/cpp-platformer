@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <string_view>
 
 #include "engine/math/vector2.h"
 

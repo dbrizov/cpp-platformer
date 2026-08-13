@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include <box2d/box2d.h>
+#include <box2d/collision.h>
 #include <box2d/types.h>
 
 #include "engine/components/transform_component.h"

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <cstring>
 
 #include <SDL3/SDL.h>

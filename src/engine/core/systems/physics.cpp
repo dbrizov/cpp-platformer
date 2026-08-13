@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include <box2d/box2d.h>
+
 #include "console.h"
 #include "engine/components/physics/collider_component.h"
 #include "engine/components/physics/rigidbody_component.h"

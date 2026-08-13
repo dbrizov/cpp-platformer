@@ -1,5 +1,6 @@
 #include "shader.h"
 
+#include <array>
 #include <cstring>
 
 #include "engine/core/logging.h"

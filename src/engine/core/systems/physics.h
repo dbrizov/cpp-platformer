@@ -3,7 +3,9 @@
 #include <cmath>
 #include <vector>
 
-#include <box2d/box2d.h>
+#include <box2d/collision.h>
+#include <box2d/id.h>
+#include <box2d/math_functions.h>
 
 #include "engine/math/capsule.h"
 #include "engine/math/vector2.h"

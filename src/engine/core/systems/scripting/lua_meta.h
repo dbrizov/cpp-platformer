@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <format>
+#include <initializer_list>
 #include <memory>
 #include <string>
 #include <string_view>
