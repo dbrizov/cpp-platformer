@@ -87,3 +87,7 @@ vcpkg.json.lock
 # === OS Generated Files ===
 .DS_Store
 Thumbs.db
+
+# === Editor ===
+editor_config.json
+editor_imgui.ini

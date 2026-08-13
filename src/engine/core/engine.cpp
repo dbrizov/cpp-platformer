@@ -10,18 +10,57 @@
 #include "engine/components/sockets_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
+#include "engine/core/systems/window.h"
 #include "engine/editor/editor.h"
+#include "engine/editor/editor_config.h"
 #include "engine/math/matrix2x3.h"
 #include "logging.h"
 
 namespace hob {
-    Engine::Engine(const EngineConfig& config)
-        : m_sdl_context(config.graphics_config)
-        , m_renderer(config.graphics_config, m_sdl_context)
+    namespace {
+        WindowConfig make_game_window_config(const GraphicsConfig& graphics_config) {
+            WindowConfig config;
+            config.title = graphics_config.window_title;
+            config.width = static_cast<int>(graphics_config.window_width);
+            config.height = static_cast<int>(graphics_config.window_height);
+            config.vsync = graphics_config.vsync_enabled;
+            return config;
+        }
+
+        WindowConfig make_main_window_config(const GraphicsConfig& graphics_config, const EditorConfig& editor_config) {
+            if (editor_config.enabled) {
+                WindowConfig config;
+                config.title = graphics_config.window_title + " - Editor";
+                config.vsync = graphics_config.vsync_enabled;
+
+                const bool have_saved_geometry = editor_config.width > 0 && editor_config.height > 0;
+                if (have_saved_geometry) {
+                    config.width = editor_config.width;
+                    config.height = editor_config.height;
+                    config.x = editor_config.x;
+                    config.y = editor_config.y;
+                    config.maximized = editor_config.maximized;
+                }
+                else {
+                    config.maximized = true;
+                }
+
+                return config;
+            }
+
+            WindowConfig config = make_game_window_config(graphics_config);
+            return config;
+        }
+    } // namespace
+
+    Engine::Engine(const EngineConfig& config, const EditorConfig& editor_config)
+        : m_sdl_context()
+        , m_main_window(m_sdl_context.get_gpu_device(), make_main_window_config(config.graphics_config, editor_config))
+        , m_renderer(config.graphics_config, m_sdl_context.get_gpu_device(), m_main_window)
         , m_timer(config.graphics_config)
-        , m_input(m_sdl_context, m_renderer)
-        , m_ui_system(config.ui_system_config, m_sdl_context, m_renderer, m_timer)
-        , m_imgui_system(m_sdl_context)
+        , m_input(m_renderer)
+        , m_ui_system(config.ui_system_config, m_renderer, m_timer)
+        , m_imgui_system(m_renderer)
         , m_console()
         , m_physics(config.physics_config)
         , m_audio(config.audio_config)
@@ -35,15 +74,24 @@ namespace hob {
         m_lua_script_system.register_cvars(m_console);
         SocketsComponent::register_cvars(m_console);
 
-        if (config.editor_enabled) {
+        Window* game_window = &m_main_window;
+        if (editor_config.enabled) {
             m_editor = std::make_unique<Editor>(*this);
+            m_game_window = std::make_unique<Window>(m_sdl_context.get_gpu_device(),
+                                                     make_game_window_config(config.graphics_config));
+            game_window = m_game_window.get();
         }
+
+        m_renderer.set_game_window(game_window);
+
+        int width_px = 0;
+        int height_px = 0;
+        game_window->get_size_px(width_px, height_px);
+        m_renderer.on_window_resized(width_px, height_px);
+        m_ui_system.on_window_resized(width_px, height_px);
     }
 
     Engine::~Engine() {
-        // Release the editor first: it holds ImGui/Lua state and must tear down while those systems are still alive.
-        m_editor.reset();
-
         // Tear down entities (and their components) while every subsystem is still alive.
         // Avoids dangling references during member destruction.
         // In particular - LuaScriptComponent's sol::table must release its Lua registry slot before
@@ -72,9 +120,14 @@ namespace hob {
                 if (event.type == SDL_EVENT_QUIT) {
                     is_running = false;
                 }
-                else if (event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
-                    m_renderer.on_window_resized(event.window.data1, event.window.data2);
-                    m_ui_system.on_window_resized(event.window.data1, event.window.data2);
+                else if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
+                    is_running = false;
+                }
+                else if (event.type == SDL_EVENT_WINDOW_RESIZED) {
+                    if (event.window.windowID == get_game_window().get_id()) {
+                        m_renderer.on_window_resized(event.window.data1, event.window.data2);
+                        m_ui_system.on_window_resized(event.window.data1, event.window.data2);
+                    }
                 }
                 else if (event.type == SDL_EVENT_KEY_DOWN) {
                     if (event.key.key == SDLK_GRAVE) {
@@ -96,7 +149,7 @@ namespace hob {
             m_ui_system.poll_hot_reload(delta_time);
 #endif
 
-            if (!m_console.is_open()) {
+            if (!m_console.is_open() && get_game_window().has_focus()) {
                 m_input.tick(scaled_delta_time);
             }
 
@@ -137,12 +190,18 @@ namespace hob {
 
             m_renderer.set_time(m_timer.get_game_time(), m_timer.get_real_time());
             if (m_renderer.acquire_command_buffer()) {
-                m_renderer.render_world_pass();
-                m_renderer.render_blit_pass();
-                m_renderer.render_debug_lines_pass();
-                m_ui_system.render_pass(m_renderer.get_command_buffer(), m_renderer.get_swap_texture());
-                m_renderer.render_debug_text_pass();
-                m_imgui_system.render_pass(m_renderer.get_command_buffer(), m_renderer.get_swap_texture());
+                if (m_renderer.get_game_swap_texture() != nullptr) {
+                    m_renderer.render_world_pass();
+                    m_renderer.render_blit_pass();
+                    m_renderer.render_debug_lines_pass();
+                    m_ui_system.render_pass();
+                    m_renderer.render_debug_text_pass();
+                }
+                else {
+                    m_renderer.discard_pending_debug_draws();
+                }
+
+                m_imgui_system.render_pass();
 
                 m_renderer.submit_command_buffer();
             }
@@ -158,6 +217,10 @@ namespace hob {
 
     SdlContext& Engine::get_sdl_context() {
         return m_sdl_context;
+    }
+
+    const Window& Engine::get_main_window() const {
+        return m_main_window;
     }
 
     Console& Engine::get_console() {
@@ -198,6 +261,10 @@ namespace hob {
 
     Editor* Engine::get_editor() const {
         return m_editor.get();
+    }
+
+    const Window& Engine::get_game_window() const {
+        return m_game_window != nullptr ? *m_game_window : m_main_window;
     }
 
     CameraComponent* Engine::get_active_camera() const {
@@ -280,7 +347,7 @@ namespace hob {
             return;
         }
 
-        debug::flush_draws_to_renderer(m_renderer, camera, m_sdl_context.get_window_size(), delta_time);
+        debug::flush_draws_to_renderer(m_renderer, camera, get_game_window().get_size(), delta_time);
     }
 
     bool Engine::has_moving_physics_body(const Entity& entity) {

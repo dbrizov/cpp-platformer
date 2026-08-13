@@ -82,7 +82,7 @@ namespace hob {
 
     void Renderer::render_blit_pass() {
         SDL_GPUColorTargetInfo ct{};
-        ct.texture = m_swap_texture;
+        ct.texture = m_game_swap_texture;
         ct.load_op = SDL_GPU_LOADOP_DONT_CARE;
         ct.store_op = SDL_GPU_STOREOP_STORE;
 
@@ -142,7 +142,7 @@ namespace hob {
         }
 
         SDL_GPUColorTargetInfo ct{};
-        ct.texture = m_swap_texture;
+        ct.texture = m_game_swap_texture;
         ct.load_op = SDL_GPU_LOADOP_LOAD;
         ct.store_op = SDL_GPU_STOREOP_STORE;
 
@@ -234,7 +234,7 @@ namespace hob {
         }
 
         SDL_GPUColorTargetInfo ct{};
-        ct.texture = m_swap_texture;
+        ct.texture = m_game_swap_texture;
         ct.load_op = SDL_GPU_LOADOP_LOAD;
         ct.store_op = SDL_GPU_STOREOP_STORE;
 
@@ -271,6 +271,12 @@ namespace hob {
             SDL_EndGPURenderPass(pass);
         }
 
+        m_pending_debug_text_vertices.clear();
+        m_pending_debug_text_indices.clear();
+    }
+
+    void Renderer::discard_pending_debug_draws() {
+        m_pending_debug_line_vertices.clear();
         m_pending_debug_text_vertices.clear();
         m_pending_debug_text_indices.clear();
     }

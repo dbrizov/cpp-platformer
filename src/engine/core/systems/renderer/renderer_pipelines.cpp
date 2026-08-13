@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <cmath>
-#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -13,7 +12,7 @@
 
 #include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
-#include "engine/core/systems/sdl_context.h"
+#include "engine/core/systems/window.h"
 #include "renderer.h"
 #include "shader_reflection.h"
 
@@ -792,7 +791,7 @@ namespace hob {
         const std::filesystem::path font_path = PathUtils::get_engine_assets_path() / DEBUG_FONT_PATH;
 
         // Bake the atlas scaled by pixel_density for crispness on HiDPI displays.
-        const float pixel_density = m_sdl_context.get_pixel_density();
+        const float pixel_density = m_game_window->get_pixel_density();
         const float font_size_px = DEBUG_FONT_SIZE_PX * pixel_density;
         if (!m_debug_font.init(*this, font_path, font_size_px)) {
             log::renderer.error("Failed to init debug font from {}", font_path.string());

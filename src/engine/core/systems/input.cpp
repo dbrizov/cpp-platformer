@@ -10,8 +10,8 @@
 #include "engine/core/assert.h"
 #include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
+#include "engine/core/systems/window.h"
 #include "renderer/renderer.h"
-#include "sdl_context.h"
 
 namespace hob {
     InputEvent::InputEvent(const char* ev_name, InputEventType ev_type, float ev_axis_value)
@@ -19,9 +19,8 @@ namespace hob {
         , type(ev_type)
         , axis_value(ev_axis_value) {}
 
-    Input::Input(const SdlContext& sdl_context, const Renderer& renderer)
-        : m_sdl_context(sdl_context)
-        , m_renderer(renderer) {
+    Input::Input(const Renderer& renderer)
+        : m_renderer(renderer) {
         m_input_config = InputConfig(PathUtils::get_input_config_path());
         m_digital_sources = m_input_config.digital_sources();
 
@@ -92,7 +91,7 @@ namespace hob {
 
         // Map window pixels to logical (FBO) pixels. The FBO is blitted to the window with a
         // uniform STRETCH (no letterboxing today), so the mapping is just an axis-wise scale.
-        const Vector2 window_size = m_sdl_context.get_window_size();
+        const Vector2 window_size = m_renderer.get_game_window()->get_size();
         const Vector2 logical_size = m_renderer.get_logical_size();
 
         if (window_size.x > 0.0f && window_size.y > 0.0f) {

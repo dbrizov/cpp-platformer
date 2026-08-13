@@ -10,13 +10,14 @@
 #include "engine/core/assert.h"
 #include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
-#include "sdl_context.h"
+#include "engine/core/systems/window.h"
+#include "renderer/renderer.h"
 
 namespace hob {
-    ImGuiSystem::ImGuiSystem(const SdlContext& sdl_context) {
-        SDL_Window* window = sdl_context.get_window();
-        m_gpu_device = sdl_context.get_gpu_device();
-        HOB_CHECK(window && m_gpu_device, "ImGuiSystem init failed: window/GPU device is null");
+    ImGuiSystem::ImGuiSystem(const Renderer& renderer)
+        : m_renderer(renderer) {
+        SDL_Window* window = m_renderer.get_main_window()->get_window();
+        HOB_CHECK(window && renderer.get_gpu_device(), "ImGuiSystem init failed: window/GPU device is null");
 
         IMGUI_CHECKVERSION();
 
@@ -48,8 +49,8 @@ namespace hob {
         log::imgui.info("ImGui_ImplSDL3_InitForSDLGPU");
 
         ImGui_ImplSDLGPU3_InitInfo init_info{};
-        init_info.Device = m_gpu_device;
-        init_info.ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(m_gpu_device, window);
+        init_info.Device = m_renderer.get_gpu_device();
+        init_info.ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(m_renderer.get_gpu_device(), window);
         init_info.MSAASamples = SDL_GPU_SAMPLECOUNT_1;
 
         const bool gpu_initialized = ImGui_ImplSDLGPU3_Init(&init_info);
@@ -80,24 +81,26 @@ namespace hob {
         ImGui::NewFrame();
     }
 
-    void ImGuiSystem::render_pass(SDL_GPUCommandBuffer* cmd, SDL_GPUTexture* swap_tex) {
+    void ImGuiSystem::render_pass() {
         ImGui::Render();
         ImDrawData* draw_data = ImGui::GetDrawData();
-        ImGui_ImplSDLGPU3_PrepareDrawData(draw_data, cmd);
+        ImGui_ImplSDLGPU3_PrepareDrawData(draw_data, m_renderer.get_command_buffer());
 
         SDL_GPUColorTargetInfo ct{};
-        ct.texture = swap_tex;
-        ct.load_op = SDL_GPU_LOADOP_LOAD;
+        ct.texture = m_renderer.get_main_swap_texture();
+        ct.clear_color = CLEAR_COLOR;
+        const bool editor_mode = m_renderer.get_game_window() != m_renderer.get_main_window();
+        ct.load_op = editor_mode ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
         ct.store_op = SDL_GPU_STOREOP_STORE;
 
         // Render pass
         {
-            SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, &ct, 1, nullptr);
+            SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(m_renderer.get_command_buffer(), &ct, 1, nullptr);
             if (!pass) {
                 return;
             }
 
-            ImGui_ImplSDLGPU3_RenderDrawData(draw_data, cmd, pass);
+            ImGui_ImplSDLGPU3_RenderDrawData(draw_data, m_renderer.get_command_buffer(), pass);
 
             SDL_EndGPURenderPass(pass);
         }

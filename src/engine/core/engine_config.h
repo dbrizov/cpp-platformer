@@ -46,8 +46,6 @@ namespace hob {
         PhysicsConfig physics_config;
         AudioConfig audio_config;
 
-        bool editor_enabled = false;
-
         EngineConfig() = default;
         explicit EngineConfig(const std::filesystem::path& json_path);
     };

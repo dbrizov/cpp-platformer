@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -27,6 +26,7 @@ namespace hob {
     struct GraphicsConfig;
     class SdlContext;
     class Console;
+    class Window;
 
     class Renderer {
         friend class Font;
@@ -62,13 +62,17 @@ namespace hob {
             Color color;
         };
 
-        const SdlContext& m_sdl_context;
         SDL_GPUDevice* m_gpu_device;
         Vector2 m_logical_size;
         Vector2 m_reference_size;
         AspectMode m_aspect_mode;
         float m_render_scale;
         float m_pixel_density;
+
+        // In editor mode: m_main_window is the editor, m_game_window is the game
+        // In game mode: m_main_windows = m_game_window
+        const Window* m_main_window = nullptr;
+        const Window* m_game_window = nullptr;
 
         bool m_shadercross_initialized = false;
         bool m_initialized = false;
@@ -100,7 +104,8 @@ namespace hob {
         SDL_GPUTexture* m_offscreen_color = nullptr;
         SDL_GPUTextureFormat m_offscreen_format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
 
-        SDL_GPUTexture* m_swap_texture = nullptr;
+        SDL_GPUTexture* m_main_swap_texture = nullptr;
+        SDL_GPUTexture* m_game_swap_texture = nullptr;
         SDL_GPUTextureFormat m_swapchain_format = SDL_GPU_TEXTUREFORMAT_INVALID;
 
         // -- Sprite pipelines --
@@ -154,7 +159,7 @@ namespace hob {
         bool m_cvar_show_sprite_queue = false;
 
     public:
-        Renderer(const GraphicsConfig& graphics_config, const SdlContext& sdl_context);
+        Renderer(const GraphicsConfig& graphics_config, SDL_GPUDevice* gpu_device, const Window& main_window);
         ~Renderer();
 
         Renderer(const Renderer&) = delete;
@@ -167,7 +172,13 @@ namespace hob {
 
         void set_time(float game_time, float real_time);
 
+        SDL_GPUDevice* get_gpu_device() const;
+
         Vector2 get_logical_size() const;
+
+        const Window* get_main_window() const;
+        const Window* get_game_window() const;
+        void set_game_window(const Window* window);
 
         void on_window_resized(int window_width, int window_height);
 
@@ -179,7 +190,9 @@ namespace hob {
         void cancel_command_buffer();
 
         SDL_GPUCommandBuffer* get_command_buffer() const;
-        SDL_GPUTexture* get_swap_texture() const;
+        SDL_GPUTexture* get_main_swap_texture() const;
+        SDL_GPUTexture* get_game_swap_texture() const;
+        SDL_GPUTextureFormat get_swapchain_format() const;
 
         void set_camera_view_projection(const Matrix4x4& view_projection);
 
@@ -200,6 +213,8 @@ namespace hob {
         void render_blit_pass();
         void render_debug_lines_pass();
         void render_debug_text_pass();
+
+        void discard_pending_debug_draws();
 
         TextureRef get_or_load_texture(const std::string& relative_path);
         TextureRef create_texture_from_rgba(const void* pixels, uint32_t width, uint32_t height);

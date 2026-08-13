@@ -10,7 +10,7 @@
 #include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
 #include "engine/core/systems/renderer/renderer.h"
-#include "engine/core/systems/sdl_context.h"
+#include "engine/core/systems/window.h"
 
 namespace hob {
     namespace {
@@ -30,12 +30,11 @@ namespace hob {
         static_assert(sizeof(UiVertexUniforms) == 80);
     } // namespace
 
-    UiRenderInterface::UiRenderInterface(const SdlContext& sdl_context, Renderer& renderer)
-        : m_sdl_context(sdl_context)
-        , m_renderer(renderer) {}
+    UiRenderInterface::UiRenderInterface(Renderer& renderer)
+        : m_renderer(renderer) {}
 
     UiRenderInterface::~UiRenderInterface() {
-        SDL_GPUDevice* gpu_device = m_sdl_context.get_gpu_device();
+        SDL_GPUDevice* gpu_device = m_renderer.get_gpu_device();
 
         if (m_sampler) {
             SDL_ReleaseGPUSampler(gpu_device, m_sampler);
@@ -47,7 +46,7 @@ namespace hob {
     }
 
     void UiRenderInterface::init() {
-        SDL_GPUDevice* gpu_device = m_sdl_context.get_gpu_device();
+        SDL_GPUDevice* gpu_device = m_renderer.get_gpu_device();
         const std::filesystem::path shader_dir = PathUtils::get_engine_assets_path() / "shaders";
 
         SDL_GPUShader* vs = m_renderer.load_shader(shader_dir / "ui.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
@@ -77,7 +76,7 @@ namespace hob {
 
         // RmlUi emits premultiplied-alpha vertex colours and textures.
         SDL_GPUColorTargetDescription ctd{};
-        ctd.format = SDL_GetGPUSwapchainTextureFormat(gpu_device, m_sdl_context.get_window());
+        ctd.format = m_renderer.get_swapchain_format();
         ctd.blend_state.enable_blend = true;
         ctd.blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
         ctd.blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
@@ -132,16 +131,16 @@ namespace hob {
         m_projection = Renderer::ortho_top_left_y_flipped(size.x, size.y);
     }
 
-    void UiRenderInterface::begin_frame(SDL_GPUCommandBuffer* cmd, SDL_GPUTexture* swap_tex) {
-        m_active_cmd = cmd;
-        m_sdl_context.get_window_size_px(m_target_width, m_target_height);
+    void UiRenderInterface::begin_frame() {
+        m_active_cmd = m_renderer.get_command_buffer();
+        m_renderer.get_game_window()->get_size_px(m_target_width_px, m_target_height_px);
 
         SDL_GPUColorTargetInfo ct{};
-        ct.texture = swap_tex;
+        ct.texture = m_renderer.get_game_swap_texture();
         ct.load_op = SDL_GPU_LOADOP_LOAD;
         ct.store_op = SDL_GPU_STOREOP_STORE;
 
-        m_active_pass = SDL_BeginGPURenderPass(cmd, &ct, 1, nullptr);
+        m_active_pass = SDL_BeginGPURenderPass(m_active_cmd, &ct, 1, nullptr);
         if (m_active_pass) {
             SDL_BindGPUGraphicsPipeline(m_active_pass, m_pipeline);
         }
@@ -157,7 +156,7 @@ namespace hob {
 
     Rml::CompiledGeometryHandle UiRenderInterface::CompileGeometry(Rml::Span<const Rml::Vertex> vertices,
                                                                    Rml::Span<const int> indices) {
-        SDL_GPUDevice* gpu_device = m_sdl_context.get_gpu_device();
+        SDL_GPUDevice* gpu_device = m_renderer.get_gpu_device();
         const uint32_t vbytes = static_cast<uint32_t>(vertices.size() * sizeof(Rml::Vertex));
         const uint32_t ibytes = static_cast<uint32_t>(indices.size() * sizeof(int));
 
@@ -204,7 +203,7 @@ namespace hob {
             SDL_SetGPUScissor(m_active_pass, &m_scissor_rect);
         }
         else {
-            const SDL_Rect full{0, 0, m_target_width, m_target_height};
+            const SDL_Rect full{0, 0, m_target_width_px, m_target_height_px};
             SDL_SetGPUScissor(m_active_pass, &full);
         }
 
@@ -248,7 +247,7 @@ namespace hob {
             return;
         }
 
-        SDL_GPUDevice* gpu_device = m_sdl_context.get_gpu_device();
+        SDL_GPUDevice* gpu_device = m_renderer.get_gpu_device();
         SDL_ReleaseGPUBuffer(gpu_device, g->vbo);
         SDL_ReleaseGPUBuffer(gpu_device, g->ibo);
         delete g;
@@ -290,8 +289,8 @@ namespace hob {
     }
 
     void UiRenderInterface::SetScissorRegion(Rml::Rectanglei region) {
-        const float sx = (m_logical_size.x > 0.0f) ? static_cast<float>(m_target_width) / m_logical_size.x : 1.0f;
-        const float sy = (m_logical_size.y > 0.0f) ? static_cast<float>(m_target_height) / m_logical_size.y : 1.0f;
+        const float sx = (m_logical_size.x > 0.0f) ? static_cast<float>(m_target_width_px) / m_logical_size.x : 1.0f;
+        const float sy = (m_logical_size.y > 0.0f) ? static_cast<float>(m_target_height_px) / m_logical_size.y : 1.0f;
 
         m_scissor_rect.x = static_cast<int>(static_cast<float>(region.Left()) * sx);
         m_scissor_rect.y = static_cast<int>(static_cast<float>(region.Top()) * sy);

@@ -4,7 +4,6 @@
 #include <memory>
 
 #include <RmlUi/Core.h>
-#include <SDL3/SDL.h>
 
 #include "engine/core/assert.h"
 #include "engine/core/debug.h"
@@ -12,7 +11,7 @@
 #include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
 #include "engine/core/systems/renderer/renderer.h"
-#include "engine/core/systems/sdl_context.h"
+#include "engine/core/systems/window.h"
 
 namespace hob {
     namespace {
@@ -102,14 +101,10 @@ namespace hob {
         }
     } // namespace
 
-    UiSystem::UiSystem(const UiSystemConfig& config,
-                       const SdlContext& sdl_context,
-                       Renderer& renderer,
-                       const Timer& timer)
-        : m_sdl_context(sdl_context)
-        , m_renderer(renderer)
+    UiSystem::UiSystem(const UiSystemConfig& config, Renderer& renderer, const Timer& timer)
+        : m_renderer(renderer)
         , m_system_interface(timer)
-        , m_render_interface(sdl_context, renderer)
+        , m_render_interface(renderer)
         , m_reference_size(static_cast<float>(config.reference_width), static_cast<float>(config.reference_height))
         , m_aspect_mode(config.aspect_mode) {
 
@@ -141,7 +136,7 @@ namespace hob {
 
         int window_width = 0;
         int window_height = 0;
-        m_sdl_context.get_window_size_px(window_width, window_height);
+        m_renderer.get_game_window()->get_size_px(window_width, window_height);
         on_window_resized(window_width, window_height);
     }
 
@@ -163,7 +158,7 @@ namespace hob {
 
         switch (event.type) {
             case SDL_EVENT_MOUSE_MOTION: {
-                const Vector2 window_size = m_sdl_context.get_window_size();
+                const Vector2 window_size = m_renderer.get_game_window()->get_size();
                 const Vector2 logical_size = m_render_interface.get_logical_size();
                 const float sx = (window_size.x > 0.0f) ? logical_size.x / window_size.x : 1.0f;
                 const float sy = (window_size.y > 0.0f) ? logical_size.y / window_size.y : 1.0f;
@@ -212,12 +207,12 @@ namespace hob {
         m_context->Update();
     }
 
-    void UiSystem::render_pass(SDL_GPUCommandBuffer* cmd, SDL_GPUTexture* swap_tex) {
+    void UiSystem::render_pass() {
         if (m_context == nullptr) {
             return;
         }
 
-        m_render_interface.begin_frame(cmd, swap_tex);
+        m_render_interface.begin_frame();
         m_context->Render();
         m_render_interface.end_frame();
     }

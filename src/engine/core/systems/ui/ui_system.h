@@ -7,9 +7,6 @@
 #include <unordered_map>
 #include <variant>
 
-#include <SDL3/SDL_events.h>
-#include <SDL3/SDL_gpu.h>
-
 #include "engine/core/aspect_mode.h"
 #include "engine/math/vector2.h"
 #include "ui_file_interface.h"
@@ -27,7 +24,6 @@ namespace Rml {
 
 namespace hob {
     struct UiSystemConfig;
-    class SdlContext;
     class Renderer;
     class Timer;
 
@@ -71,7 +67,6 @@ namespace hob {
     };
 
     class UiSystem {
-        const SdlContext& m_sdl_context;
         const Renderer& m_renderer;
 
         UiFileInterface m_file_interface;
@@ -102,7 +97,7 @@ namespace hob {
         float m_asset_watch_accumulator = 0.0f;
 
     public:
-        UiSystem(const UiSystemConfig& config, const SdlContext& sdl_context, Renderer& renderer, const Timer& timer);
+        UiSystem(const UiSystemConfig& config, Renderer& renderer, const Timer& timer);
         ~UiSystem();
 
         UiSystem(const UiSystem&) = delete;
@@ -117,7 +112,7 @@ namespace hob {
 
         void tick();
 
-        void render_pass(SDL_GPUCommandBuffer* cmd, SDL_GPUTexture* swap_tex);
+        void render_pass();
 
         Vector2 screen_to_ui(const Vector2& screen_pos) const;
 

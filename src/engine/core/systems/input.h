@@ -14,7 +14,6 @@
 struct SDL_Gamepad;
 
 namespace hob {
-    class SdlContext;
     class Renderer;
 
     enum class InputEventType {
@@ -38,7 +37,6 @@ namespace hob {
     constexpr InputEventHandlerId INVALID_INPUT_EVENT_HANDLER_ID = -1;
 
     class Input {
-        const SdlContext& m_sdl_context;
         const Renderer& m_renderer;
 
         struct HandlerEntry {
@@ -69,7 +67,7 @@ namespace hob {
         uint32_t m_gamepad_id = 0;
 
     public:
-        Input(const SdlContext& sdl_context, const Renderer& renderer);
+        explicit Input(const Renderer& renderer);
         ~Input();
 
         Input(const Input&) = delete;

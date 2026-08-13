@@ -12,13 +12,11 @@
 #include "engine/math/vector2.h"
 
 namespace hob {
-    class SdlContext;
     class Renderer;
 
     class UiRenderInterface : public Rml::RenderInterface {
         static constexpr Rml::TextureHandle INVALID_TEXTURE_HANDLE = 0;
 
-        const SdlContext& m_sdl_context;
         Renderer& m_renderer;
 
         SDL_GPUGraphicsPipeline* m_pipeline = nullptr;
@@ -30,8 +28,8 @@ namespace hob {
 
         SDL_GPUCommandBuffer* m_active_cmd = nullptr;
         SDL_GPURenderPass* m_active_pass = nullptr;
-        int m_target_width = 0;
-        int m_target_height = 0;
+        int m_target_width_px = 0;
+        int m_target_height_px = 0;
 
         bool m_scissor_enabled = false;
         SDL_Rect m_scissor_rect{};
@@ -40,7 +38,7 @@ namespace hob {
         Rml::TextureHandle m_next_texture_handle = INVALID_TEXTURE_HANDLE + 1;
 
     public:
-        UiRenderInterface(const SdlContext& sdl_context, Renderer& renderer);
+        UiRenderInterface(Renderer& renderer);
         ~UiRenderInterface() override;
 
         void init();
@@ -48,7 +46,7 @@ namespace hob {
         Vector2 get_logical_size() const;
         void set_logical_size(const Vector2& size);
 
-        void begin_frame(SDL_GPUCommandBuffer* cmd, SDL_GPUTexture* swap_tex);
+        void begin_frame();
         void end_frame();
 
         Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices,

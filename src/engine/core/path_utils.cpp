@@ -97,6 +97,14 @@ namespace hob {
         return get_project_root() / "config" / "engine_config.json";
     }
 
+    std::filesystem::path PathUtils::get_editor_config_path() {
+        return get_project_root() / "config" / "editor_config.json";
+    }
+
+    std::filesystem::path PathUtils::get_editor_imgui_ini_path() {
+        return get_project_root() / "config" / "editor_imgui.ini";
+    }
+
     std::filesystem::path PathUtils::get_input_config_path() {
         return get_project_root() / "config" / "input_config.json";
     }

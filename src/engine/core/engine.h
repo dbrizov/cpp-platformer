@@ -13,15 +13,18 @@
 #include "systems/sdl_context.h"
 #include "systems/timer.h"
 #include "systems/ui/ui_system.h"
+#include "systems/window.h"
 
 namespace hob {
     struct EngineConfig;
+    struct EditorConfig;
     class CameraComponent;
     class Editor;
 
     class Engine {
         // Order matters
         SdlContext m_sdl_context;
+        Window m_main_window;
         Renderer m_renderer;
         Timer m_timer;
         Input m_input;
@@ -34,17 +37,19 @@ namespace hob {
         LuaScriptSystem m_lua_script_system;
 
         std::unique_ptr<Editor> m_editor;
+        std::unique_ptr<Window> m_game_window;
 
         CameraComponent* m_active_camera = nullptr;
         bool m_warned_no_active_camera = false;
 
     public:
-        explicit Engine(const EngineConfig& config);
+        Engine(const EngineConfig& config, const EditorConfig& editor_config);
         ~Engine();
 
         void run();
 
         SdlContext& get_sdl_context();
+        const Window& get_main_window() const;
         Console& get_console();
         Renderer& get_renderer();
         Timer& get_timer();
@@ -56,6 +61,7 @@ namespace hob {
         LuaScriptSystem& get_lua_script_system();
 
         Editor* get_editor() const;
+        const Window& get_game_window() const;
 
         CameraComponent* get_active_camera() const;
         void set_active_camera(CameraComponent* camera);

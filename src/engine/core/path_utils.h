@@ -19,6 +19,8 @@ namespace hob {
         static std::filesystem::path resolve_asset_path(const std::filesystem::path& relative_path);
 
         static std::filesystem::path get_engine_config_path();
+        static std::filesystem::path get_editor_config_path();
+        static std::filesystem::path get_editor_imgui_ini_path();
         static std::filesystem::path get_input_config_path();
         static std::filesystem::path get_log_path();
     };

@@ -10,27 +10,23 @@
 #include "engine/core/engine_config.h"
 #include "engine/core/logging.h"
 #include "engine/core/systems/console.h"
-#include "engine/core/systems/sdl_context.h"
+#include "engine/core/systems/window.h"
 
 namespace hob {
-    Renderer::Renderer(const GraphicsConfig& graphics_config, const SdlContext& sdl_context)
-        : m_sdl_context(sdl_context)
-        , m_gpu_device(sdl_context.get_gpu_device())
+    Renderer::Renderer(const GraphicsConfig& graphics_config, SDL_GPUDevice* gpu_device, const Window& main_window)
+        : m_gpu_device(gpu_device)
         , m_reference_size(static_cast<float>(graphics_config.reference_width),
                            static_cast<float>(graphics_config.reference_height))
         , m_aspect_mode(graphics_config.aspect_mode)
         , m_render_scale(graphics_config.render_scale > 0.0f ? graphics_config.render_scale : 1.0f)
-        , m_pixel_density(sdl_context.get_pixel_density())
+        , m_pixel_density(1.0f)
+        , m_main_window(&main_window)
+        , m_game_window(&main_window)
         , m_default_sampler_desc{graphics_config.default_texture_filter, graphics_config.default_texture_wrap} {
         // clang-format off
         HOB_CHECK(m_gpu_device, "Renderer init failed: GPU device is null");
 
-        int window_width = 0;
-        int window_height = 0;
-        m_sdl_context.get_window_size_px(window_width, window_height);
-        on_window_resized(window_width, window_height);
-
-        m_swapchain_format = SDL_GetGPUSwapchainTextureFormat(m_gpu_device, m_sdl_context.get_window());
+        m_swapchain_format = SDL_GetGPUSwapchainTextureFormat(m_gpu_device, m_main_window->get_window());
 
         const uint32_t magenta = 0xFFFF00FFu;
         m_fallback_texture = create_texture_from_rgba(&magenta, 1, 1);
@@ -39,9 +35,6 @@ namespace hob {
         const bool shadercross_initialized = SDL_ShaderCross_Init();
         HOB_CHECK(shadercross_initialized, "SDL_ShaderCross_Init failed: {}", SDL_GetError());
         m_shadercross_initialized = true;
-
-        const bool offscreen_target_initialized = init_offscreen_target();
-        HOB_CHECK(offscreen_target_initialized, "Renderer::init_offscreen_target failed: {}", SDL_GetError());
 
         const bool samplers_initialized = init_samplers();
         HOB_CHECK(samplers_initialized, "Renderer::init_samplers failed: {}", SDL_GetError());
@@ -61,15 +54,9 @@ namespace hob {
         const bool debug_text_pipeline_initialized = init_debug_text_pipeline();
         HOB_CHECK(debug_text_pipeline_initialized, "Renderer::init_debug_text_pipeline failed: {}", SDL_GetError());
 
-        const bool debug_font_initialized = init_debug_font();
-        HOB_CHECK(debug_font_initialized, "Renderer::init_debug_font failed: {}", SDL_GetError());
-
         m_initialized = true;
 
-        log::renderer.info("Renderer::Initialise (logical {}x{}, render scale {})",
-                           m_logical_size.x,
-                           m_logical_size.y,
-                           m_render_scale);
+        log::renderer.info("Renderer::Initialise (render scale {})", m_render_scale);
         // clang-format on
     }
 
@@ -126,15 +113,34 @@ namespace hob {
         m_real_time = real_time;
     }
 
+    SDL_GPUDevice* Renderer::get_gpu_device() const {
+        return m_gpu_device;
+    }
+
     Vector2 Renderer::get_logical_size() const {
         return m_logical_size;
     }
 
+    const Window* Renderer::get_main_window() const {
+        return m_main_window;
+    }
+
+    const Window* Renderer::get_game_window() const {
+        return m_game_window;
+    }
+
+    void Renderer::set_game_window(const Window* window) {
+        m_game_window = window;
+    }
+
     void Renderer::on_window_resized(int window_width, int window_height) {
         const Vector2 logical = compute_logical_size(window_width, window_height, m_reference_size, m_aspect_mode);
-        const float density = m_sdl_context.get_pixel_density();
+        const float density = m_game_window->get_pixel_density();
 
-        if (m_initialized && logical == m_logical_size && density == m_pixel_density) {
+        const bool size_changed = logical != m_logical_size;
+        const bool density_changed = density != m_pixel_density;
+
+        if (!size_changed && !density_changed && m_offscreen_color != nullptr && m_debug_font.is_initialized()) {
             return;
         }
 
@@ -143,8 +149,15 @@ namespace hob {
         m_offscreen_projection = ortho_top_left(logical.x, logical.y);
         m_swapchain_projection = ortho_top_left_y_flipped(logical.x, logical.y);
 
-        if (m_initialized && !init_offscreen_target()) {
+        if (!init_offscreen_target()) {
             log::renderer.error("Renderer::on_window_resized: failed to recreate offscreen target");
+        }
+
+        if (density_changed || !m_debug_font.is_initialized()) {
+            m_debug_font.shutdown();
+            if (!init_debug_font()) {
+                log::renderer.error("Renderer::on_window_resized: failed to bake debug font");
+            }
         }
     }
 
@@ -172,25 +185,40 @@ namespace hob {
 
     bool Renderer::acquire_command_buffer() {
         m_command_buffer = SDL_AcquireGPUCommandBuffer(m_gpu_device);
-        m_swap_texture = nullptr;
+        m_main_swap_texture = nullptr;
+        m_game_swap_texture = nullptr;
 
         const bool ok = SDL_WaitAndAcquireGPUSwapchainTexture(
-                            m_command_buffer, m_sdl_context.get_window(), &m_swap_texture, nullptr, nullptr) &&
-                        m_swap_texture != nullptr;
-        return ok;
+                            m_command_buffer, m_main_window->get_window(), &m_main_swap_texture, nullptr, nullptr) &&
+                        m_main_swap_texture != nullptr;
+        if (!ok) {
+            return false;
+        }
+
+        if (m_game_window == m_main_window) {
+            m_game_swap_texture = m_main_swap_texture;
+        }
+        else if (!SDL_WaitAndAcquireGPUSwapchainTexture(
+                     m_command_buffer, m_game_window->get_window(), &m_game_swap_texture, nullptr, nullptr)) {
+            m_game_swap_texture = nullptr;
+        }
+
+        return true;
     }
 
     void Renderer::submit_command_buffer() {
         SDL_SubmitGPUCommandBuffer(m_command_buffer);
         m_command_buffer = nullptr;
-        m_swap_texture = nullptr;
+        m_main_swap_texture = nullptr;
+        m_game_swap_texture = nullptr;
         m_has_camera_view_projection = false;
     }
 
     void Renderer::cancel_command_buffer() {
         SDL_CancelGPUCommandBuffer(m_command_buffer);
         m_command_buffer = nullptr;
-        m_swap_texture = nullptr;
+        m_main_swap_texture = nullptr;
+        m_game_swap_texture = nullptr;
         m_has_camera_view_projection = false;
     }
 
@@ -198,8 +226,16 @@ namespace hob {
         return m_command_buffer;
     }
 
-    SDL_GPUTexture* Renderer::get_swap_texture() const {
-        return m_swap_texture;
+    SDL_GPUTexture* Renderer::get_main_swap_texture() const {
+        return m_main_swap_texture;
+    }
+
+    SDL_GPUTexture* Renderer::get_game_swap_texture() const {
+        return m_game_swap_texture;
+    }
+
+    SDL_GPUTextureFormat Renderer::get_swapchain_format() const {
+        return m_swapchain_format;
     }
 
     void Renderer::set_camera_view_projection(const Matrix4x4& view_projection) {
