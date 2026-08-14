@@ -136,7 +136,7 @@ namespace hob {
                                   }
 
                                   m_render_scale = scale;
-                                  if (m_initialized && !init_offscreen_target()) {
+                                  if (m_initialized && !init_offscreen_color_target()) {
                                       log::renderer.error("r_render_scale: failed to recreate offscreen target");
                                   }
                               });

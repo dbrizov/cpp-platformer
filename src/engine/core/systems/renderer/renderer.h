@@ -94,14 +94,14 @@ namespace hob {
         // -- Projections --
         Matrix4x4 m_offscreen_projection; // clip-space ortho mapping (0,0)..(w,h) -> (-1,-1)..(+1,+1) with y-down
         Matrix4x4 m_swapchain_projection; // same mapping, y-flipped for the swapchain's opposite NDC y convention
-        Matrix4x4 m_camera_view_projection; // camera view-projection applied to sprites in the world pass
+        Matrix4x4 m_camera_view_projection; // game camera view-projection; the world pass takes it as an argument
         bool m_has_camera_view_projection = false;
 
         // -- Command buffer --
         SDL_GPUCommandBuffer* m_command_buffer = nullptr;
 
         // -- Texture targets --
-        SDL_GPUTexture* m_offscreen_color = nullptr;
+        SDL_GPUTexture* m_offscreen_color_target = nullptr;
         SDL_GPUTextureFormat m_offscreen_format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
 
         SDL_GPUTexture* m_main_swap_texture = nullptr;
@@ -193,6 +193,9 @@ namespace hob {
         SDL_GPUTexture* get_main_swap_texture() const;
         SDL_GPUTexture* get_game_swap_texture() const;
         SDL_GPUTextureFormat get_swapchain_format() const;
+        SDL_GPUTextureFormat get_offscreen_format() const;
+
+        SDL_GPUTexture* create_color_target(uint32_t width, uint32_t height) const;
 
         void set_camera_view_projection(const Matrix4x4& view_projection);
 
@@ -210,6 +213,7 @@ namespace hob {
         int get_debug_font_line_height() const;
 
         void render_world_pass();
+        void render_world_pass_to(SDL_GPUTexture* target, const Matrix4x4& view_projection, bool draw_sprites = true);
         void render_blit_pass();
         void render_debug_lines_pass();
         void render_debug_text_pass();
@@ -242,7 +246,7 @@ namespace hob {
         void release_materials();
         void track_material(const MaterialRef& material);
 
-        bool init_offscreen_target();
+        bool init_offscreen_color_target();
         bool init_samplers();
         bool init_quad_vbo();
         bool init_default_sprite_pipeline();
@@ -256,7 +260,10 @@ namespace hob {
                                BlendMode blend,
                                CullMode cull);
 
-        void record_sprite_draw(SDL_GPURenderPass* pass, const SpriteDrawData& draw, const Shader*& bound_shader);
+        void record_sprite_draw(SDL_GPURenderPass* pass,
+                                const SpriteDrawData& draw,
+                                const Matrix4x4& view_projection,
+                                const Shader*& bound_shader);
         void push_sprite_fragment_uniforms(const Texture& texture, const Material& material);
 
         void debug_textures();

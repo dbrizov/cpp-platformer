@@ -1,5 +1,6 @@
 #include "editor.h"
 
+#include <algorithm>
 #include <filesystem>
 
 #include <SDL3/SDL_events.h>
@@ -14,11 +15,11 @@
 
 namespace hob {
     Editor::Editor(Engine& engine)
-        : m_engine(engine) {
-        const std::string imgui_ini_path = PathUtils::get_editor_imgui_ini_path().string();
-        ImGui::GetIO().IniFilename = imgui_ini_path.c_str();
+        : m_engine(engine)
+        , m_imgui_ini_path(PathUtils::get_editor_imgui_ini_path().string()) {
+        ImGui::GetIO().IniFilename = m_imgui_ini_path.c_str();
 
-        m_reset_layout = !std::filesystem::exists(imgui_ini_path);
+        m_reset_layout = !std::filesystem::exists(m_imgui_ini_path);
 
         log::engine.info("Editor::Initialise");
     }
@@ -31,6 +32,7 @@ namespace hob {
         }
 
         save_layout();
+        release_scene_color_target();
 
         log::engine.info("Editor::Shutdown");
     }
@@ -70,6 +72,7 @@ namespace hob {
 
     void Editor::draw_gui() {
         draw_dockspace();
+        draw_scene_view();
 
         for (const char* name : PANELS) {
             if (ImGui::Begin(name)) {
@@ -77,6 +80,48 @@ namespace hob {
             }
             ImGui::End();
         }
+    }
+
+    void Editor::render_passes() {
+        if (m_scene_color_target == nullptr) {
+            return;
+        }
+
+        const Vector2 scene_size(static_cast<float>(m_scene_color_target_width),
+                                 static_cast<float>(m_scene_color_target_height));
+        const Matrix4x4 view_proj = m_camera.build_view_projection(scene_size);
+
+        m_engine.get_renderer().render_world_pass_to(m_scene_color_target, view_proj);
+    }
+
+    void Editor::ensure_scene_color_target(uint32_t width, uint32_t height) {
+        width = std::max(width, 1u);
+        height = std::max(height, 1u);
+
+        if (m_scene_color_target && width == m_scene_color_target_width && height == m_scene_color_target_height) {
+            return;
+        }
+
+        release_scene_color_target();
+
+        m_scene_color_target = m_engine.get_renderer().create_color_target(width, height);
+        if (m_scene_color_target == nullptr) {
+            return;
+        }
+
+        m_scene_color_target_width = width;
+        m_scene_color_target_height = height;
+    }
+
+    void Editor::release_scene_color_target() {
+        if (m_scene_color_target == nullptr) {
+            return;
+        }
+
+        SDL_ReleaseGPUTexture(m_engine.get_renderer().get_gpu_device(), m_scene_color_target);
+        m_scene_color_target = nullptr;
+        m_scene_color_target_width = 0;
+        m_scene_color_target_height = 0;
     }
 
     void Editor::draw_dockspace() {

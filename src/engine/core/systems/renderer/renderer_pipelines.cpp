@@ -411,23 +411,13 @@ namespace hob {
         return m_default_sampler_desc;
     }
 
-    bool Renderer::init_offscreen_target() {
-        if (m_offscreen_color) {
-            SDL_ReleaseGPUTexture(m_gpu_device, m_offscreen_color);
-            m_offscreen_color = nullptr;
-        }
-
-        const uint32_t tex_width =
-            std::max(1u, static_cast<uint32_t>(std::round(m_logical_size.x * m_render_scale * m_pixel_density)));
-        const uint32_t tex_height =
-            std::max(1u, static_cast<uint32_t>(std::round(m_logical_size.y * m_render_scale * m_pixel_density)));
-
+    SDL_GPUTexture* Renderer::create_color_target(uint32_t width, uint32_t height) const {
         SDL_GPUTextureCreateInfo tci{};
         tci.type = SDL_GPU_TEXTURETYPE_2D;
         tci.format = m_offscreen_format;
         tci.usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER;
-        tci.width = tex_width;
-        tci.height = tex_height;
+        tci.width = std::max(1u, width);
+        tci.height = std::max(1u, height);
         tci.layer_count_or_depth = 1;
         tci.num_levels = 1;
         tci.sample_count = SDL_GPU_SAMPLECOUNT_1;
@@ -442,16 +432,31 @@ namespace hob {
         SDL_SetFloatProperty(props, SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_A_FLOAT, CLEAR_COLOR.a);
         tci.props = props;
 
-        m_offscreen_color = SDL_CreateGPUTexture(m_gpu_device, &tci);
+        SDL_GPUTexture* texture = SDL_CreateGPUTexture(m_gpu_device, &tci);
 
         SDL_DestroyProperties(props);
 
-        if (!m_offscreen_color) {
-            log::renderer.error("SDL_CreateGPUTexture (offscreen) failed: {}", SDL_GetError());
-            return false;
+        if (!texture) {
+            log::renderer.error("SDL_CreateGPUTexture (color target) failed: {}", SDL_GetError());
         }
 
-        return true;
+        return texture;
+    }
+
+    bool Renderer::init_offscreen_color_target() {
+        if (m_offscreen_color_target) {
+            SDL_ReleaseGPUTexture(m_gpu_device, m_offscreen_color_target);
+            m_offscreen_color_target = nullptr;
+        }
+
+        const uint32_t tex_width =
+            std::max(1u, static_cast<uint32_t>(std::round(m_logical_size.x * m_render_scale * m_pixel_density)));
+        const uint32_t tex_height =
+            std::max(1u, static_cast<uint32_t>(std::round(m_logical_size.y * m_render_scale * m_pixel_density)));
+
+        m_offscreen_color_target = create_color_target(tex_width, tex_height);
+
+        return m_offscreen_color_target != nullptr;
     }
 
     bool Renderer::init_samplers() {

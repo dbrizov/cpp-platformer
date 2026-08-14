@@ -26,10 +26,19 @@ namespace hob {
     } // namespace
 
     void Renderer::render_world_pass() {
+        render_world_pass_to(m_offscreen_color_target, m_camera_view_projection, m_has_camera_view_projection);
+
+        debug_textures();
+        debug_shaders();
+        debug_materials();
+        debug_sprite_queue();
+    }
+
+    void Renderer::render_world_pass_to(SDL_GPUTexture* target, const Matrix4x4& view_projection, bool draw_sprites) {
         SDL_GPUCommandBuffer* cmd = m_command_buffer;
 
         SDL_GPUColorTargetInfo ct{};
-        ct.texture = m_offscreen_color;
+        ct.texture = target;
         ct.clear_color = to_sdl_color(CLEAR_COLOR);
         ct.load_op = SDL_GPU_LOADOP_CLEAR;
         ct.store_op = SDL_GPU_STOREOP_STORE;
@@ -59,7 +68,7 @@ namespace hob {
                 return da.get_shader() < db.get_shader();
             });
 
-            if (m_has_camera_view_projection && !m_sprite_draw_order.empty()) {
+            if (draw_sprites && !m_sprite_draw_order.empty()) {
                 SDL_GPUBufferBinding vb{};
                 vb.buffer = m_quad_vbo;
                 vb.offset = 0;
@@ -68,17 +77,12 @@ namespace hob {
                 const Shader* bound_shader = nullptr;
 
                 for (const uint32_t index : m_sprite_draw_order) {
-                    record_sprite_draw(pass, m_sprite_draws[index], bound_shader);
+                    record_sprite_draw(pass, m_sprite_draws[index], view_projection, bound_shader);
                 }
             }
 
             SDL_EndGPURenderPass(pass);
         }
-
-        debug_textures();
-        debug_shaders();
-        debug_materials();
-        debug_sprite_queue();
     }
 
     void Renderer::render_blit_pass() {
@@ -97,7 +101,7 @@ namespace hob {
             SDL_BindGPUGraphicsPipeline(pass, m_blit_pipeline);
 
             SDL_GPUTextureSamplerBinding ts{};
-            ts.texture = m_offscreen_color;
+            ts.texture = m_offscreen_color_target;
             ts.sampler = m_blit_sampler;
             SDL_BindGPUFragmentSamplers(pass, 0, &ts, 1);
 
@@ -284,6 +288,7 @@ namespace hob {
 
     void Renderer::record_sprite_draw(SDL_GPURenderPass* pass,
                                       const SpriteDrawData& draw,
+                                      const Matrix4x4& view_projection,
                                       const Shader*& bound_shader) {
         if (!draw.texture || !draw.texture->m_gpu_texture) {
             return;
@@ -301,7 +306,7 @@ namespace hob {
         }
 
         SpriteVSUniforms vsu{};
-        std::memcpy(vsu.proj, m_camera_view_projection.data(), sizeof(vsu.proj));
+        std::memcpy(vsu.proj, view_projection.data(), sizeof(vsu.proj));
         vsu.position[0] = draw.world_pos.x;
         vsu.position[1] = draw.world_pos.y;
         vsu.size[0] = draw.size.x;

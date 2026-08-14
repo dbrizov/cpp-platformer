@@ -216,6 +216,10 @@ namespace hob {
                     m_renderer.discard_pending_debug_draws();
                 }
 
+                if (m_editor) {
+                    m_editor->render_passes();
+                }
+
                 m_imgui_system.render_pass();
 
                 m_renderer.submit_command_buffer();

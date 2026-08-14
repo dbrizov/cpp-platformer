@@ -98,8 +98,8 @@ namespace hob {
         for (auto& [key, sampler] : m_samplers) {
             SDL_ReleaseGPUSampler(m_gpu_device, sampler);
         }
-        if (m_offscreen_color)
-            SDL_ReleaseGPUTexture(m_gpu_device, m_offscreen_color);
+        if (m_offscreen_color_target)
+            SDL_ReleaseGPUTexture(m_gpu_device, m_offscreen_color_target);
 
         if (m_shadercross_initialized) {
             SDL_ShaderCross_Quit();
@@ -144,7 +144,7 @@ namespace hob {
         const bool size_changed = logical != m_logical_size;
         const bool density_changed = density != m_pixel_density;
 
-        if (!size_changed && !density_changed && m_offscreen_color != nullptr && m_debug_font.is_initialized()) {
+        if (!size_changed && !density_changed && m_offscreen_color_target != nullptr && m_debug_font.is_initialized()) {
             return;
         }
 
@@ -153,7 +153,7 @@ namespace hob {
         m_offscreen_projection = ortho_top_left(logical.x, logical.y);
         m_swapchain_projection = ortho_top_left_y_flipped(logical.x, logical.y);
 
-        if (!init_offscreen_target()) {
+        if (!init_offscreen_color_target()) {
             log::renderer.error("Renderer::on_window_resized: failed to recreate offscreen target");
         }
 
@@ -243,6 +243,10 @@ namespace hob {
 
     SDL_GPUTextureFormat Renderer::get_swapchain_format() const {
         return m_swapchain_format;
+    }
+
+    SDL_GPUTextureFormat Renderer::get_offscreen_format() const {
+        return m_offscreen_format;
     }
 
     void Renderer::set_camera_view_projection(const Matrix4x4& view_projection) {
