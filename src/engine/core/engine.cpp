@@ -206,7 +206,7 @@ namespace hob {
             m_renderer.set_time(m_timer.get_game_time(), m_timer.get_real_time());
             if (m_renderer.acquire_command_buffer()) {
                 if (m_renderer.get_game_swap_texture() != nullptr) {
-                    m_renderer.render_world_pass();
+                    m_renderer.render_world_pass(get_game_camera_view_projection());
                     m_renderer.render_blit_pass();
                     m_renderer.render_debug_lines_pass();
                     m_ui_system.render_pass();
@@ -336,18 +336,21 @@ namespace hob {
         }
     }
 
-    void Engine::draw_entities() {
+    Matrix4x4 Engine::get_game_camera_view_projection() const {
         const CameraComponent* camera = get_active_camera();
         if (camera == nullptr) {
             if (!m_warned_no_active_camera && !m_editor) {
                 log::engine.error("Engine::draw_entities: no active camera (spawn a Camera entity to render)");
                 m_warned_no_active_camera = true;
             }
-            return;
+
+            return Matrix4x4::identity();
         }
 
-        m_renderer.set_camera_view_projection(camera->build_view_projection());
+        return camera->build_view_projection();
+    }
 
+    void Engine::draw_entities() {
         const float interpolation_fraction = m_physics.get_interpolation_fraction();
 
         for (SpriteComponent* sprite_comp : m_entity_spawner.get_sprites()) {

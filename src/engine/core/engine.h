@@ -43,7 +43,7 @@ namespace hob {
         WindowConfig m_game_window_config;
 
         CameraComponent* m_active_camera = nullptr;
-        bool m_warned_no_active_camera = false;
+        mutable bool m_warned_no_active_camera = false;
 
     public:
         Engine(const EngineConfig& config, const EditorConfig& editor_config);
@@ -76,6 +76,8 @@ namespace hob {
         void clear_active_camera(CameraComponent* camera);
 
     private:
+        Matrix4x4 get_game_camera_view_projection() const;
+
         void draw_entities();
         void flush_debug_draws_to_renderer(float delta_time);
 

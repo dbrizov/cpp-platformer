@@ -25,8 +25,8 @@ namespace hob {
         static_assert(sizeof(SpriteVSUniforms) == 96);
     } // namespace
 
-    void Renderer::render_world_pass() {
-        render_world_pass_to(m_offscreen_color_target, m_camera_view_projection, m_has_camera_view_projection);
+    void Renderer::render_world_pass(const Matrix4x4& view_proj) {
+        render_world_pass_to(m_offscreen_color_target, view_proj);
 
         debug_textures();
         debug_shaders();
@@ -34,7 +34,7 @@ namespace hob {
         debug_sprite_queue();
     }
 
-    void Renderer::render_world_pass_to(SDL_GPUTexture* target, const Matrix4x4& view_projection, bool draw_sprites) {
+    void Renderer::render_world_pass_to(SDL_GPUTexture* target, const Matrix4x4& view_proj) {
         SDL_GPUCommandBuffer* cmd = m_command_buffer;
 
         SDL_GPUColorTargetInfo ct{};
@@ -68,7 +68,7 @@ namespace hob {
                 return da.get_shader() < db.get_shader();
             });
 
-            if (draw_sprites && !m_sprite_draw_order.empty()) {
+            if (!m_sprite_draw_order.empty()) {
                 SDL_GPUBufferBinding vb{};
                 vb.buffer = m_quad_vbo;
                 vb.offset = 0;
@@ -77,7 +77,7 @@ namespace hob {
                 const Shader* bound_shader = nullptr;
 
                 for (const uint32_t index : m_sprite_draw_order) {
-                    record_sprite_draw(pass, m_sprite_draws[index], view_projection, bound_shader);
+                    record_sprite_draw(pass, m_sprite_draws[index], view_proj, bound_shader);
                 }
             }
 
@@ -288,7 +288,7 @@ namespace hob {
 
     void Renderer::record_sprite_draw(SDL_GPURenderPass* pass,
                                       const SpriteDrawData& draw,
-                                      const Matrix4x4& view_projection,
+                                      const Matrix4x4& view_proj,
                                       const Shader*& bound_shader) {
         if (!draw.texture || !draw.texture->m_gpu_texture) {
             return;
@@ -306,7 +306,7 @@ namespace hob {
         }
 
         SpriteVSUniforms vsu{};
-        std::memcpy(vsu.proj, view_projection.data(), sizeof(vsu.proj));
+        std::memcpy(vsu.proj, view_proj.data(), sizeof(vsu.proj));
         vsu.position[0] = draw.world_pos.x;
         vsu.position[1] = draw.world_pos.y;
         vsu.size[0] = draw.size.x;
