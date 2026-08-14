@@ -88,6 +88,11 @@ namespace hob {
         dump_path_schemas();
         dump_factory_schemas();
 
+        // In editor mode the bootstrap skips main.lua; the editor runs it on Play (run_project_main).
+        if (m_engine.is_editor_enabled()) {
+            lua["__editor_mode"] = true;
+        }
+
         const bool bootstrap_succeeded = run_bootstrap();
         HOB_CHECK(bootstrap_succeeded, "Lua bootstrap failed");
 
@@ -272,6 +277,10 @@ namespace hob {
 
     bool LuaScriptSystem::run_bootstrap() {
         return run_engine_file("scripts/bootstrap.lua");
+    }
+
+    bool LuaScriptSystem::run_project_main() {
+        return run_project_file("scripts/main.lua");
     }
 
     void LuaScriptSystem::register_cvars(Console& console) {

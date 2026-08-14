@@ -22,6 +22,8 @@ namespace hob {
     class Editor;
 
     class Engine {
+        bool m_is_editor_enabled = false;
+
         // Order matters
         SdlContext m_sdl_context;
         Window m_main_window;
@@ -38,6 +40,7 @@ namespace hob {
 
         std::unique_ptr<Editor> m_editor;
         std::unique_ptr<Window> m_game_window;
+        WindowConfig m_game_window_config;
 
         CameraComponent* m_active_camera = nullptr;
         bool m_warned_no_active_camera = false;
@@ -60,8 +63,13 @@ namespace hob {
         EntitySpawner& get_entity_spawner();
         LuaScriptSystem& get_lua_script_system();
 
+        bool is_editor_enabled() const;
         Editor* get_editor() const;
-        const Window& get_game_window() const;
+
+        const Window& get_play_window() const;
+        const Window* get_game_window() const;
+        void open_game_window();
+        void close_game_window();
 
         CameraComponent* get_active_camera() const;
         void set_active_camera(CameraComponent* camera);

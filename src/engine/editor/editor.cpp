@@ -35,6 +35,39 @@ namespace hob {
         log::engine.info("Editor::Shutdown");
     }
 
+    void Editor::set_state(State state) {
+        if (state == m_state) {
+            return;
+        }
+
+        const bool entering_play = (m_state == State::Edit);
+        const bool leaving_play = (state == State::Edit);
+
+        if (entering_play) {
+            m_engine.open_game_window();
+            m_engine.get_lua_script_system().run_project_main();
+        }
+        else if (leaving_play) {
+            m_engine.get_entity_spawner().clear();
+            m_engine.close_game_window();
+        }
+
+        m_state = state;
+    }
+
+    bool Editor::is_simulating() const {
+        return m_simulate_this_frame;
+    }
+
+    bool Editor::wants_game_input() const {
+        return m_state == State::Play && m_engine.get_game_window() && m_engine.get_game_window()->has_focus();
+    }
+
+    void Editor::tick(float delta_time) {
+        m_simulate_this_frame = (m_state == State::Play) || (m_state == State::Paused && m_step_requested);
+        m_step_requested = false;
+    }
+
     void Editor::draw_gui() {
         draw_dockspace();
 
@@ -49,6 +82,7 @@ namespace hob {
     void Editor::draw_dockspace() {
         if (ImGui::BeginMainMenuBar()) {
             draw_menu_bar();
+            draw_toolbar();
             ImGui::EndMainMenuBar();
         }
 
@@ -73,6 +107,44 @@ namespace hob {
 
             ImGui::EndMenu();
         }
+    }
+
+    void Editor::draw_toolbar() {
+        ImGui::Separator();
+
+        switch (m_state) {
+            case State::Edit: {
+                if (ImGui::SmallButton("Play")) {
+                    set_state(State::Play);
+                }
+                break;
+            }
+            case State::Play: {
+                if (ImGui::SmallButton("Pause")) {
+                    set_state(State::Paused);
+                }
+                if (ImGui::SmallButton("Stop")) {
+                    set_state(State::Edit);
+                }
+                break;
+            }
+            case State::Paused: {
+                if (ImGui::SmallButton("Resume")) {
+                    set_state(State::Play);
+                }
+                if (ImGui::SmallButton("Step")) {
+                    m_step_requested = true;
+                }
+                if (ImGui::SmallButton("Stop")) {
+                    set_state(State::Edit);
+                }
+                break;
+            }
+        }
+
+        const char* label = (m_state == State::Edit) ? "Edit" : (m_state == State::Play) ? "Play" : "Paused";
+        ImGui::Separator();
+        ImGui::TextDisabled("%s", label);
     }
 
     void Editor::build_default_layout(ImGuiID dockspace_id) {

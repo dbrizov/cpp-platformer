@@ -82,6 +82,8 @@ namespace hob {
         void unregister_audio(AudioComponent* audio);
         const std::vector<AudioComponent*>& get_audio_sources() const;
 
+        void clear();
+
         void register_cvars(Console& console);
         void debug_hierarchy();
 
@@ -93,7 +95,5 @@ namespace hob {
         void resolve_spawn_requests();
         void resolve_destroy_requests();
         void resolve_ticking_sync_requests();
-
-        void clear();
     };
 } // namespace hob

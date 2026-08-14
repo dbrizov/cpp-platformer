@@ -24,5 +24,7 @@ __load_engine_modules()
 __load_project_definitions()
 __warmup_shaders()
 
--- Entry point.
-Scripts.run_project_file("scripts/main.lua")
+-- Entry point. In editor mode C++ defers the game entry point: main.lua runs on Play
+if not _G.__editor_mode then
+    Scripts.run_project_file("scripts/main.lua")
+end

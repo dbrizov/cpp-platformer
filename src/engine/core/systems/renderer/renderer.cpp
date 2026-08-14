@@ -134,6 +134,10 @@ namespace hob {
     }
 
     void Renderer::on_window_resized(int window_width, int window_height) {
+        if (m_game_window == nullptr) {
+            return;
+        }
+
         const Vector2 logical = compute_logical_size(window_width, window_height, m_reference_size, m_aspect_mode);
         const float density = m_game_window->get_pixel_density();
 
@@ -195,7 +199,10 @@ namespace hob {
             return false;
         }
 
-        if (m_game_window == m_main_window) {
+        if (m_game_window == nullptr) {
+            m_game_swap_texture = nullptr;
+        }
+        else if (m_game_window == m_main_window) {
             m_game_swap_texture = m_main_swap_texture;
         }
         else if (!SDL_WaitAndAcquireGPUSwapchainTexture(

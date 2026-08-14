@@ -39,6 +39,8 @@ namespace hob {
         bool hot_reload();
         void poll_hot_reload(float delta_time);
 
+        bool run_project_main();
+
     private:
         void refresh_lua_component_class_caches();
 

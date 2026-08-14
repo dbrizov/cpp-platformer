@@ -193,6 +193,18 @@ namespace hob {
         return m_audio_sources;
     }
 
+    void EntitySpawner::clear() {
+        for (auto& entity : m_entities) {
+            entity->exit_play();
+        }
+
+        m_entities.clear();
+        m_entity_records.clear();
+        m_entity_spawn_requests.clear();
+        m_entity_destroy_requests.clear();
+        m_entity_ticking_sync_requests.clear();
+    }
+
     void EntitySpawner::register_cvars(Console& console) {
         console.register_cvar("e_show_hierarchy",
                               "Show an entity hierarchy window (nested transforms, id, components)",
@@ -412,20 +424,5 @@ namespace hob {
                 unregister_ticking_entity(entity);
             }
         }
-    }
-
-    void EntitySpawner::clear() {
-        for (auto& entity : m_entities) {
-            entity->exit_play();
-        }
-
-        m_entities.clear();
-        m_entity_records.clear();
-        m_entity_spawn_requests.clear();
-        m_entity_destroy_requests.clear();
-        m_entity_ticking_sync_requests.clear();
-        m_ticking_entities.clear();
-        m_sprites.clear();
-        m_simulated_rigidbodies.clear();
     }
 } // namespace hob

@@ -152,7 +152,7 @@ namespace hob {
     }
 
     void UiSystem::process_event(const SDL_Event& event) {
-        if (m_context == nullptr) {
+        if (m_context == nullptr || m_renderer.get_game_window() == nullptr) {
             return;
         }
 

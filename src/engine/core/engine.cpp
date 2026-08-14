@@ -54,7 +54,8 @@ namespace hob {
     } // namespace
 
     Engine::Engine(const EngineConfig& config, const EditorConfig& editor_config)
-        : m_sdl_context()
+        : m_is_editor_enabled(editor_config.enabled)
+        , m_sdl_context()
         , m_main_window(m_sdl_context.get_gpu_device(), make_main_window_config(config.graphics_config, editor_config))
         , m_renderer(config.graphics_config, m_sdl_context.get_gpu_device(), m_main_window)
         , m_timer(config.graphics_config)
@@ -65,7 +66,8 @@ namespace hob {
         , m_physics(config.physics_config)
         , m_audio(config.audio_config)
         , m_entity_spawner(*this)
-        , m_lua_script_system(*this) {
+        , m_lua_script_system(*this)
+        , m_game_window_config(make_game_window_config(config.graphics_config)) {
 
         m_renderer.register_cvars(m_console);
         m_physics.register_cvars(m_console);
@@ -74,21 +76,19 @@ namespace hob {
         m_lua_script_system.register_cvars(m_console);
         SocketsComponent::register_cvars(m_console);
 
-        Window* game_window = &m_main_window;
-        if (editor_config.enabled) {
+        if (m_is_editor_enabled) {
             m_editor = std::make_unique<Editor>(*this);
-            m_game_window = std::make_unique<Window>(m_sdl_context.get_gpu_device(),
-                                                     make_game_window_config(config.graphics_config));
-            game_window = m_game_window.get();
+            m_renderer.set_game_window(nullptr);
         }
+        else {
+            m_renderer.set_game_window(&m_main_window);
 
-        m_renderer.set_game_window(game_window);
-
-        int width_px = 0;
-        int height_px = 0;
-        game_window->get_size_px(width_px, height_px);
-        m_renderer.on_window_resized(width_px, height_px);
-        m_ui_system.on_window_resized(width_px, height_px);
+            int width_px = 0;
+            int height_px = 0;
+            m_main_window.get_size_px(width_px, height_px);
+            m_renderer.on_window_resized(width_px, height_px);
+            m_ui_system.on_window_resized(width_px, height_px);
+        }
     }
 
     Engine::~Engine() {
@@ -121,10 +121,15 @@ namespace hob {
                     is_running = false;
                 }
                 else if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
-                    is_running = false;
+                    if (m_editor && m_game_window && event.window.windowID == m_game_window->get_id()) {
+                        m_editor->set_state(Editor::State::Edit);
+                    }
+                    else {
+                        is_running = false;
+                    }
                 }
                 else if (event.type == SDL_EVENT_WINDOW_RESIZED) {
-                    if (event.window.windowID == get_game_window().get_id()) {
+                    if (m_game_window && event.window.windowID == m_game_window->get_id()) {
                         m_renderer.on_window_resized(event.window.data1, event.window.data2);
                         m_ui_system.on_window_resized(event.window.data1, event.window.data2);
                     }
@@ -149,28 +154,38 @@ namespace hob {
             m_ui_system.poll_hot_reload(delta_time);
 #endif
 
-            if (!m_console.is_open() && get_game_window().has_focus()) {
+            if (m_editor) {
+                m_editor->tick(delta_time);
+            }
+
+            const bool simulating = (m_editor == nullptr) || m_editor->is_simulating();
+            const bool game_input =
+                (m_editor == nullptr) ? get_play_window().has_focus() : m_editor->wants_game_input();
+
+            if (!m_console.is_open() && simulating && game_input) {
                 m_input.tick(scaled_delta_time);
             }
 
-            for (Entity* entity : m_entity_spawner.get_ticking_entities()) {
-                entity->tick(scaled_delta_time);
-            }
+            if (simulating) {
+                for (Entity* entity : m_entity_spawner.get_ticking_entities()) {
+                    entity->tick(scaled_delta_time);
+                }
 
-            m_physics.tick(scaled_delta_time, m_entity_spawner.get_simulated_rigidbodies());
+                m_physics.tick(scaled_delta_time, m_entity_spawner.get_simulated_rigidbodies());
 
-            for (Entity* entity : m_entity_spawner.get_ticking_entities()) {
-                entity->late_tick(scaled_delta_time);
-            }
+                for (Entity* entity : m_entity_spawner.get_ticking_entities()) {
+                    entity->late_tick(scaled_delta_time);
+                }
 
-            for (AudioComponent* audio_source : m_entity_spawner.get_audio_sources()) {
-                audio_source->update_spatialization();
+                for (AudioComponent* audio_source : m_entity_spawner.get_audio_sources()) {
+                    audio_source->update_spatialization();
+                }
+
+                m_ui_system.tick();
             }
 
             m_audio.debug_clips();
             m_entity_spawner.debug_hierarchy();
-
-            m_ui_system.tick();
 
 #ifndef NDEBUG
             for (Entity* entity : entities) {
@@ -259,12 +274,47 @@ namespace hob {
         return m_lua_script_system;
     }
 
+    bool Engine::is_editor_enabled() const {
+        return m_is_editor_enabled;
+    }
+
     Editor* Engine::get_editor() const {
         return m_editor.get();
     }
 
-    const Window& Engine::get_game_window() const {
+    const Window& Engine::get_play_window() const {
         return m_game_window != nullptr ? *m_game_window : m_main_window;
+    }
+
+    const Window* Engine::get_game_window() const {
+        return m_game_window.get();
+    }
+
+    void Engine::open_game_window() {
+        if (m_game_window != nullptr) {
+            return;
+        }
+
+        m_game_window = std::make_unique<Window>(m_sdl_context.get_gpu_device(), m_game_window_config);
+        m_renderer.set_game_window(m_game_window.get());
+
+        int width_px = 0;
+        int height_px = 0;
+        m_game_window->get_size_px(width_px, height_px);
+        m_renderer.on_window_resized(width_px, height_px);
+        m_ui_system.on_window_resized(width_px, height_px);
+    }
+
+    void Engine::close_game_window() {
+        if (m_game_window == nullptr) {
+            return;
+        }
+
+        // The last frame presented to this window may still be in flight; wait before releasing it.
+        SDL_WaitForGPUIdle(m_renderer.get_gpu_device());
+
+        m_renderer.set_game_window(nullptr);
+        m_game_window.reset();
     }
 
     CameraComponent* Engine::get_active_camera() const {
@@ -285,7 +335,7 @@ namespace hob {
     void Engine::draw_entities() {
         const CameraComponent* camera = get_active_camera();
         if (camera == nullptr) {
-            if (!m_warned_no_active_camera) {
+            if (!m_warned_no_active_camera && !m_editor) {
                 log::engine.error("Engine::draw_entities: no active camera (spawn a Camera entity to render)");
                 m_warned_no_active_camera = true;
             }
@@ -347,7 +397,7 @@ namespace hob {
             return;
         }
 
-        debug::flush_draws_to_renderer(m_renderer, camera, get_game_window().get_size(), delta_time);
+        debug::flush_draws_to_renderer(m_renderer, camera, get_play_window().get_size(), delta_time);
     }
 
     bool Engine::has_moving_physics_body(const Entity& entity) {
