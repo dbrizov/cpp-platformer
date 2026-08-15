@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/math/aabb.h"
 #include "engine/math/matrix4x4.h"
 #include "engine/math/vector2.h"
 
@@ -15,5 +16,6 @@ namespace hob::editor {
 
         void pan_by_panel_delta(const Vector2& panel_delta);
         void zoom_at(const Vector2& panel_pos, const Vector2& panel_size, float wheel);
+        void focus_on(const AABB& world_bounds, const Vector2& panel_size);
     };
 } // namespace hob::editor

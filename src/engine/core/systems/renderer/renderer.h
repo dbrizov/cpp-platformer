@@ -173,6 +173,7 @@ namespace hob {
         SDL_GPUDevice* get_gpu_device() const;
 
         Vector2 get_logical_size() const;
+        Vector2 get_reference_size() const;
 
         const Window* get_main_window() const;
         const Window* get_game_window() const;

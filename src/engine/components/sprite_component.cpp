@@ -112,4 +112,16 @@ namespace hob {
         m_pixels_per_meter = value;
         m_render_dirty = true;
     }
+
+    Vector2 SpriteComponent::get_world_size() const {
+        if (m_texture == nullptr) {
+            return Vector2::zero();
+        }
+
+        const Vector2 transform_scale = get_entity().get_transform()->get_scale();
+        const float ppm = get_pixels_per_meter_f();
+
+        return Vector2((static_cast<float>(m_texture->get_width()) / ppm) * transform_scale.x * m_scale.x,
+                       (static_cast<float>(m_texture->get_height()) / ppm) * transform_scale.y * m_scale.y);
+    }
 } // namespace hob

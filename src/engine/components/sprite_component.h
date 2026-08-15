@@ -67,5 +67,7 @@ namespace hob {
         int get_pixels_per_meter() const;
         float get_pixels_per_meter_f() const;
         void set_pixels_per_meter(int value);
+
+        Vector2 get_world_size() const;
     };
 } // namespace hob

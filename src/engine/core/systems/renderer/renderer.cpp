@@ -121,6 +121,10 @@ namespace hob {
         return m_logical_size;
     }
 
+    Vector2 Renderer::get_reference_size() const {
+        return m_reference_size;
+    }
+
     const Window* Renderer::get_main_window() const {
         return m_main_window;
     }

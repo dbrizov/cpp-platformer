@@ -389,20 +389,7 @@ namespace hob {
             draw_data.pivot = sprite_comp->get_pivot();
             draw_data.world_pos = matrix.origin;
             draw_data.rotation = matrix.get_rotation();
-
-            if (draw_data.texture != nullptr) {
-                // Read world scale directly rather than decomposing the interpolated matrix:
-                // lerping two rotation matrices ~180 deg apart shrinks the basis toward zero at the midpoint,
-                // which would momentarily collapse the sprite. World scale is not interpolated.
-                const Vector2 tr_scale = transform_comp->get_scale();
-                const Vector2 sp_scale = sprite_comp->get_scale();
-                const float sprite_ppm = sprite_comp->get_pixels_per_meter_f();
-                const float texture_width = static_cast<float>(draw_data.texture->get_width());
-                const float texture_height = static_cast<float>(draw_data.texture->get_height());
-                // Size is in world meters (camera ppm is applied by the view-projection).
-                draw_data.size = Vector2((texture_width / sprite_ppm) * tr_scale.x * sp_scale.x,
-                                         (texture_height / sprite_ppm) * tr_scale.y * sp_scale.y);
-            }
+            draw_data.size = sprite_comp->get_world_size();
 
             m_renderer.update_sprite_draw(sprite_comp->get_sprite_draw_id(), draw_data);
         }

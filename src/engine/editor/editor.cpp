@@ -13,6 +13,7 @@
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
+#include "engine/core/systems/entity_spawner.h"
 
 namespace hob::editor {
     namespace {
@@ -57,6 +58,12 @@ namespace hob::editor {
         const bool entering_play = (m_state == State::Edit);
         const bool leaving_play = (state == State::Edit);
 
+        if (entering_play || leaving_play) {
+            m_selection.clear();
+            m_range_selection_anchor = INVALID_ENTITY_ID;
+            m_pick_cycle_last_entity_id = INVALID_ENTITY_ID;
+        }
+
         if (entering_play) {
             m_engine.open_game_window();
             m_engine.get_lua_script_system().run_project_main();
@@ -80,6 +87,8 @@ namespace hob::editor {
     void Editor::tick(float delta_time) {
         m_simulate_this_frame = (m_state == State::Play) || (m_state == State::Paused && m_step_requested);
         m_step_requested = false;
+
+        prune_selection();
     }
 
     void Editor::draw_gui() {

@@ -93,5 +93,14 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_NAV_WINDOWING_DIM_BG{0.0f, 0.0f, 0.0f, 0.45f};
     constexpr ImVec4 COLOR_MODAL_DIM_BG{0.0f, 0.0f, 0.0f, 0.55f};
 
+    // Scene View
+    constexpr ImVec4 COLOR_SELECTION_PRIMARY{1.000f, 0.627f, 0.118f, 1.0f};
+    constexpr ImVec4 COLOR_SELECTION = with_alpha(COLOR_SELECTION_PRIMARY, 0.55f);
+    constexpr ImVec4 COLOR_CAMERA_VIEW_RECT = with_alpha(COLOR_ACCENT, 0.70f);
+
+    constexpr float SELECTION_OUTLINE_THICKNESS = 2.0f;
+    constexpr float SELECTION_MARKER_RADIUS_PX = 14.0f;
+    constexpr float CAMERA_VIEW_RECT_THICKNESS = 1.0f;
+
     void apply_style();
 } // namespace hob::editor
