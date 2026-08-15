@@ -43,4 +43,6 @@ namespace hob::editor {
 
     bool bar_button(const char* label);
     float bar_button_width(const char* label);
+
+    bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) IM_FMTARGS(4);
 } // namespace hob::editor

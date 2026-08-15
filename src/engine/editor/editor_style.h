@@ -48,6 +48,9 @@ namespace hob::editor {
     constexpr ImVec2 MENU_ITEM_INSET{6.0f, 1.0f};
     constexpr float MENU_ITEM_ROUNDING = 3.0f;
 
+    constexpr ImVec2 TREE_ITEM_INSET{4.0f, 1.0f};
+    constexpr float TREE_ITEM_ROUNDING = 3.0f;
+
     constexpr float BAR_ITEM_PADDING_X = 7.0f;
     constexpr float BAR_ITEM_SPACING_X = 4.0f;
 
@@ -79,6 +82,9 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_MENU_HOVER{0.184f, 0.184f, 0.184f, 1.0f};
     constexpr ImVec4 COLOR_MENU_ACTIVE{0.259f, 0.259f, 0.259f, 1.0f};
     constexpr ImVec4 COLOR_MENU_SEPARATOR{0.141f, 0.141f, 0.141f, 1.0f};
+
+    constexpr ImVec4 COLOR_TREE_ITEM_HOVER{0.212f, 0.212f, 0.212f, 1.0f};
+    constexpr ImVec4 COLOR_TREE_ITEM_SELECTED{0.259f, 0.259f, 0.259f, 1.0f};
 
     constexpr ImVec4 COLOR_ACCENT{0.337f, 0.620f, 1.000f, 1.0f};
     constexpr ImVec4 COLOR_RESIZE_GRIP_HOVER = with_alpha(COLOR_ACCENT, 0.40f);

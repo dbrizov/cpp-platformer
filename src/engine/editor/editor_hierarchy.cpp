@@ -60,15 +60,12 @@ namespace hob::editor {
             flags |= ImGuiTreeNodeFlags_Leaf;
         }
 
-        if (m_selection.contains(entity_id)) {
-            flags |= ImGuiTreeNodeFlags_Selected;
-        }
-
-        const bool open = ImGui::TreeNodeEx(reinterpret_cast<void*>(static_cast<intptr_t>(entity_id)),
-                                            flags,
-                                            "%s  #%lld",
-                                            entity.get_display_name().c_str(),
-                                            static_cast<long long>(entity_id));
+        const bool open = tree_item(reinterpret_cast<void*>(static_cast<intptr_t>(entity_id)),
+                                    flags,
+                                    m_selection.contains(entity_id),
+                                    "%s  #%lld",
+                                    entity.get_display_name().c_str(),
+                                    static_cast<long long>(entity_id));
 
         if (m_scroll_hierarchy_to_primary && entity_id == m_selection.primary()) {
             ImGui::SetScrollHereY(0.5f);

@@ -1,5 +1,7 @@
 #include "editor_gui_utils.h"
 
+#include <cstdarg>
+
 #include <imgui_internal.h>
 
 #include "editor_style.h"
@@ -14,8 +16,18 @@ namespace hob::editor {
             return ImRect(min.x + inset.x, min.y + inset.y, max.x - inset.x, max.y - inset.y);
         }
 
-        void draw_highlight(ImDrawList* draw_list, const ImRect& rect, const ImVec4& color) {
-            draw_list->AddRectFilled(rect.Min, rect.Max, ImGui::GetColorU32(color), MENU_ITEM_ROUNDING);
+        // The row highlight spans the whole panel, not just the indented item rect.
+        ImRect row_rect(const ImVec2& inset) {
+            const float window_min_x = ImGui::GetWindowPos().x;
+            const float window_max_x = window_min_x + ImGui::GetWindowWidth();
+
+            return inset_rect(ImVec2(window_min_x, ImGui::GetItemRectMin().y),
+                              ImVec2(window_max_x, ImGui::GetItemRectMax().y),
+                              inset);
+        }
+
+        void draw_highlight(ImDrawList* draw_list, const ImRect& rect, const ImVec4& color, float rounding) {
+            draw_list->AddRectFilled(rect.Min, rect.Max, ImGui::GetColorU32(color), rounding);
         }
     } // namespace
 
@@ -73,7 +85,8 @@ namespace hob::editor {
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
             draw_highlight(draw_list,
                            ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()),
-                           open ? COLOR_MENU_ACTIVE : COLOR_MENU_HOVER);
+                           open ? COLOR_MENU_ACTIVE : COLOR_MENU_HOVER,
+                           MENU_ITEM_ROUNDING);
         }
 
         splitter.Merge(draw_list);
@@ -120,7 +133,7 @@ namespace hob::editor {
                                                        : COLOR_BUTTON;
 
         splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
-        draw_highlight(draw_list, ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()), color);
+        draw_highlight(draw_list, ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()), color, MENU_ITEM_ROUNDING);
         splitter.Merge(draw_list);
 
         return pressed;
@@ -141,20 +154,47 @@ namespace hob::editor {
         colors.pop();
 
         if (ImGui::IsItemHovered()) {
-            const float window_min_x = ImGui::GetWindowPos().x;
-            const float window_max_x = window_min_x + ImGui::GetWindowWidth();
-            const ImVec2 item_min = ImGui::GetItemRectMin();
-            const ImVec2 item_max = ImGui::GetItemRectMax();
-
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
-            draw_highlight(
-                draw_list,
-                inset_rect(ImVec2(window_min_x, item_min.y), ImVec2(window_max_x, item_max.y), MENU_ITEM_INSET),
-                COLOR_MENU_HOVER);
+            draw_highlight(draw_list, row_rect(MENU_ITEM_INSET), COLOR_MENU_HOVER, MENU_ITEM_ROUNDING);
         }
 
         splitter.Merge(draw_list);
 
         return pressed;
+    }
+
+    bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) {
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        ImDrawListSplitter splitter;
+        splitter.Split(draw_list, DRAW_CHANNEL_COUNT);
+        splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_FOREGROUND);
+
+        StyleColorStack colors;
+        colors.push(ImGuiCol_Header, COLOR_TRANSPARENT);
+        colors.push(ImGuiCol_HeaderHovered, COLOR_TRANSPARENT);
+        colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
+
+        if (selected) {
+            flags |= ImGuiTreeNodeFlags_Selected;
+        }
+
+        va_list args;
+        va_start(args, fmt);
+        const bool open = ImGui::TreeNodeExV(id, flags, fmt, args);
+        va_end(args);
+
+        colors.pop();
+
+        if (selected || ImGui::IsItemHovered()) {
+            splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
+            draw_highlight(draw_list,
+                           row_rect(TREE_ITEM_INSET),
+                           selected ? COLOR_TREE_ITEM_SELECTED : COLOR_TREE_ITEM_HOVER,
+                           TREE_ITEM_ROUNDING);
+        }
+
+        splitter.Merge(draw_list);
+
+        return open;
     }
 } // namespace hob::editor
