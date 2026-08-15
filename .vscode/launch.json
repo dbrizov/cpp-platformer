@@ -9,7 +9,7 @@
             "args": [],
             "cwd": "${workspaceFolder}/build/debug/windows-msvc/Debug",
             "console": "integratedTerminal",
-            "preLaunchTask": "CMake build (windows-debug-msvc-x64)"
+            "preLaunchTask": "CMake build (debug-msvc-x64)"
         },
         {
             "name": "Debug C++ [Linux/GCC]",
@@ -26,7 +26,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "CMake build (linux-debug-gcc-x64)"
+            "preLaunchTask": "CMake build (debug-gcc-x64)"
         },
         {
             "name": "Debug C++ [macOS/Clang]",
@@ -36,7 +36,7 @@
             "args": [],
             "cwd": "${workspaceFolder}/build/debug/macos-clang/Debug",
             "MIMode": "lldb",
-            "preLaunchTask": "CMake build (macos-debug-clang-arm64-osx)"
+            "preLaunchTask": "CMake build (debug-clang-arm64-osx)"
         },
         {
             "name": "Release C++ [Windows/MSVC]",
@@ -46,7 +46,7 @@
             "args": [],
             "cwd": "${workspaceFolder}/build/release/windows-msvc/Release",
             "console": "integratedTerminal",
-            "preLaunchTask": "CMake build (windows-release-msvc-x64)"
+            "preLaunchTask": "CMake build (release-msvc-x64)"
         },
         {
             "name": "Release C++ [Linux/GCC]",
@@ -63,7 +63,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "CMake build (linux-release-gcc-x64)"
+            "preLaunchTask": "CMake build (release-gcc-x64)"
         },
         {
             "name": "Release C++ [macOS/Clang]",
@@ -73,7 +73,81 @@
             "args": [],
             "cwd": "${workspaceFolder}/build/release/macos-clang/Release",
             "MIMode": "lldb",
-            "preLaunchTask": "CMake build (macos-release-clang-arm64-osx)"
+            "preLaunchTask": "CMake build (release-clang-arm64-osx)"
+        },
+        {
+            "name": "Debug C++ Editor [Windows/MSVC]",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/debug/windows-msvc-editor/Debug/hob2d.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/debug/windows-msvc-editor/Debug",
+            "console": "integratedTerminal",
+            "preLaunchTask": "CMake build (debug-msvc-editor-x64)"
+        },
+        {
+            "name": "Debug C++ Editor [Linux/GCC]",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/debug/linux-gcc-editor/Debug/hob2d",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/debug/linux-gcc-editor/Debug",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "CMake build (debug-gcc-editor-x64)"
+        },
+        {
+            "name": "Debug C++ Editor [macOS/Clang]",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/debug/macos-clang-editor/Debug/hob2d",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/debug/macos-clang-editor/Debug",
+            "MIMode": "lldb",
+            "preLaunchTask": "CMake build (debug-clang-editor-arm64-osx)"
+        },
+        {
+            "name": "Release C++ Editor [Windows/MSVC]",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/release/windows-msvc-editor/Release/hob2d.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/release/windows-msvc-editor/Release",
+            "console": "integratedTerminal",
+            "preLaunchTask": "CMake build (release-msvc-editor-x64)"
+        },
+        {
+            "name": "Release C++ Editor [Linux/GCC]",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/release/linux-gcc-editor/Release/hob2d",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/release/linux-gcc-editor/Release",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "CMake build (release-gcc-editor-x64)"
+        },
+        {
+            "name": "Release C++ Editor [macOS/Clang]",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/release/macos-clang-editor/Release/hob2d",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/release/macos-clang-editor/Release",
+            "MIMode": "lldb",
+            "preLaunchTask": "CMake build (release-clang-editor-arm64-osx)"
         },
         {
             "name": "Attach C++ [Windows/MSVC]",

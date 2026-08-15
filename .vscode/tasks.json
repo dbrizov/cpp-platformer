@@ -41,13 +41,13 @@
             "problemMatcher": []
         },
         {
-            "label": "CMake build (windows-debug-msvc-x64)",
+            "label": "CMake build (debug-msvc-x64)",
             "type": "shell",
             "command": "cmake",
             "args": [
                 "--build",
                 "--preset",
-                "windows-debug-msvc-x64"
+                "debug-msvc-x64"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -59,13 +59,13 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "CMake build (linux-debug-gcc-x64)",
+            "label": "CMake build (debug-gcc-x64)",
             "type": "shell",
             "command": "cmake",
             "args": [
                 "--build",
                 "--preset",
-                "linux-debug-gcc-x64"
+                "debug-gcc-x64"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -73,13 +73,13 @@
             "problemMatcher": "$gcc"
         },
         {
-            "label": "CMake build (macos-debug-clang-arm64-osx)",
+            "label": "CMake build (debug-clang-arm64-osx)",
             "type": "shell",
             "command": "cmake",
             "args": [
                 "--build",
                 "--preset",
-                "macos-debug-clang-arm64-osx"
+                "debug-clang-arm64-osx"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -126,13 +126,13 @@
             "problemMatcher": []
         },
         {
-            "label": "CMake build (windows-release-msvc-x64)",
+            "label": "CMake build (release-msvc-x64)",
             "type": "shell",
             "command": "cmake",
             "args": [
                 "--build",
                 "--preset",
-                "windows-release-msvc-x64",
+                "release-msvc-x64",
                 "--config",
                 "Release"
             ],
@@ -142,13 +142,13 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "CMake build (linux-release-gcc-x64)",
+            "label": "CMake build (release-gcc-x64)",
             "type": "shell",
             "command": "cmake",
             "args": [
                 "--build",
                 "--preset",
-                "linux-release-gcc-x64"
+                "release-gcc-x64"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -156,13 +156,177 @@
             "problemMatcher": "$gcc"
         },
         {
-            "label": "CMake build (macos-release-clang-arm64-osx)",
+            "label": "CMake build (release-clang-arm64-osx)",
             "type": "shell",
             "command": "cmake",
             "args": [
                 "--build",
                 "--preset",
-                "macos-release-clang-arm64-osx"
+                "release-clang-arm64-osx"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "CMake configure (debug-msvc-editor)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset",
+                "debug-msvc-editor"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake configure (debug-gcc-editor)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset",
+                "debug-gcc-editor"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake configure (debug-clang-editor)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset",
+                "debug-clang-editor"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake build (debug-msvc-editor-x64)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "debug-msvc-editor-x64"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "CMake build (debug-gcc-editor-x64)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "debug-gcc-editor-x64"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "CMake build (debug-clang-editor-arm64-osx)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "debug-clang-editor-arm64-osx"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "CMake configure (release-msvc-editor)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset",
+                "release-msvc-editor"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake configure (release-gcc-editor)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset",
+                "release-gcc-editor"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake configure (release-clang-editor)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset",
+                "release-clang-editor"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake build (release-msvc-editor-x64)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "release-msvc-editor-x64",
+                "--config",
+                "Release"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "CMake build (release-gcc-editor-x64)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "release-gcc-editor-x64"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "CMake build (release-clang-editor-arm64-osx)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "release-clang-editor-arm64-osx"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
