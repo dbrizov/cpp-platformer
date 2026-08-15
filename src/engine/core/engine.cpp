@@ -119,7 +119,12 @@ namespace hob {
                 m_input.process_event(event);
 
                 if (event.type == SDL_EVENT_QUIT) {
-                    is_running = false;
+                    if (m_editor && m_game_window) {
+                        m_editor->set_state(editor::Editor::State::Edit);
+                    }
+                    else {
+                        is_running = false;
+                    }
                 }
                 else if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
                     if (m_editor && m_game_window && event.window.windowID == m_game_window->get_id()) {
