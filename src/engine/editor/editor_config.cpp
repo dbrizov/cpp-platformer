@@ -6,7 +6,7 @@
 
 #include "engine/core/logging.h"
 
-namespace hob {
+namespace hob::editor {
     namespace {
         constexpr int JSON_INDENT = 4;
     } // namespace
@@ -70,4 +70,4 @@ namespace hob {
         }
         out << json.dump(JSON_INDENT) << '\n';
     }
-} // namespace hob
+} // namespace hob::editor

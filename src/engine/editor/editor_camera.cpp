@@ -4,7 +4,7 @@
 
 #include "engine/core/systems/renderer/renderer.h"
 
-namespace hob {
+namespace hob::editor {
     namespace {
         constexpr float ZOOM_STEP = 1.1f;
         constexpr float MIN_PIXELS_PER_METER = 2.0f;
@@ -54,4 +54,4 @@ namespace hob {
         const Vector2 world_after = panel_to_world(panel_pos, panel_size);
         position = position + (world_before - world_after);
     }
-} // namespace hob
+} // namespace hob::editor

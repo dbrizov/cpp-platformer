@@ -3,7 +3,7 @@
 #include "engine/math/matrix4x4.h"
 #include "engine/math/vector2.h"
 
-namespace hob {
+namespace hob::editor {
     struct EditorCamera {
         Vector2 position;
         float pixels_per_meter = 64.0f;
@@ -16,4 +16,4 @@ namespace hob {
         void pan_by_panel_delta(const Vector2& panel_delta);
         void zoom_at(const Vector2& panel_pos, const Vector2& panel_size, float wheel);
     };
-} // namespace hob
+} // namespace hob::editor

@@ -27,7 +27,8 @@ namespace hob {
             return config;
         }
 
-        WindowConfig make_main_window_config(const GraphicsConfig& graphics_config, const EditorConfig& editor_config) {
+        WindowConfig make_main_window_config(const GraphicsConfig& graphics_config,
+                                             const editor::EditorConfig& editor_config) {
             if (editor_config.enabled) {
                 WindowConfig config;
                 config.title = graphics_config.window_title + " Editor";
@@ -53,7 +54,7 @@ namespace hob {
         }
     } // namespace
 
-    Engine::Engine(const EngineConfig& config, const EditorConfig& editor_config)
+    Engine::Engine(const EngineConfig& config, const editor::EditorConfig& editor_config)
         : m_is_editor_enabled(editor_config.enabled)
         , m_sdl_context()
         , m_main_window(m_sdl_context.get_gpu_device(), make_main_window_config(config.graphics_config, editor_config))
@@ -77,7 +78,7 @@ namespace hob {
         SocketsComponent::register_cvars(m_console);
 
         if (m_is_editor_enabled) {
-            m_editor = std::make_unique<Editor>(*this);
+            m_editor = std::make_unique<editor::Editor>(*this);
             m_renderer.set_game_window(nullptr);
         }
         else {
@@ -122,7 +123,7 @@ namespace hob {
                 }
                 else if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
                     if (m_editor && m_game_window && event.window.windowID == m_game_window->get_id()) {
-                        m_editor->set_state(Editor::State::Edit);
+                        m_editor->set_state(editor::Editor::State::Edit);
                     }
                     else {
                         is_running = false;
@@ -286,7 +287,7 @@ namespace hob {
         return m_is_editor_enabled;
     }
 
-    Editor* Engine::get_editor() const {
+    editor::Editor* Engine::get_editor() const {
         return m_editor.get();
     }
 

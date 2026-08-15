@@ -13,7 +13,9 @@ struct ImDrawList;
 
 namespace hob {
     class Engine;
+}
 
+namespace hob::editor {
     class Editor {
     public:
         enum class State {
@@ -43,7 +45,6 @@ namespace hob {
         static constexpr const char* PANEL_HIERARCHY = " Hierarchy ###Hierarchy";
         static constexpr const char* PANEL_INSPECTOR = " Inspector ###Inspector";
         static constexpr const char* PANEL_ASSETS = " Assets ###Assets";
-        static constexpr const char* PANELS[] = {PANEL_HIERARCHY, PANEL_INSPECTOR, PANEL_ASSETS};
 
         explicit Editor(Engine& engine);
         ~Editor();
@@ -65,17 +66,20 @@ namespace hob {
         void render_passes();
 
     private:
-        void draw_dockspace();
         void draw_menu_bar();
         void draw_toolbar();
+
         void draw_scene_view();
+        void draw_hierarchy();
+        void draw_inspector();
+        void draw_assets();
 
         void ensure_scene_color_target(uint32_t width, uint32_t height);
         void release_scene_color_target();
         void handle_scene_view_input(const Vector2& panel_pos, const Vector2& panel_size);
         void draw_grid(ImDrawList* draw_list, const Vector2& panel_pos, const Vector2& panel_size) const;
 
-        void build_default_layout(ImGuiID dockspace_id);
+        void build_default_layout(ImGuiID dock_space_id);
         void save_layout();
     };
-} // namespace hob
+} // namespace hob::editor

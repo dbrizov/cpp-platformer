@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-namespace hob {
+namespace hob::editor {
     struct EditorConfig {
         bool enabled = false;
         int x = 0;
@@ -16,4 +16,4 @@ namespace hob {
 
         void save(const std::filesystem::path& json_path) const;
     };
-} // namespace hob
+} // namespace hob::editor

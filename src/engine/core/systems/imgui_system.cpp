@@ -31,10 +31,7 @@ namespace hob {
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
         io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
-#ifdef IMGUI_HAS_DOCK
-        // Requires the imgui docking branch ("docking-experimental" vcpkg feature).
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-#endif
 
         const std::filesystem::path font_path =
             PathUtils::get_engine_assets_path() / "fonts" / "jetbrains_mono_bold.ttf";

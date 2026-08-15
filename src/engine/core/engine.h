@@ -17,9 +17,12 @@
 
 namespace hob {
     struct EngineConfig;
-    struct EditorConfig;
     class CameraComponent;
-    class Editor;
+
+    namespace editor {
+        class Editor;
+        struct EditorConfig;
+    } // namespace editor
 
     class Engine {
         bool m_is_editor_enabled = false;
@@ -38,7 +41,7 @@ namespace hob {
         EntitySpawner m_entity_spawner;
         LuaScriptSystem m_lua_script_system;
 
-        std::unique_ptr<Editor> m_editor;
+        std::unique_ptr<editor::Editor> m_editor;
         std::unique_ptr<Window> m_game_window;
         WindowConfig m_game_window_config;
 
@@ -46,7 +49,7 @@ namespace hob {
         mutable bool m_warned_no_active_camera = false;
 
     public:
-        Engine(const EngineConfig& config, const EditorConfig& editor_config);
+        Engine(const EngineConfig& config, const editor::EditorConfig& editor_config);
         ~Engine();
 
         void run();
@@ -65,7 +68,7 @@ namespace hob {
         LuaScriptSystem& get_lua_script_system();
 
         bool is_editor_enabled() const;
-        Editor* get_editor() const;
+        editor::Editor* get_editor() const;
 
         const Window& get_play_window() const;
         const Window* get_game_window() const;

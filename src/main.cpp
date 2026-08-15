@@ -25,9 +25,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    hob::EditorConfig editor_config;
+    hob::editor::EditorConfig editor_config;
     if (editor_enabled) {
-        editor_config = hob::EditorConfig(hob::PathUtils::get_editor_config_path());
+        editor_config = hob::editor::EditorConfig(hob::PathUtils::get_editor_config_path());
         editor_config.enabled = true;
     }
 

@@ -3,9 +3,9 @@
 #include <imgui.h>
 
 #include "editor.h"
-#include "editor_theme.h"
+#include "editor_gui_utils.h"
 
-namespace hob {
+namespace hob::editor {
     namespace {
         constexpr float MIN_PANEL_SIZE_PX = 8.0f;
 
@@ -17,9 +17,9 @@ namespace hob {
     } // namespace
 
     void Editor::draw_scene_view() {
-        editor_theme::push_no_padding();
-        const bool visible = editor_theme::begin_panel(PANEL_SCENE, ImGuiWindowFlags_NoScrollbar);
-        editor_theme::pop_no_padding();
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        const bool visible = begin_panel(PANEL_SCENE, ImGuiWindowFlags_NoScrollbar);
+        ImGui::PopStyleVar();
 
         if (visible) {
             const ImVec2 avail = ImGui::GetContentRegionAvail();
@@ -48,7 +48,7 @@ namespace hob {
                 }
             }
         }
-        editor_theme::end_panel();
+        end_panel();
     }
 
     void Editor::handle_scene_view_input(const Vector2& panel_pos, const Vector2& panel_size) {
@@ -93,4 +93,4 @@ namespace hob {
                 ImVec2(panel_pos.x, panel_pos.y + p.y), ImVec2(panel_pos.x + panel_size.x, panel_pos.y + p.y), color);
         }
     }
-} // namespace hob
+} // namespace hob::editor
