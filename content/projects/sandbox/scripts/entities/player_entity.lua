@@ -22,5 +22,5 @@ DefineEntity.Player = {
     audio = {
         clip = AudioClips.Whoosh,
     },
-    lua_components = { Components.Player, Components.ContactLogger },
+    lua_components = { Components.Player },
 }
