@@ -7,6 +7,10 @@
 #include "engine/core/logging.h"
 
 namespace hob {
+    namespace {
+        constexpr int JSON_INDENT = 4;
+    } // namespace
+
     EditorConfig::EditorConfig(const std::filesystem::path& json_path) {
         std::ifstream file(json_path);
         if (!file.is_open()) {
@@ -64,6 +68,6 @@ namespace hob {
             log::engine.error("Cannot write editor config file '{}'", json_path.string());
             return;
         }
-        out << json.dump(4) << '\n';
+        out << json.dump(JSON_INDENT) << '\n';
     }
 } // namespace hob

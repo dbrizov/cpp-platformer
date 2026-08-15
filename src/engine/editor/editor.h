@@ -39,10 +39,10 @@ namespace hob {
         uint32_t m_scene_color_target_height = 0;
 
     public:
-        static constexpr const char* PANEL_SCENE = "Scene";
-        static constexpr const char* PANEL_HIERARCHY = "Hierarchy";
-        static constexpr const char* PANEL_INSPECTOR = "Inspector";
-        static constexpr const char* PANEL_ASSETS = "Assets";
+        static constexpr const char* PANEL_SCENE = " Scene ###Scene";
+        static constexpr const char* PANEL_HIERARCHY = " Hierarchy ###Hierarchy";
+        static constexpr const char* PANEL_INSPECTOR = " Inspector ###Inspector";
+        static constexpr const char* PANEL_ASSETS = " Assets ###Assets";
         static constexpr const char* PANELS[] = {PANEL_HIERARCHY, PANEL_INSPECTOR, PANEL_ASSETS};
 
         explicit Editor(Engine& engine);

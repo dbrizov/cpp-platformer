@@ -58,6 +58,7 @@ namespace hob {
         Timer& get_timer();
         Input& get_input();
         UiSystem& get_ui_system();
+        ImGuiSystem& get_imgui_system();
         Physics& get_physics();
         Audio& get_audio();
         EntitySpawner& get_entity_spawner();

@@ -32,7 +32,7 @@ namespace hob {
         friend class Font;
         friend class Texture;
 
-        static constexpr Color CLEAR_COLOR = Color(0.17f, 0.18f, 0.47f, 1.0f);
+        static constexpr Color CLEAR_COLOR = Color(0.180f, 0.192f, 0.212f, 1.0f);
 
         // 6 verts per line segment (two triangles): 65536 verts = ~10,922 lines/frame.
         static constexpr uint32_t MAX_DEBUG_LINE_VERTICES = 65536;

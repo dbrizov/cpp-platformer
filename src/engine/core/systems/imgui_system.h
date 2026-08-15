@@ -3,19 +3,20 @@
 #include <SDL3/SDL_events.h>
 
 struct ImGuiContext;
+struct ImVec4;
 
 namespace hob {
     class Renderer;
 
     class ImGuiSystem {
-        static constexpr SDL_FColor CLEAR_COLOR{0.06f, 0.06f, 0.08f, 1.0f};
-        static constexpr float DEFAULT_FONT_SIZE_PX = 20.0f;
-
         ImGuiContext* m_context = nullptr;
         const Renderer& m_renderer;
+        bool m_is_editor_enabled;
+
+        SDL_FColor m_clear_color{0.0f, 0.0f, 0.0f, 1.0f};
 
     public:
-        explicit ImGuiSystem(const Renderer& renderer);
+        explicit ImGuiSystem(const Renderer& renderer, bool is_editor_enabled);
         ~ImGuiSystem();
 
         ImGuiSystem(const ImGuiSystem&) = delete;
@@ -23,6 +24,8 @@ namespace hob {
 
         ImGuiSystem(ImGuiSystem&&) = delete;
         ImGuiSystem& operator=(ImGuiSystem&&) = delete;
+
+        void set_clear_color(const ImVec4& color);
 
         void process_event(const SDL_Event& event);
 

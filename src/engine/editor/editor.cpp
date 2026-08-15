@@ -9,15 +9,29 @@
 #include <imgui_internal.h>
 
 #include "editor_config.h"
+#include "editor_theme.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
 
 namespace hob {
+    namespace {
+        constexpr float LAYOUT_RIGHT_COLUMNS_RATIO = 0.46f;
+        constexpr float LAYOUT_INSPECTOR_RATIO = 0.50f;
+        constexpr float LAYOUT_ASSETS_RATIO = 0.30f;
+
+        constexpr int TOOLBAR_MAX_ITEMS = 3;
+
+        constexpr uint32_t MIN_COLOR_TARGET_SIZE_PX = 1;
+    } // namespace
+
     Editor::Editor(Engine& engine)
         : m_engine(engine)
         , m_imgui_ini_path(PathUtils::get_editor_imgui_ini_path().string()) {
         ImGui::GetIO().IniFilename = m_imgui_ini_path.c_str();
+
+        editor_theme::apply();
+        m_engine.get_imgui_system().set_clear_color(editor_theme::COLOR_CLEAR);
 
         m_reset_layout = !std::filesystem::exists(m_imgui_ini_path);
 
@@ -75,10 +89,10 @@ namespace hob {
         draw_scene_view();
 
         for (const char* name : PANELS) {
-            if (ImGui::Begin(name)) {
-                ImGui::TextDisabled("%s (empty)", name);
+            if (editor_theme::begin_panel(name)) {
+                ImGui::TextDisabled("(empty)");
             }
-            ImGui::End();
+            editor_theme::end_panel();
         }
     }
 
@@ -95,8 +109,8 @@ namespace hob {
     }
 
     void Editor::ensure_scene_color_target(uint32_t width, uint32_t height) {
-        width = std::max(width, 1u);
-        height = std::max(height, 1u);
+        width = std::max(width, MIN_COLOR_TARGET_SIZE_PX);
+        height = std::max(height, MIN_COLOR_TARGET_SIZE_PX);
 
         if (m_scene_color_target && width == m_scene_color_target_width && height == m_scene_color_target_height) {
             return;
@@ -132,8 +146,7 @@ namespace hob {
         }
 
 #ifdef IMGUI_HAS_DOCK
-        const ImGuiID dockspace_id =
-            ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+        const ImGuiID dockspace_id = editor_theme::dockspace_over_viewport(ImGuiDockNodeFlags_PassthruCentralNode);
 
         if (m_reset_layout) {
             m_reset_layout = false;
@@ -143,53 +156,91 @@ namespace hob {
     }
 
     void Editor::draw_menu_bar() {
-        if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Quit")) {
+        if (editor_theme::begin_menu("File")) {
+            if (editor_theme::menu_item("Quit")) {
                 SDL_Event quit_event{};
                 quit_event.type = SDL_EVENT_QUIT;
                 SDL_PushEvent(&quit_event);
             }
 
-            ImGui::EndMenu();
+            editor_theme::end_menu();
+        }
+
+        if (editor_theme::begin_menu("Editor")) {
+            if (editor_theme::menu_item("Reset Layout")) {
+                m_reset_layout = true;
+            }
+
+            editor_theme::end_menu();
         }
     }
 
     void Editor::draw_toolbar() {
-        ImGui::Separator();
+        enum class Action {
+            Play,
+            Pause,
+            Step,
+            Stop,
+        };
+
+        struct Item {
+            const char* label;
+            Action action;
+        };
+
+        Item items[TOOLBAR_MAX_ITEMS]{};
+        int item_count = 0;
 
         switch (m_state) {
             case State::Edit: {
-                if (ImGui::SmallButton("Play")) {
-                    set_state(State::Play);
-                }
+                items[item_count++] = {"Play", Action::Play};
                 break;
             }
             case State::Play: {
-                if (ImGui::SmallButton("Pause")) {
-                    set_state(State::Paused);
-                }
-                if (ImGui::SmallButton("Stop")) {
-                    set_state(State::Edit);
-                }
+                items[item_count++] = {"Pause", Action::Pause};
+                items[item_count++] = {"Stop", Action::Stop};
                 break;
             }
             case State::Paused: {
-                if (ImGui::SmallButton("Resume")) {
-                    set_state(State::Play);
-                }
-                if (ImGui::SmallButton("Step")) {
-                    m_step_requested = true;
-                }
-                if (ImGui::SmallButton("Stop")) {
-                    set_state(State::Edit);
-                }
+                items[item_count++] = {"Resume", Action::Play};
+                items[item_count++] = {"Step", Action::Step};
+                items[item_count++] = {"Stop", Action::Stop};
                 break;
             }
         }
 
-        const char* label = (m_state == State::Edit) ? "Edit" : (m_state == State::Play) ? "Play" : "Paused";
-        ImGui::Separator();
-        ImGui::TextDisabled("%s", label);
+        const char* state_label = (m_state == State::Edit) ? "Edit" : (m_state == State::Play) ? "Play" : "Paused";
+
+        const ImGuiStyle& style = ImGui::GetStyle();
+        float toolbar_width = ImGui::CalcTextSize(state_label).x + style.ItemSpacing.x;
+        for (int i = 0; i < item_count; ++i) {
+            toolbar_width += ImGui::CalcTextSize(items[i].label).x + style.FramePadding.x * 2.0f + style.ItemSpacing.x;
+        }
+
+        const float cursor_x = ImGui::GetCursorPosX();
+        const float right_edge_x = cursor_x + ImGui::GetContentRegionAvail().x;
+        ImGui::SetCursorPosX(std::max(cursor_x, right_edge_x - toolbar_width));
+
+        for (int i = 0; i < item_count; ++i) {
+            if (ImGui::Button(items[i].label)) {
+                switch (items[i].action) {
+                    case Action::Play:
+                        set_state(State::Play);
+                        break;
+                    case Action::Pause:
+                        set_state(State::Paused);
+                        break;
+                    case Action::Step:
+                        m_step_requested = true;
+                        break;
+                    case Action::Stop:
+                        set_state(State::Edit);
+                        break;
+                }
+            }
+        }
+
+        ImGui::TextDisabled("%s", state_label);
     }
 
     void Editor::build_default_layout(ImGuiID dockspace_id) {
@@ -202,9 +253,10 @@ namespace hob {
         ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
 
         ImGuiID center = dockspace_id;
-        ImGuiID right = ImGui::DockBuilderSplitNode(center, ImGuiDir_Right, 0.40f, nullptr, &center);
-        const ImGuiID inspector = ImGui::DockBuilderSplitNode(right, ImGuiDir_Right, 0.50f, nullptr, &right);
-        const ImGuiID assets = ImGui::DockBuilderSplitNode(center, ImGuiDir_Down, 0.25f, nullptr, &center);
+        ImGuiID right = ImGui::DockBuilderSplitNode(center, ImGuiDir_Right, LAYOUT_RIGHT_COLUMNS_RATIO, nullptr, &center);
+        const ImGuiID inspector =
+            ImGui::DockBuilderSplitNode(right, ImGuiDir_Right, LAYOUT_INSPECTOR_RATIO, nullptr, &right);
+        const ImGuiID assets = ImGui::DockBuilderSplitNode(center, ImGuiDir_Down, LAYOUT_ASSETS_RATIO, nullptr, &center);
 
         ImGui::DockBuilderDockWindow(PANEL_HIERARCHY, right);
         ImGui::DockBuilderDockWindow(PANEL_INSPECTOR, inspector);

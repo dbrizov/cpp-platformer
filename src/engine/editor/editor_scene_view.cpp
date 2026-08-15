@@ -3,6 +3,7 @@
 #include <imgui.h>
 
 #include "editor.h"
+#include "editor_theme.h"
 
 namespace hob {
     namespace {
@@ -16,7 +17,11 @@ namespace hob {
     } // namespace
 
     void Editor::draw_scene_view() {
-        if (ImGui::Begin(PANEL_SCENE)) {
+        editor_theme::push_no_padding();
+        const bool visible = editor_theme::begin_panel(PANEL_SCENE, ImGuiWindowFlags_NoScrollbar);
+        editor_theme::pop_no_padding();
+
+        if (visible) {
             const ImVec2 avail = ImGui::GetContentRegionAvail();
             if (avail.x > MIN_PANEL_SIZE_PX && avail.y > MIN_PANEL_SIZE_PX) {
                 ensure_scene_color_target(static_cast<uint32_t>(avail.x), static_cast<uint32_t>(avail.y));
@@ -43,7 +48,7 @@ namespace hob {
                 }
             }
         }
-        ImGui::End();
+        editor_theme::end_panel();
     }
 
     void Editor::handle_scene_view_input(const Vector2& panel_pos, const Vector2& panel_size) {

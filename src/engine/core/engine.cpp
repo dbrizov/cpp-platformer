@@ -30,7 +30,7 @@ namespace hob {
         WindowConfig make_main_window_config(const GraphicsConfig& graphics_config, const EditorConfig& editor_config) {
             if (editor_config.enabled) {
                 WindowConfig config;
-                config.title = graphics_config.window_title + " - Editor";
+                config.title = graphics_config.window_title + " Editor";
                 config.vsync = graphics_config.vsync_enabled;
 
                 const bool have_saved_geometry = editor_config.width > 0 && editor_config.height > 0;
@@ -61,7 +61,7 @@ namespace hob {
         , m_timer(config.graphics_config)
         , m_input(m_renderer)
         , m_ui_system(config.ui_system_config, m_renderer, m_timer)
-        , m_imgui_system(m_renderer)
+        , m_imgui_system(m_renderer, editor_config.enabled)
         , m_console()
         , m_physics(config.physics_config)
         , m_audio(config.audio_config)
@@ -260,6 +260,10 @@ namespace hob {
 
     UiSystem& Engine::get_ui_system() {
         return m_ui_system;
+    }
+
+    ImGuiSystem& Engine::get_imgui_system() {
+        return m_imgui_system;
     }
 
     Physics& Engine::get_physics() {

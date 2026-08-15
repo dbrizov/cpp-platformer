@@ -14,8 +14,9 @@
 #include "renderer/renderer.h"
 
 namespace hob {
-    ImGuiSystem::ImGuiSystem(const Renderer& renderer)
-        : m_renderer(renderer) {
+    ImGuiSystem::ImGuiSystem(const Renderer& renderer, bool is_editor_enabled)
+        : m_renderer(renderer)
+        , m_is_editor_enabled(is_editor_enabled) {
         SDL_Window* window = m_renderer.get_main_window()->get_window();
         HOB_CHECK(window && renderer.get_gpu_device(), "ImGuiSystem init failed: window/GPU device is null");
 
@@ -38,7 +39,7 @@ namespace hob {
         const std::filesystem::path font_path =
             PathUtils::get_engine_assets_path() / "fonts" / "jetbrains_mono_bold.ttf";
         const std::string font_path_str = font_path.string();
-        ImFont* font = io.Fonts->AddFontFromFileTTF(font_path_str.c_str(), DEFAULT_FONT_SIZE_PX);
+        ImFont* font = io.Fonts->AddFontFromFileTTF(font_path_str.c_str());
         HOB_CHECK(font, "Failed to load ImGui font: {}", font_path_str);
 
         ImGui::StyleColorsDark();
@@ -71,6 +72,10 @@ namespace hob {
         log::imgui.info("ImGui_DestroyContext");
     }
 
+    void ImGuiSystem::set_clear_color(const ImVec4& color) {
+        m_clear_color = SDL_FColor{color.x, color.y, color.z, color.w};
+    }
+
     void ImGuiSystem::process_event(const SDL_Event& event) {
         ImGui_ImplSDL3_ProcessEvent(&event);
     }
@@ -88,9 +93,8 @@ namespace hob {
 
         SDL_GPUColorTargetInfo ct{};
         ct.texture = m_renderer.get_main_swap_texture();
-        ct.clear_color = CLEAR_COLOR;
-        const bool editor_mode = m_renderer.get_game_window() != m_renderer.get_main_window();
-        ct.load_op = editor_mode ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
+        ct.clear_color = m_clear_color;
+        ct.load_op = m_is_editor_enabled ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
         ct.store_op = SDL_GPU_STOREOP_STORE;
 
         // Render pass
