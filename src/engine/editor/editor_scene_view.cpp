@@ -133,7 +133,11 @@ namespace hob::editor {
                     const SceneRect scene_rect{Vector2(item_min.x, item_min.y), image_size};
 
                     if (ImGui::IsItemHovered()) {
-                        handle_scene_view_input(scene_rect);
+                        handle_scene_view_mouse_input(scene_rect);
+                    }
+
+                    if (m_engine.get_main_window().has_focus() && !ImGui::GetIO().WantTextInput) {
+                        handle_scene_view_shortcuts(scene_rect);
                     }
 
                     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -149,7 +153,7 @@ namespace hob::editor {
         end_panel();
     }
 
-    void Editor::handle_scene_view_input(const SceneRect& scene_rect) {
+    void Editor::handle_scene_view_mouse_input(const SceneRect& scene_rect) {
         const ImGuiIO& io = ImGui::GetIO();
         const Vector2 mouse_screen_pos(io.MousePos.x, io.MousePos.y);
 
@@ -164,8 +168,10 @@ namespace hob::editor {
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
             handle_scene_view_pick(mouse_screen_pos, m_camera.screen_to_world(mouse_screen_pos, scene_rect));
         }
+    }
 
-        if (!io.WantTextInput && ImGui::IsKeyPressed(ImGuiKey_F, false)) {
+    void Editor::handle_scene_view_shortcuts(const SceneRect& scene_rect) {
+        if (ImGui::IsKeyPressed(ImGuiKey_F, false)) {
             focus_camera_on_selection(scene_rect);
         }
     }

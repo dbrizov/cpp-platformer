@@ -92,7 +92,8 @@ namespace hob::editor {
 
         void ensure_scene_color_target(uint32_t width, uint32_t height);
         void release_scene_color_target();
-        void handle_scene_view_input(const SceneRect& scene_rect);
+        void handle_scene_view_mouse_input(const SceneRect& scene_rect);
+        void handle_scene_view_shortcuts(const SceneRect& scene_rect);
         void handle_scene_view_pick(const Vector2& mouse_screen_pos, const Vector2& mouse_world_pos);
         void gather_pick_candidates(const Vector2& world_pos, std::vector<EntityId>& out_candidates) const;
         void focus_camera_on_selection(const SceneRect& scene_rect);
