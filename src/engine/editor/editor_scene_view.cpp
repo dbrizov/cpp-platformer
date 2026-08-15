@@ -17,14 +17,9 @@
 #include "engine/math/constants.h"
 #include "engine/math/matrix2x3.h"
 
-// Four coordinate spaces here:
-// - screen px  : absolute ImGui coordinates, y-down. What ImDrawList consumes.
-// - panel px   : pixels relative to the SceneView image's top-left, y-down. What EditorCamera converts to and from.
-// - world m    : world meters, y-up.
-// - local m    : meters in a sprite's unrotated axes, relative to its own world origin.
 namespace hob::editor {
     namespace {
-        constexpr float MIN_PANEL_SIZE_PX = 8.0f;
+        constexpr float MIN_SCENE_RECT_SIZE_PX = 8.0f;
 
         constexpr float MIN_GRID_SPACING_PX = 24.0f;
         constexpr float GRID_SPACING_STEP_FACTOR = 5.0f;
@@ -43,15 +38,8 @@ namespace hob::editor {
         // Half-extent, in meters, of the box F frames around a sprite-less entity.
         constexpr float FOCUS_FALLBACK_EXTENT = 0.5f;
 
-        ImVec2 panel_to_screen(const Vector2& panel_pos, const Vector2& panel_to_screen_offset) {
-            return ImVec2(panel_pos.x + panel_to_screen_offset.x, panel_pos.y + panel_to_screen_offset.y);
-        }
-
-        ImVec2 world_to_screen(const EditorCamera& camera,
-                               const Vector2& world_pos,
-                               const Vector2& panel_to_screen_offset,
-                               const Vector2& panel_size) {
-            return panel_to_screen(camera.world_to_panel(world_pos, panel_size), panel_to_screen_offset);
+        ImVec2 to_imvec(const Vector2& v) {
+            return ImVec2(v.x, v.y);
         }
 
         struct SpriteRect {
@@ -129,29 +117,31 @@ namespace hob::editor {
 
         if (visible) {
             const ImVec2 avail = ImGui::GetContentRegionAvail();
-            if (avail.x > MIN_PANEL_SIZE_PX && avail.y > MIN_PANEL_SIZE_PX) {
+            if (avail.x > MIN_SCENE_RECT_SIZE_PX && avail.y > MIN_SCENE_RECT_SIZE_PX) {
                 ensure_scene_color_target(static_cast<uint32_t>(avail.x), static_cast<uint32_t>(avail.y));
 
                 if (m_scene_color_target != nullptr) {
-                    const ImVec2 image_size(static_cast<float>(m_scene_color_target_width),
-                                            static_cast<float>(m_scene_color_target_height));
+                    const Vector2 image_size(static_cast<float>(m_scene_color_target_width),
+                                             static_cast<float>(m_scene_color_target_height));
 
-                    ImGui::Image(m_scene_color_target, image_size, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+                    ImGui::Image(m_scene_color_target,
+                                 ImVec2(image_size.x, image_size.y),
+                                 ImVec2(0.0f, 1.0f),
+                                 ImVec2(1.0f, 0.0f));
 
-                    const ImVec2 image_min = ImGui::GetItemRectMin();
-                    const Vector2 panel_to_screen_offset(image_min.x, image_min.y);
-                    const Vector2 panel_size(image_size.x, image_size.y);
+                    const ImVec2 item_min = ImGui::GetItemRectMin();
+                    const SceneRect scene_rect{Vector2(item_min.x, item_min.y), image_size};
 
                     if (ImGui::IsItemHovered()) {
-                        handle_scene_view_input(panel_to_screen_offset, panel_size);
+                        handle_scene_view_input(scene_rect);
                     }
 
                     ImDrawList* draw_list = ImGui::GetWindowDrawList();
                     draw_list->PushClipRect(
-                        image_min, ImVec2(image_min.x + image_size.x, image_min.y + image_size.y), true);
-                    draw_grid(draw_list, panel_to_screen_offset, panel_size);
-                    draw_camera_view_rect(draw_list, panel_to_screen_offset, panel_size);
-                    draw_selection_overlay(draw_list, panel_to_screen_offset, panel_size);
+                        item_min, ImVec2(item_min.x + image_size.x, item_min.y + image_size.y), true);
+                    draw_grid(draw_list, scene_rect);
+                    draw_camera_view_rect(draw_list, scene_rect);
+                    draw_selection_overlay(draw_list, scene_rect);
                     draw_list->PopClipRect();
                 }
             }
@@ -159,29 +149,28 @@ namespace hob::editor {
         end_panel();
     }
 
-    void Editor::handle_scene_view_input(const Vector2& panel_to_screen_offset, const Vector2& panel_size) {
+    void Editor::handle_scene_view_input(const SceneRect& scene_rect) {
         const ImGuiIO& io = ImGui::GetIO();
-        const Vector2 mouse_panel_pos(io.MousePos.x - panel_to_screen_offset.x,
-                                      io.MousePos.y - panel_to_screen_offset.y);
+        const Vector2 mouse_screen_pos(io.MousePos.x, io.MousePos.y);
 
         if (io.MouseWheel != 0.0f) {
-            m_camera.zoom_at(mouse_panel_pos, panel_size, io.MouseWheel);
+            m_camera.zoom_at(mouse_screen_pos, scene_rect, io.MouseWheel);
         }
 
         if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle, 0.0f)) {
-            m_camera.pan_by_panel_delta(Vector2(io.MouseDelta.x, io.MouseDelta.y));
+            m_camera.pan_by_pixel_delta(Vector2(io.MouseDelta.x, io.MouseDelta.y));
         }
 
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-            handle_scene_view_pick(mouse_panel_pos, m_camera.panel_to_world(mouse_panel_pos, panel_size));
+            handle_scene_view_pick(mouse_screen_pos, m_camera.screen_to_world(mouse_screen_pos, scene_rect));
         }
 
         if (!io.WantTextInput && ImGui::IsKeyPressed(ImGuiKey_F, false)) {
-            focus_camera_on_selection(panel_size);
+            focus_camera_on_selection(scene_rect);
         }
     }
 
-    void Editor::handle_scene_view_pick(const Vector2& mouse_panel_pos, const Vector2& mouse_world_pos) {
+    void Editor::handle_scene_view_pick(const Vector2& mouse_screen_pos, const Vector2& mouse_world_pos) {
         const bool additive = ImGui::GetIO().KeyCtrl;
 
         std::vector<EntityId> candidates;
@@ -199,8 +188,8 @@ namespace hob::editor {
 
         // Clicking the same spot again steps to the next candidate underneath the previous one.
         size_t index = 0;
-        const Vector2 cycle_panel_delta = mouse_panel_pos - m_pick_cycle_panel_position;
-        if (cycle_panel_delta.length() <= PICK_CYCLE_TOLERANCE_PX) {
+        const Vector2 cycle_screen_delta = mouse_screen_pos - m_pick_cycle_screen_position;
+        if (cycle_screen_delta.length() <= PICK_CYCLE_TOLERANCE_PX) {
             const auto it = std::find(candidates.begin(), candidates.end(), m_pick_cycle_last_entity_id);
             if (it != candidates.end()) {
                 index = (static_cast<size_t>(it - candidates.begin()) + 1) % candidates.size();
@@ -208,7 +197,7 @@ namespace hob::editor {
         }
 
         const EntityId picked_entity_id = candidates[index];
-        m_pick_cycle_panel_position = mouse_panel_pos;
+        m_pick_cycle_screen_position = mouse_screen_pos;
         m_pick_cycle_last_entity_id = picked_entity_id;
 
         if (additive) {
@@ -288,7 +277,7 @@ namespace hob::editor {
         }
     }
 
-    void Editor::focus_camera_on_selection(const Vector2& panel_size) {
+    void Editor::focus_camera_on_selection(const SceneRect& scene_rect) {
         const EntitySpawner& spawner = m_engine.get_entity_spawner();
 
         std::optional<AABB> world_bounds;
@@ -303,7 +292,7 @@ namespace hob::editor {
         }
 
         if (world_bounds.has_value()) {
-            m_camera.focus_on(*world_bounds, panel_size);
+            m_camera.focus_on(*world_bounds, scene_rect);
         }
     }
 
@@ -319,9 +308,7 @@ namespace hob::editor {
         }
     }
 
-    void Editor::draw_grid(ImDrawList* draw_list,
-                           const Vector2& panel_to_screen_offset,
-                           const Vector2& panel_size) const {
+    void Editor::draw_grid(ImDrawList* draw_list, const SceneRect& scene_rect) const {
         const float ppm = m_camera.pixels_per_meter;
 
         float world_step = 1.0f;
@@ -329,34 +316,29 @@ namespace hob::editor {
             world_step *= GRID_SPACING_STEP_FACTOR;
         }
 
-        // Y is inverted, so the world minimum is at the panel's bottom-left corner.
-        const Vector2 world_min = m_camera.panel_to_world(Vector2(0.0f, panel_size.y), panel_size);
-        const Vector2 world_max = m_camera.panel_to_world(Vector2(panel_size.x, 0.0f), panel_size);
+        const Vector2 top_left = scene_rect.top_left;
+        const Vector2 bottom_right = scene_rect.top_left + scene_rect.size;
+
+        // Y is inverted, so the world minimum is at the image's bottom-left corner.
+        const Vector2 world_min = m_camera.screen_to_world(Vector2(top_left.x, bottom_right.y), scene_rect);
+        const Vector2 world_max = m_camera.screen_to_world(Vector2(bottom_right.x, top_left.y), scene_rect);
 
         const float world_start_x = std::floor(world_min.x / world_step) * world_step;
         for (float world_x = world_start_x; world_x <= world_max.x; world_x += world_step) {
-            const Vector2 panel_pos = m_camera.world_to_panel(Vector2(world_x, 0.0f), panel_size);
-            const float screen_x = panel_to_screen_offset.x + panel_pos.x;
+            const float screen_x = m_camera.world_to_screen(Vector2(world_x, 0.0f), scene_rect).x;
             const ImU32 color = (std::abs(world_x) < world_step * 0.5f) ? GRID_AXIS_COLOR : GRID_MINOR_COLOR;
-            draw_list->AddLine(ImVec2(screen_x, panel_to_screen_offset.y),
-                               ImVec2(screen_x, panel_to_screen_offset.y + panel_size.y),
-                               color);
+            draw_list->AddLine(ImVec2(screen_x, top_left.y), ImVec2(screen_x, bottom_right.y), color);
         }
 
         const float world_start_y = std::floor(world_min.y / world_step) * world_step;
         for (float world_y = world_start_y; world_y <= world_max.y; world_y += world_step) {
-            const Vector2 panel_pos = m_camera.world_to_panel(Vector2(0.0f, world_y), panel_size);
-            const float screen_y = panel_to_screen_offset.y + panel_pos.y;
+            const float screen_y = m_camera.world_to_screen(Vector2(0.0f, world_y), scene_rect).y;
             const ImU32 color = (std::abs(world_y) < world_step * 0.5f) ? GRID_AXIS_COLOR : GRID_MINOR_COLOR;
-            draw_list->AddLine(ImVec2(panel_to_screen_offset.x, screen_y),
-                               ImVec2(panel_to_screen_offset.x + panel_size.x, screen_y),
-                               color);
+            draw_list->AddLine(ImVec2(top_left.x, screen_y), ImVec2(bottom_right.x, screen_y), color);
         }
     }
 
-    void Editor::draw_camera_view_rect(ImDrawList* draw_list,
-                                       const Vector2& panel_to_screen_offset,
-                                       const Vector2& panel_size) const {
+    void Editor::draw_camera_view_rect(ImDrawList* draw_list, const SceneRect& scene_rect) const {
         const CameraComponent* camera = m_engine.get_active_camera();
         if (camera == nullptr) {
             return;
@@ -373,23 +355,21 @@ namespace hob::editor {
 
         const AABB view_bounds(camera->get_entity().get_transform()->get_position(), view_size_px * 0.5f / camera_ppm);
 
-        // World +Y is up but panel +Y is down, so the world top-left corner is (min.x, max.y).
-        const Vector2 top_left_panel_pos =
-            m_camera.world_to_panel(Vector2(view_bounds.min().x, view_bounds.max().y), panel_size);
-        const Vector2 bottom_right_panel_pos =
-            m_camera.world_to_panel(Vector2(view_bounds.max().x, view_bounds.min().y), panel_size);
+        // World +Y is up but the screen's +Y is down, so the world top-left corner is (min.x, max.y).
+        const Vector2 top_left =
+            m_camera.world_to_screen(Vector2(view_bounds.min().x, view_bounds.max().y), scene_rect);
+        const Vector2 bottom_right =
+            m_camera.world_to_screen(Vector2(view_bounds.max().x, view_bounds.min().y), scene_rect);
 
-        draw_list->AddRect(panel_to_screen(top_left_panel_pos, panel_to_screen_offset),
-                           panel_to_screen(bottom_right_panel_pos, panel_to_screen_offset),
+        draw_list->AddRect(to_imvec(top_left),
+                           to_imvec(bottom_right),
                            ImGui::GetColorU32(COLOR_CAMERA_VIEW_RECT),
                            0.0f,
                            ImDrawFlags_None,
                            CAMERA_VIEW_RECT_THICKNESS);
     }
 
-    void Editor::draw_selection_overlay(ImDrawList* draw_list,
-                                        const Vector2& panel_to_screen_offset,
-                                        const Vector2& panel_size) const {
+    void Editor::draw_selection_overlay(ImDrawList* draw_list, const SceneRect& scene_rect) const {
         const EntitySpawner& spawner = m_engine.get_entity_spawner();
         const EntityId primary_entity_id = m_selection.primary();
 
@@ -418,10 +398,10 @@ namespace hob::editor {
                 const Vector2 top_left = Vector2::rotate_around(origin + Vector2(min.x, max.y), origin, rotation);
 
                 const ImVec2 screen_corners[4] = {
-                    world_to_screen(m_camera, bottom_left, panel_to_screen_offset, panel_size),
-                    world_to_screen(m_camera, bottom_right, panel_to_screen_offset, panel_size),
-                    world_to_screen(m_camera, top_right, panel_to_screen_offset, panel_size),
-                    world_to_screen(m_camera, top_left, panel_to_screen_offset, panel_size),
+                    to_imvec(m_camera.world_to_screen(bottom_left, scene_rect)),
+                    to_imvec(m_camera.world_to_screen(bottom_right, scene_rect)),
+                    to_imvec(m_camera.world_to_screen(top_right, scene_rect)),
+                    to_imvec(m_camera.world_to_screen(top_left, scene_rect)),
                 };
 
                 draw_list->AddPolyline(screen_corners, 4, color, ImDrawFlags_Closed, SELECTION_OUTLINE_THICKNESS);
@@ -429,7 +409,7 @@ namespace hob::editor {
             else {
                 const Vector2 world_pos = entity->get_transform()->get_position();
 
-                draw_list->AddCircle(world_to_screen(m_camera, world_pos, panel_to_screen_offset, panel_size),
+                draw_list->AddCircle(to_imvec(m_camera.world_to_screen(world_pos, scene_rect)),
                                      SELECTION_MARKER_RADIUS_PX,
                                      color,
                                      0,

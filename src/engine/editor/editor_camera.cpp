@@ -31,37 +31,37 @@ namespace hob::editor {
         return Renderer::ortho_top_left(w, h) * world_to_pixels;
     }
 
-    Vector2 EditorCamera::panel_to_world(const Vector2& panel_pos, const Vector2& panel_size) const {
-        Vector2 delta_px = panel_pos - panel_size * 0.5f;
+    Vector2 EditorCamera::screen_to_world(const Vector2& screen_pos, const SceneRect& scene_rect) const {
+        Vector2 delta_px = screen_pos - scene_rect.top_left - scene_rect.size * 0.5f;
         delta_px.y = -delta_px.y;
 
         return position + delta_px / pixels_per_meter;
     }
 
-    Vector2 EditorCamera::world_to_panel(const Vector2& world_pos, const Vector2& panel_size) const {
+    Vector2 EditorCamera::world_to_screen(const Vector2& world_pos, const SceneRect& scene_rect) const {
         Vector2 delta_px = (world_pos - position) * pixels_per_meter;
         delta_px.y = -delta_px.y;
 
-        return panel_size * 0.5f + delta_px;
+        return scene_rect.top_left + scene_rect.size * 0.5f + delta_px;
     }
 
-    void EditorCamera::pan_by_panel_delta(const Vector2& panel_delta) {
-        position.x -= panel_delta.x / pixels_per_meter;
-        position.y += panel_delta.y / pixels_per_meter;
+    void EditorCamera::pan_by_pixel_delta(const Vector2& pixel_delta) {
+        position.x -= pixel_delta.x / pixels_per_meter;
+        position.y += pixel_delta.y / pixels_per_meter;
     }
 
-    void EditorCamera::zoom_at(const Vector2& panel_pos, const Vector2& panel_size, float wheel) {
-        const Vector2 world_pos_before = panel_to_world(panel_pos, panel_size);
+    void EditorCamera::zoom_at(const Vector2& screen_pos, const SceneRect& scene_rect, float wheel) {
+        const Vector2 world_pos_before = screen_to_world(screen_pos, scene_rect);
 
         const float factor = (wheel > 0.0f) ? ZOOM_STEP : (1.0f / ZOOM_STEP);
         pixels_per_meter = clamp_pixels_per_meter(pixels_per_meter * factor);
 
         // Keep the world point under the cursor.
-        const Vector2 world_pos_after = panel_to_world(panel_pos, panel_size);
+        const Vector2 world_pos_after = screen_to_world(screen_pos, scene_rect);
         position = position + (world_pos_before - world_pos_after);
     }
 
-    void EditorCamera::focus_on(const AABB& world_bounds, const Vector2& panel_size) {
+    void EditorCamera::focus_on(const AABB& world_bounds, const SceneRect& scene_rect) {
         position = world_bounds.center;
 
         const Vector2 world_size = world_bounds.size();
@@ -69,7 +69,7 @@ namespace hob::editor {
             return; // Degenerate bounds: recenter only, keep the current zoom.
         }
 
-        const float fit_ppm = std::min(panel_size.x / world_size.x, panel_size.y / world_size.y);
+        const float fit_ppm = std::min(scene_rect.size.x / world_size.x, scene_rect.size.y / world_size.y);
         pixels_per_meter = clamp_pixels_per_meter(fit_ppm * FOCUS_FIT_FACTOR);
     }
 } // namespace hob::editor

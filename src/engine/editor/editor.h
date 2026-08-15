@@ -44,7 +44,7 @@ namespace hob::editor {
         bool m_scroll_hierarchy_to_primary = false;
 
         // Clicking the same spot repeatedly cycles through overlapping candidates.
-        Vector2 m_pick_cycle_panel_position;
+        Vector2 m_pick_cycle_screen_position;
         EntityId m_pick_cycle_last_entity_id = INVALID_ENTITY_ID;
 
         SDL_GPUTexture* m_scene_color_target = nullptr;
@@ -92,19 +92,15 @@ namespace hob::editor {
 
         void ensure_scene_color_target(uint32_t width, uint32_t height);
         void release_scene_color_target();
-        void handle_scene_view_input(const Vector2& panel_to_screen_offset, const Vector2& panel_size);
-        void handle_scene_view_pick(const Vector2& mouse_panel_pos, const Vector2& mouse_world_pos);
+        void handle_scene_view_input(const SceneRect& scene_rect);
+        void handle_scene_view_pick(const Vector2& mouse_screen_pos, const Vector2& mouse_world_pos);
         void gather_pick_candidates(const Vector2& world_pos, std::vector<EntityId>& out_candidates) const;
-        void focus_camera_on_selection(const Vector2& panel_size);
+        void focus_camera_on_selection(const SceneRect& scene_rect);
         void prune_selection();
 
-        void draw_grid(ImDrawList* draw_list, const Vector2& panel_to_screen_offset, const Vector2& panel_size) const;
-        void draw_camera_view_rect(ImDrawList* draw_list,
-                                   const Vector2& panel_to_screen_offset,
-                                   const Vector2& panel_size) const;
-        void draw_selection_overlay(ImDrawList* draw_list,
-                                    const Vector2& panel_to_screen_offset,
-                                    const Vector2& panel_size) const;
+        void draw_grid(ImDrawList* draw_list, const SceneRect& scene_rect) const;
+        void draw_camera_view_rect(ImDrawList* draw_list, const SceneRect& scene_rect) const;
+        void draw_selection_overlay(ImDrawList* draw_list, const SceneRect& scene_rect) const;
 
         void build_default_layout(ImGuiID dock_space_id);
         void save_layout();
