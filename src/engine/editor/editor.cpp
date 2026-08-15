@@ -211,10 +211,9 @@ namespace hob {
 
         const char* state_label = (m_state == State::Edit) ? "Edit" : (m_state == State::Play) ? "Play" : "Paused";
 
-        const ImGuiStyle& style = ImGui::GetStyle();
-        float toolbar_width = ImGui::CalcTextSize(state_label).x + style.ItemSpacing.x;
+        float toolbar_width = ImGui::CalcTextSize(state_label).x + editor_theme::BAR_ITEM_SPACING_X;
         for (int i = 0; i < item_count; ++i) {
-            toolbar_width += ImGui::CalcTextSize(items[i].label).x + style.FramePadding.x * 2.0f + style.ItemSpacing.x;
+            toolbar_width += editor_theme::bar_button_width(items[i].label);
         }
 
         const float cursor_x = ImGui::GetCursorPosX();
@@ -222,7 +221,7 @@ namespace hob {
         ImGui::SetCursorPosX(std::max(cursor_x, right_edge_x - toolbar_width));
 
         for (int i = 0; i < item_count; ++i) {
-            if (ImGui::Button(items[i].label)) {
+            if (editor_theme::bar_button(items[i].label)) {
                 switch (items[i].action) {
                     case Action::Play:
                         set_state(State::Play);
@@ -253,10 +252,12 @@ namespace hob {
         ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
 
         ImGuiID center = dockspace_id;
-        ImGuiID right = ImGui::DockBuilderSplitNode(center, ImGuiDir_Right, LAYOUT_RIGHT_COLUMNS_RATIO, nullptr, &center);
+        ImGuiID right =
+            ImGui::DockBuilderSplitNode(center, ImGuiDir_Right, LAYOUT_RIGHT_COLUMNS_RATIO, nullptr, &center);
         const ImGuiID inspector =
             ImGui::DockBuilderSplitNode(right, ImGuiDir_Right, LAYOUT_INSPECTOR_RATIO, nullptr, &right);
-        const ImGuiID assets = ImGui::DockBuilderSplitNode(center, ImGuiDir_Down, LAYOUT_ASSETS_RATIO, nullptr, &center);
+        const ImGuiID assets =
+            ImGui::DockBuilderSplitNode(center, ImGuiDir_Down, LAYOUT_ASSETS_RATIO, nullptr, &center);
 
         ImGui::DockBuilderDockWindow(PANEL_HIERARCHY, right);
         ImGui::DockBuilderDockWindow(PANEL_INSPECTOR, inspector);

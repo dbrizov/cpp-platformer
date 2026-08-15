@@ -8,40 +8,12 @@ namespace hob::editor_theme {
         constexpr int DRAW_CHANNEL_BACKGROUND = 0;
         constexpr int DRAW_CHANNEL_FOREGROUND = 1;
 
-        struct StyleColorStack {
-            int count = 0;
+        ImRect inset_rect(const ImVec2& min, const ImVec2& max, const ImVec2& inset) {
+            return ImRect(min.x + inset.x, min.y + inset.y, max.x - inset.x, max.y - inset.y);
+        }
 
-            void push(ImGuiCol index, const ImVec4& color) {
-                ImGui::PushStyleColor(index, color);
-                ++count;
-            }
-
-            void pop() {
-                ImGui::PopStyleColor(count);
-                count = 0;
-            }
-        };
-
-        struct StyleVarStack {
-            int count = 0;
-
-            void push(ImGuiStyleVar index, const ImVec2& value) {
-                ImGui::PushStyleVar(index, value);
-                ++count;
-            }
-
-            void pop() {
-                ImGui::PopStyleVar(count);
-                count = 0;
-            }
-        };
-
-        void draw_highlight(
-            ImDrawList* draw_list, const ImVec2& min, const ImVec2& max, const ImVec2& inset, const ImVec4& color) {
-            draw_list->AddRectFilled(ImVec2(min.x + inset.x, min.y + inset.y),
-                                     ImVec2(max.x - inset.x, max.y - inset.y),
-                                     ImGui::GetColorU32(color),
-                                     MENU_ITEM_ROUNDING);
+        void draw_highlight(ImDrawList* draw_list, const ImRect& rect, const ImVec4& color) {
+            draw_list->AddRectFilled(rect.Min, rect.Max, ImGui::GetColorU32(color), MENU_ITEM_ROUNDING);
         }
     } // namespace
 
@@ -51,38 +23,43 @@ namespace hob::editor_theme {
         style.FontSizeBase = FONT_SIZE_PX;
 
         style.WindowPadding = WINDOW_PADDING;
+        style.WindowTitleAlign = WINDOW_TITLE_ALIGN;
+        style.WindowRounding = WINDOW_ROUNDING;
+        style.WindowBorderSize = WINDOW_BORDER_SIZE;
+        style.WindowMenuButtonPosition = ImGuiDir_None;
+
+        style.ChildRounding = CHILD_ROUNDING;
+        style.ChildBorderSize = CHILD_BORDER_SIZE;
+
+        style.PopupRounding = POPUP_ROUNDING;
+        style.PopupBorderSize = POPUP_BORDER_SIZE;
+
         style.FramePadding = FRAME_PADDING;
+        style.FrameRounding = FRAME_ROUNDING;
+        style.FrameBorderSize = FRAME_BORDER_SIZE;
+
         style.ItemSpacing = ITEM_SPACING;
         style.ItemInnerSpacing = ITEM_INNER_SPACING;
+        style.SelectableTextAlign = SELECTABLE_TEXT_ALIGN;
+        style.ButtonTextAlign = BUTTON_TEXT_ALIGN;
         style.CellPadding = CELL_PADDING;
         style.IndentSpacing = INDENT_SPACING;
+        style.TreeLinesFlags = ImGuiTreeNodeFlags_DrawLinesToNodes;
+
         style.ScrollbarSize = SCROLLBAR_SIZE;
-        style.GrabMinSize = GRAB_MIN_SIZE;
-
-        style.WindowRounding = WINDOW_ROUNDING;
-        style.ChildRounding = CHILD_ROUNDING;
-        style.PopupRounding = POPUP_ROUNDING;
-        style.FrameRounding = FRAME_ROUNDING;
         style.ScrollbarRounding = SCROLLBAR_ROUNDING;
-        style.GrabRounding = GRAB_ROUNDING;
-        style.TabRounding = TAB_ROUNDING;
-        style.ImageRounding = IMAGE_ROUNDING;
 
-        style.WindowBorderSize = WINDOW_BORDER_SIZE;
-        style.ChildBorderSize = CHILD_BORDER_SIZE;
-        style.PopupBorderSize = POPUP_BORDER_SIZE;
-        style.FrameBorderSize = FRAME_BORDER_SIZE;
+        style.GrabMinSize = GRAB_MIN_SIZE;
+        style.GrabRounding = GRAB_ROUNDING;
+
+        style.TabRounding = TAB_ROUNDING;
         style.TabBorderSize = TAB_BORDER_SIZE;
         style.TabBarBorderSize = TAB_BAR_BORDER_SIZE;
         style.TabBarOverlineSize = TAB_BAR_OVERLINE_SIZE;
+
         style.DockingSeparatorSize = DOCKING_SEPARATOR_SIZE;
         style.SeparatorSize = SEPARATOR_SIZE;
-
-        style.WindowMenuButtonPosition = ImGuiDir_None;
-        style.WindowTitleAlign = WINDOW_TITLE_ALIGN;
-        style.ButtonTextAlign = BUTTON_TEXT_ALIGN;
-        style.SelectableTextAlign = SELECTABLE_TEXT_ALIGN;
-        style.TreeLinesFlags = ImGuiTreeNodeFlags_DrawLinesToNodes;
+        style.ImageRounding = IMAGE_ROUNDING;
 
         ImVec4* colors = style.Colors;
         colors[ImGuiCol_Text] = COLOR_TEXT;
@@ -214,9 +191,10 @@ namespace hob::editor_theme {
         colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
 
         StyleVarStack vars;
-        vars.push(ImGuiStyleVar_ItemSpacing, ImVec2(MENU_TITLE_SPACING_X, style.ItemSpacing.y));
+        vars.push(ImGuiStyleVar_ItemSpacing, ImVec2(BAR_ITEM_PADDING_X, style.ItemSpacing.y));
         vars.push(ImGuiStyleVar_WindowPadding, MENU_POPUP_PADDING);
 
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + BAR_ITEM_SPACING_X);
         const bool open = ImGui::BeginMenu(label);
         vars.pop();
         colors.pop();
@@ -224,9 +202,7 @@ namespace hob::editor_theme {
         if (open || ImGui::IsItemHovered()) {
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
             draw_highlight(draw_list,
-                           ImGui::GetItemRectMin(),
-                           ImGui::GetItemRectMax(),
-                           MENU_TITLE_INSET,
+                           ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()),
                            open ? COLOR_MENU_ACTIVE : COLOR_MENU_HOVER);
         }
 
@@ -242,6 +218,42 @@ namespace hob::editor_theme {
     void end_menu() {
         ImGui::PopStyleColor();
         ImGui::EndMenu();
+    }
+
+    float bar_button_width(const char* label) {
+        return ImGui::CalcTextSize(label).x + BAR_ITEM_PADDING_X * 2.0f + BAR_ITEM_SPACING_X;
+    }
+
+    bool bar_button(const char* label) {
+        const ImGuiStyle& style = ImGui::GetStyle();
+
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        ImDrawListSplitter splitter;
+        splitter.Split(draw_list, DRAW_CHANNEL_COUNT);
+        splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_FOREGROUND);
+
+        StyleColorStack colors;
+        colors.push(ImGuiCol_Header, COLOR_TRANSPARENT);
+        colors.push(ImGuiCol_HeaderHovered, COLOR_TRANSPARENT);
+        colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
+
+        StyleVarStack vars;
+        vars.push(ImGuiStyleVar_ItemSpacing, ImVec2(BAR_ITEM_PADDING_X * 2.0f, style.ItemSpacing.y));
+
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + BAR_ITEM_SPACING_X);
+        const bool pressed = ImGui::Selectable(label, false, ImGuiSelectableFlags_None, ImGui::CalcTextSize(label));
+        vars.pop();
+        colors.pop();
+
+        const ImVec4& color = ImGui::IsItemActive()    ? COLOR_BUTTON_ACTIVE
+                              : ImGui::IsItemHovered() ? COLOR_BUTTON_HOVER
+                                                       : COLOR_BUTTON;
+
+        splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
+        draw_highlight(draw_list, ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()), color);
+        splitter.Merge(draw_list);
+
+        return pressed;
     }
 
     bool menu_item(const char* label, const char* shortcut) {
@@ -265,11 +277,10 @@ namespace hob::editor_theme {
             const ImVec2 item_max = ImGui::GetItemRectMax();
 
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
-            draw_highlight(draw_list,
-                           ImVec2(window_min_x, item_min.y),
-                           ImVec2(window_max_x, item_max.y),
-                           MENU_ITEM_INSET,
-                           COLOR_MENU_HOVER);
+            draw_highlight(
+                draw_list,
+                inset_rect(ImVec2(window_min_x, item_min.y), ImVec2(window_max_x, item_max.y), MENU_ITEM_INSET),
+                COLOR_MENU_HOVER);
         }
 
         splitter.Merge(draw_list);
