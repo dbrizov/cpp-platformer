@@ -24,6 +24,31 @@
       }
     },
     {
+      "name": "debug-gcc",
+      "hidden": false,
+      "description": "Linux debug configure preset using GCC.",
+      "binaryDir": "${sourceDir}/build/debug/linux-gcc",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-linux",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "debug-clang",
+      "hidden": false,
+      "description": "macOS debug configure preset using Clang.",
+      "binaryDir": "${sourceDir}/build/debug/macos-clang",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "arm64-osx",
+        "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkg-overlays",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
       "name": "release-msvc",
       "hidden": false,
       "description": "Windows release configure preset using MSVC.",
@@ -41,18 +66,6 @@
       }
     },
     {
-      "name": "debug-gcc",
-      "hidden": false,
-      "description": "Linux debug configure preset using GCC.",
-      "binaryDir": "${sourceDir}/build/debug/linux-gcc",
-      "generator": "Ninja",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-linux",
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
       "name": "release-gcc",
       "hidden": false,
       "description": "Linux release configure preset using GCC.",
@@ -62,19 +75,6 @@
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_TARGET_TRIPLET": "x64-linux",
         "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "debug-clang",
-      "hidden": false,
-      "description": "macOS debug configure preset using Clang.",
-      "binaryDir": "${sourceDir}/build/debug/macos-clang",
-      "generator": "Ninja",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "arm64-osx",
-        "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkg-overlays",
-        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
@@ -103,18 +103,6 @@
       }
     },
     {
-      "name": "release-msvc-editor",
-      "inherits": "release-msvc",
-      "description": "Windows release editor configure preset using MSVC.",
-      "binaryDir": "${sourceDir}/build/release/windows-msvc-editor",
-      "cacheVariables": {
-        "HOB_EDITOR": {
-          "type": "BOOL",
-          "value": "ON"
-        }
-      }
-    },
-    {
       "name": "debug-gcc-editor",
       "inherits": "debug-gcc",
       "description": "Linux debug editor configure preset using GCC.",
@@ -127,10 +115,10 @@
       }
     },
     {
-      "name": "release-gcc-editor",
-      "inherits": "release-gcc",
-      "description": "Linux release editor configure preset using GCC.",
-      "binaryDir": "${sourceDir}/build/release/linux-gcc-editor",
+      "name": "debug-clang-editor",
+      "inherits": "debug-clang",
+      "description": "macOS debug editor configure preset using Clang.",
+      "binaryDir": "${sourceDir}/build/debug/macos-clang-editor",
       "cacheVariables": {
         "HOB_EDITOR": {
           "type": "BOOL",
@@ -139,10 +127,22 @@
       }
     },
     {
-      "name": "debug-clang-editor",
-      "inherits": "debug-clang",
-      "description": "macOS debug editor configure preset using Clang.",
-      "binaryDir": "${sourceDir}/build/debug/macos-clang-editor",
+      "name": "release-msvc-editor",
+      "inherits": "release-msvc",
+      "description": "Windows release editor configure preset using MSVC.",
+      "binaryDir": "${sourceDir}/build/release/windows-msvc-editor",
+      "cacheVariables": {
+        "HOB_EDITOR": {
+          "type": "BOOL",
+          "value": "ON"
+        }
+      }
+    },
+    {
+      "name": "release-gcc-editor",
+      "inherits": "release-gcc",
+      "description": "Linux release editor configure preset using GCC.",
+      "binaryDir": "${sourceDir}/build/release/linux-gcc-editor",
       "cacheVariables": {
         "HOB_EDITOR": {
           "type": "BOOL",
@@ -171,25 +171,25 @@
       "description": "Windows debug build using MSVC."
     },
     {
+      "name": "debug-gcc-x64",
+      "configurePreset": "debug-gcc",
+      "description": "Linux debug build using GCC."
+    },
+    {
+      "name": "debug-clang-arm64-osx",
+      "configurePreset": "debug-clang",
+      "description": "macOS debug build using Clang."
+    },
+    {
       "name": "release-msvc-x64",
       "configurePreset": "release-msvc",
       "configuration": "Release",
       "description": "Windows release build using MSVC."
     },
     {
-      "name": "debug-gcc-x64",
-      "configurePreset": "debug-gcc",
-      "description": "Linux debug build using GCC."
-    },
-    {
       "name": "release-gcc-x64",
       "configurePreset": "release-gcc",
       "description": "Linux release build using GCC."
-    },
-    {
-      "name": "debug-clang-arm64-osx",
-      "configurePreset": "debug-clang",
-      "description": "macOS debug build using Clang."
     },
     {
       "name": "release-clang-arm64-osx",
@@ -203,25 +203,25 @@
       "description": "Windows debug editor build using MSVC."
     },
     {
+      "name": "debug-gcc-editor-x64",
+      "configurePreset": "debug-gcc-editor",
+      "description": "Linux debug editor build using GCC."
+    },
+    {
+      "name": "debug-clang-editor-arm64-osx",
+      "configurePreset": "debug-clang-editor",
+      "description": "macOS debug editor build using Clang."
+    },
+    {
       "name": "release-msvc-editor-x64",
       "configurePreset": "release-msvc-editor",
       "configuration": "Release",
       "description": "Windows release editor build using MSVC."
     },
     {
-      "name": "debug-gcc-editor-x64",
-      "configurePreset": "debug-gcc-editor",
-      "description": "Linux debug editor build using GCC."
-    },
-    {
       "name": "release-gcc-editor-x64",
       "configurePreset": "release-gcc-editor",
       "description": "Linux release editor build using GCC."
-    },
-    {
-      "name": "debug-clang-editor-arm64-osx",
-      "configurePreset": "debug-clang-editor",
-      "description": "macOS debug editor build using Clang."
     },
     {
       "name": "release-clang-editor-arm64-osx",
