@@ -7,6 +7,8 @@
 #include <SDL3/SDL_gpu.h>
 #include <imgui.h>
 
+#include "commands/editor_command_set_transform.h"
+#include "commands/editor_command_stack.h"
 #include "editor_camera.h"
 #include "editor_entity_selection.h"
 #include "engine/core/engine_hooks.h"
@@ -16,6 +18,7 @@ struct ImDrawList;
 
 namespace hob {
     class Engine;
+    class Entity;
     class TransformComponent;
 } // namespace hob
 
@@ -38,14 +41,17 @@ namespace hob::editor {
         bool m_step_requested = false;
 
         EditorCamera m_camera;
+        EditorCommandStack m_commands;
 
-        EntitySelection m_selection;
+        EditorEntitySelection m_selection;
         EntityId m_range_selection_anchor = INVALID_ENTITY_ID;
         bool m_scroll_hierarchy_to_primary = false;
 
         // Clicking the same spot repeatedly cycles through overlapping candidates.
         Vector2 m_pick_cycle_screen_position;
         EntityId m_pick_cycle_last_entity_id = INVALID_ENTITY_ID;
+
+        TransformState m_drag_start_transform;
 
         SDL_GPUTexture* m_scene_color_target = nullptr;
         uint32_t m_scene_color_target_width = 0;
@@ -88,6 +94,10 @@ namespace hob::editor {
                                    std::vector<EntityId>& visible_order,
                                    EntityId& out_clicked_entity_id);
         void apply_hierarchy_click(EntityId entity_id, const std::vector<EntityId>& visible_order);
+
+        void draw_inspector_transform(Entity& entity);
+
+        void handle_undo_redo_shortcuts();
 
         void ensure_scene_color_target(uint32_t width, uint32_t height);
         void release_scene_color_target();

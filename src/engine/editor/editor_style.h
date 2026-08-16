@@ -54,6 +54,11 @@ namespace hob::editor {
     constexpr float BAR_ITEM_PADDING_X = 7.0f;
     constexpr float BAR_ITEM_SPACING_X = 4.0f;
 
+    constexpr float INSPECTOR_LABEL_WIDTH = 120.0f;
+    constexpr float INSPECTOR_DRAG_SPEED_POSITION = 0.02f;
+    constexpr float INSPECTOR_DRAG_SPEED_ROTATION_DEG = 0.5f;
+    constexpr float INSPECTOR_DRAG_SPEED_SCALE = 0.01f;
+
     constexpr float DOCKING_SEPARATOR_SIZE = 2.0f;
     constexpr float SEPARATOR_SIZE = 1.0f;
     constexpr float IMAGE_ROUNDING = 0.0f;

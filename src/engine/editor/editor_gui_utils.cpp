@@ -5,6 +5,7 @@
 #include <imgui_internal.h>
 
 #include "editor_style.h"
+#include "engine/math/constants.h"
 
 namespace hob::editor {
     namespace {
@@ -139,7 +140,7 @@ namespace hob::editor {
         return pressed;
     }
 
-    bool menu_item(const char* label, const char* shortcut) {
+    bool menu_item(const char* label, const char* shortcut, bool enabled) {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         ImDrawListSplitter splitter;
         splitter.Split(draw_list, DRAW_CHANNEL_COUNT);
@@ -150,10 +151,12 @@ namespace hob::editor {
         colors.push(ImGuiCol_HeaderHovered, COLOR_TRANSPARENT);
         colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
 
-        const bool pressed = ImGui::MenuItem(label, shortcut);
+        const bool selected = false;
+        const bool pressed = ImGui::MenuItem(label, shortcut, selected, enabled);
         colors.pop();
 
-        if (ImGui::IsItemHovered()) {
+        // A disabled row is inert, so it must not light up under the cursor either.
+        if (enabled && ImGui::IsItemHovered()) {
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
             draw_highlight(draw_list, row_rect(MENU_ITEM_INSET), COLOR_MENU_HOVER, MENU_ITEM_ROUNDING);
         }
@@ -161,6 +164,13 @@ namespace hob::editor {
         splitter.Merge(draw_list);
 
         return pressed;
+    }
+
+    void inspector_field_label(const char* label) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(label);
+        ImGui::SameLine(INSPECTOR_LABEL_WIDTH);
+        ImGui::SetNextItemWidth(-EPSILON); // Negative width means "fill the remaining space".
     }
 
     bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) {

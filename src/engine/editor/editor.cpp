@@ -27,7 +27,9 @@ namespace hob::editor {
     Editor::Editor(Engine& engine)
         : m_engine(engine)
         , m_imgui_ini_path(get_editor_imgui_ini_file_path().string()) {
-        ImGui::GetIO().IniFilename = m_imgui_ini_path.c_str();
+        ImGuiIO& io = ImGui::GetIO();
+        io.IniFilename = m_imgui_ini_path.c_str();
+        io.ConfigDragClickToInputText = true;
 
         apply_style();
         m_engine.get_imgui_system().set_clear_color(COLOR_CLEAR);
@@ -60,6 +62,7 @@ namespace hob::editor {
         const bool leaving_play = (state == State::Edit);
 
         if (entering_play || leaving_play) {
+            m_commands.clear();
             m_selection.clear();
             m_range_selection_anchor = INVALID_ENTITY_ID;
             m_pick_cycle_last_entity_id = INVALID_ENTITY_ID;
@@ -85,6 +88,22 @@ namespace hob::editor {
         m_engine.set_game_input_enabled(m_state == State::Play);
 
         prune_selection();
+        handle_undo_redo_shortcuts();
+    }
+
+    void Editor::handle_undo_redo_shortcuts() {
+        const ImGuiIO& io = ImGui::GetIO();
+        if (!io.KeyCtrl || io.WantTextInput) {
+            return;
+        }
+
+        if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
+            m_commands.undo(m_engine);
+        }
+
+        if (ImGui::IsKeyPressed(ImGuiKey_Y, false)) {
+            m_commands.redo(m_engine);
+        }
     }
 
     bool Editor::on_quit_requested() {

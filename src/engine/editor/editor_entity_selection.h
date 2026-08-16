@@ -6,7 +6,7 @@
 #include "engine/entity/entity.h"
 
 namespace hob::editor {
-    struct EntitySelection {
+    struct EditorEntitySelection {
         std::vector<EntityId> ids;
 
         bool empty() const {

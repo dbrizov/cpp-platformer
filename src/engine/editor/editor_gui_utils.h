@@ -39,10 +39,14 @@ namespace hob::editor {
     bool begin_menu(const char* label);
     void end_menu();
 
-    bool menu_item(const char* label, const char* shortcut = nullptr);
+    bool menu_item(const char* label, const char* shortcut = nullptr, bool enabled = true);
 
     bool bar_button(const char* label);
     float bar_button_width(const char* label);
 
     bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) IM_FMTARGS(4);
+
+    // Leaves the cursor ready for a full-width widget.
+    // The widget that follows takes a hidden label ("##named_id"), since the visible one is here.
+    void inspector_field_label(const char* label);
 } // namespace hob::editor
