@@ -7,7 +7,6 @@
 #include <SDL3/SDL_gpu.h>
 #include <imgui.h>
 
-#include "commands/editor_command_set_transform.h"
 #include "commands/editor_command_stack.h"
 #include "editor_camera.h"
 #include "editor_entity_selection.h"
@@ -18,7 +17,6 @@ struct ImDrawList;
 
 namespace hob {
     class Engine;
-    class Entity;
     class TransformComponent;
 } // namespace hob
 
@@ -51,8 +49,6 @@ namespace hob::editor {
         Vector2 m_pick_cycle_screen_position;
         EntityId m_pick_cycle_last_entity_id = INVALID_ENTITY_ID;
 
-        TransformState m_drag_start_transform;
-
         SDL_GPUTexture* m_scene_color_target = nullptr;
         uint32_t m_scene_color_target_width = 0;
         uint32_t m_scene_color_target_height = 0;
@@ -74,12 +70,14 @@ namespace hob::editor {
 
         void set_state(State state);
 
+#pragma region EngineHooks
         void tick(float delta_time) override;
         void draw_gui() override;
         void render_passes() override;
-
+        void on_lua_hot_reloaded() override;
         bool on_quit_requested() override;
         bool on_window_close_requested(SDL_WindowID window_id) override;
+#pragma endregion
 
     private:
         void draw_menu_bar();
@@ -94,8 +92,6 @@ namespace hob::editor {
                                    std::vector<EntityId>& visible_order,
                                    EntityId& out_clicked_entity_id);
         void apply_hierarchy_click(EntityId entity_id, const std::vector<EntityId>& visible_order);
-
-        void draw_inspector_transform(Entity& entity);
 
         void handle_undo_redo_shortcuts();
 

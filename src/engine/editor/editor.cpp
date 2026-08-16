@@ -17,11 +17,11 @@
 
 namespace hob::editor {
     namespace {
+        constexpr const char* EDITOR_SCRIPTS_FOLDER = "scripts/editor";
+
         constexpr float LAYOUT_RIGHT_COLUMNS_RATIO = 0.46f;
         constexpr float LAYOUT_INSPECTOR_RATIO = 0.50f;
         constexpr float LAYOUT_ASSETS_RATIO = 0.30f;
-
-        constexpr uint32_t MIN_COLOR_TARGET_SIZE_PX = 1;
     } // namespace
 
     Editor::Editor(Engine& engine)
@@ -30,6 +30,8 @@ namespace hob::editor {
         ImGuiIO& io = ImGui::GetIO();
         io.IniFilename = m_imgui_ini_path.c_str();
         io.ConfigDragClickToInputText = true;
+
+        m_engine.get_lua_script_system().run_engine_folder(EDITOR_SCRIPTS_FOLDER);
 
         apply_style();
         m_engine.get_imgui_system().set_clear_color(COLOR_CLEAR);
@@ -91,40 +93,6 @@ namespace hob::editor {
         handle_undo_redo_shortcuts();
     }
 
-    void Editor::handle_undo_redo_shortcuts() {
-        const ImGuiIO& io = ImGui::GetIO();
-        if (!io.KeyCtrl || io.WantTextInput) {
-            return;
-        }
-
-        if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
-            m_commands.undo(m_engine);
-        }
-
-        if (ImGui::IsKeyPressed(ImGuiKey_Y, false)) {
-            m_commands.redo(m_engine);
-        }
-    }
-
-    bool Editor::on_quit_requested() {
-        if (m_engine.get_game_window() == nullptr) {
-            return false;
-        }
-
-        set_state(State::Edit);
-        return true;
-    }
-
-    bool Editor::on_window_close_requested(SDL_WindowID window_id) {
-        const Window* game_window = m_engine.get_game_window();
-        if (game_window == nullptr || game_window->get_id() != window_id) {
-            return false;
-        }
-
-        set_state(State::Edit);
-        return true;
-    }
-
     void Editor::draw_gui() {
         if (ImGui::BeginMainMenuBar()) {
             draw_menu_bar();
@@ -156,34 +124,42 @@ namespace hob::editor {
         m_engine.get_renderer().render_world_pass_to(m_scene_color_target, view_proj);
     }
 
-    void Editor::ensure_scene_color_target(uint32_t width, uint32_t height) {
-        width = std::max(width, MIN_COLOR_TARGET_SIZE_PX);
-        height = std::max(height, MIN_COLOR_TARGET_SIZE_PX);
-
-        if (m_scene_color_target && width == m_scene_color_target_width && height == m_scene_color_target_height) {
-            return;
-        }
-
-        release_scene_color_target();
-
-        m_scene_color_target = m_engine.get_renderer().create_color_target(width, height);
-        if (m_scene_color_target == nullptr) {
-            return;
-        }
-
-        m_scene_color_target_width = width;
-        m_scene_color_target_height = height;
+    void Editor::on_lua_hot_reloaded() {
+        m_engine.get_lua_script_system().run_engine_folder(EDITOR_SCRIPTS_FOLDER);
     }
 
-    void Editor::release_scene_color_target() {
-        if (m_scene_color_target == nullptr) {
+    bool Editor::on_quit_requested() {
+        if (m_engine.get_game_window() == nullptr) {
+            return false;
+        }
+
+        set_state(State::Edit);
+        return true;
+    }
+
+    bool Editor::on_window_close_requested(SDL_WindowID window_id) {
+        const Window* game_window = m_engine.get_game_window();
+        if (game_window == nullptr || game_window->get_id() != window_id) {
+            return false;
+        }
+
+        set_state(State::Edit);
+        return true;
+    }
+
+    void Editor::handle_undo_redo_shortcuts() {
+        const ImGuiIO& io = ImGui::GetIO();
+        if (!io.KeyCtrl || io.WantTextInput) {
             return;
         }
 
-        SDL_ReleaseGPUTexture(m_engine.get_renderer().get_gpu_device(), m_scene_color_target);
-        m_scene_color_target = nullptr;
-        m_scene_color_target_width = 0;
-        m_scene_color_target_height = 0;
+        if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
+            m_commands.undo(m_engine);
+        }
+
+        if (ImGui::IsKeyPressed(ImGuiKey_Y, false)) {
+            m_commands.redo(m_engine);
+        }
     }
 
     void Editor::build_default_layout(ImGuiID dock_space_id) {

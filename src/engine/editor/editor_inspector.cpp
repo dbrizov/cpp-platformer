@@ -1,16 +1,106 @@
-#include <memory>
+#include <string>
 
 #include <imgui.h>
+#include <sol/sol.hpp>
 
-#include "commands/editor_command_set_transform.h"
 #include "editor.h"
 #include "editor_gui_utils.h"
-#include "editor_style.h"
+#include "editor_lua.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/entity/entity.h"
+#include "engine/math/color.h"
+#include "engine/math/vector2.h"
 
 namespace hob::editor {
+    namespace {
+        template<typename T>
+        T value_or(const sol::object& value, const T& fallback) {
+            return value.is<T>() ? value.as<T>() : fallback;
+        }
+
+        void draw_field(Engine& engine, const sol::table& field) {
+            const std::string name = field.get_or<std::string>("name", "?");
+            const std::string kind = field.get_or<std::string>("kind", "");
+            const sol::object value = field["value"];
+
+            ImGui::BeginDisabled();
+
+            if (kind == "int") {
+                int64_t number = value_or<int64_t>(value, 0);
+                field_int(name.c_str(), number);
+            }
+            else if (kind == "float") {
+                float number = value_or<float>(value, 0.0f);
+                field_float(name.c_str(), number);
+            }
+            else if (kind == "angle") {
+                float degrees = value_or<float>(value, 0.0f);
+                field_angle(name.c_str(), degrees);
+            }
+            else if (kind == "bool") {
+                bool flag = value_or<bool>(value, false);
+                field_bool(name.c_str(), flag);
+            }
+            else if (kind == "string") {
+                std::string text = value_or<std::string>(value, "");
+                field_string(name.c_str(), text);
+            }
+            else if (kind == "vector2") {
+                Vector2 vector = value_or<Vector2>(value, Vector2());
+                field_vector2(name.c_str(), vector);
+            }
+            else if (kind == "color") {
+                Color color = value_or<Color>(value, Color());
+                field_color(name.c_str(), color);
+            }
+            else {
+                field_text(name.c_str(), lua_object_to_display_string(engine, value));
+            }
+
+            ImGui::EndDisabled();
+        }
+
+        void draw_component(Engine& engine, int index, const sol::table& component) {
+            const std::string name = component.get_or<std::string>("name", "?");
+            const bool is_lua = component.get_or("is_lua", false);
+            const std::string header = is_lua ? name + " (Lua)" : name;
+
+            ImGui::SeparatorText(header.c_str());
+
+            ImGui::PushID(index);
+
+            const sol::object fields = component["fields"];
+            if (fields.is<sol::table>()) {
+                const sol::table rows = fields.as<sol::table>();
+                for (int i = 1; i <= rows.size(); ++i) {
+                    const sol::object row = rows[i];
+                    if (row.is<sol::table>()) {
+                        draw_field(engine, row.as<sol::table>());
+                    }
+                }
+            }
+
+            ImGui::PopID();
+        }
+
+        void draw_components(Engine& engine, EntityId entity_id) {
+            const sol::object components = editor_call(engine, "get_components", entity_id);
+            if (!components.is<sol::table>()) {
+                ImGui::TextDisabled("Editor.get_components is unavailable");
+                return;
+            }
+
+            const sol::table sections = components.as<sol::table>();
+            for (int i = 1; i <= sections.size(); ++i) {
+                const sol::object section = sections[i];
+                if (section.is<sol::table>()) {
+                    draw_component(engine, i, section.as<sol::table>());
+                }
+            }
+        }
+    } // namespace
+
     void Editor::draw_inspector() {
         if (begin_panel(PANEL_INSPECTOR)) {
             // Multi-selection inspects the primary; the rest still move together via the SceneView.
@@ -31,69 +121,9 @@ namespace hob::editor {
                     ImGui::TextDisabled("(%zu selected)", m_selection.ids.size());
                 }
 
-                draw_inspector_transform(*entity);
+                draw_components(m_engine, entity->get_id());
             }
         }
         end_panel();
-    }
-
-    void Editor::draw_inspector_transform(Entity& entity) {
-        TransformComponent* transform = entity.get_transform();
-        if (transform == nullptr) {
-            return;
-        }
-
-        ImGui::SeparatorText("Transform");
-        ImGui::PushID("transform");
-
-        const TransformState state = TransformState::capture(*transform);
-
-        const auto capture_on_activate = [&] {
-            if (ImGui::IsItemActivated()) {
-                m_drag_start_transform = state;
-            }
-        };
-
-        const auto push_on_release = [&](const char* label) {
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
-                m_commands.push(
-                    m_engine,
-                    std::make_unique<EditorCommandSetTransform>(
-                        label, entity.get_id(), m_drag_start_transform, TransformState::capture(*transform)));
-            }
-        };
-
-        const auto apply_live = [&](const TransformState& next) {
-            EditorCommandSetTransform::apply(m_engine, entity.get_id(), next);
-        };
-
-        Vector2 position = state.position;
-        if (field_vector2("Position", position, INSPECTOR_DRAG_SPEED_POSITION)) {
-            TransformState next = state;
-            next.position = position;
-            apply_live(next);
-        }
-        capture_on_activate();
-        push_on_release("Move");
-
-        float rotation = state.rotation;
-        if (field_angle("Rotation", rotation)) {
-            TransformState next = state;
-            next.rotation = rotation;
-            apply_live(next);
-        }
-        capture_on_activate();
-        push_on_release("Rotate");
-
-        Vector2 scale = state.scale;
-        if (field_vector2("Scale", scale, INSPECTOR_DRAG_SPEED_SCALE)) {
-            TransformState next = state;
-            next.scale = scale;
-            apply_live(next);
-        }
-        capture_on_activate();
-        push_on_release("Scale");
-
-        ImGui::PopID();
     }
 } // namespace hob::editor

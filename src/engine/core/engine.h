@@ -50,6 +50,7 @@ namespace hob {
         explicit Engine(const EngineConfig& config);
         ~Engine();
 
+        EngineHooks* get_hooks() const;
         void set_hooks(EngineHooks* hooks);
 
         void run();

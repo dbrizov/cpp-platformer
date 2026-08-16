@@ -80,6 +80,10 @@ namespace hob {
         m_ui_system.clear_data_models();
     }
 
+    EngineHooks* Engine::get_hooks() const {
+        return m_hooks;
+    }
+
     void Engine::set_hooks(EngineHooks* hooks) {
         m_hooks = hooks;
     }

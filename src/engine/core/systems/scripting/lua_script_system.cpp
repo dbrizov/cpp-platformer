@@ -11,6 +11,7 @@
 #include "engine/core/assert.h"
 #include "engine/core/debug.h"
 #include "engine/core/engine.h"
+#include "engine/core/engine_hooks.h"
 #include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
 #include "engine/core/systems/console.h"
@@ -123,6 +124,12 @@ namespace hob {
         const bool success = run_engine_file("scripts/hot_reload.lua");
         if (success) {
             refresh_lua_component_class_caches();
+
+            EngineHooks* hooks = m_engine.get_hooks();
+            if (hooks != nullptr) {
+                hooks->on_lua_hot_reloaded();
+            }
+
             debug::print(Color::white(), 5.0f, true, "[Lua] hot reload");
         }
         else {
@@ -175,42 +182,7 @@ namespace hob {
         }
     }
 
-    void LuaScriptSystem::refresh_lua_component_class_caches() {
-        std::vector<Entity*> entities;
-        m_engine.get_entity_spawner().get_entities(entities);
-
-        for (Entity* entity : entities) {
-            const std::vector<LuaScriptComponent*> components = entity->get_components<LuaScriptComponent>();
-            for (LuaScriptComponent* component : components) {
-                component->refresh_class_cache();
-            }
-
-            // Priorities may have changed during refresh; re-sort so execution order stays correct.
-            if (!components.empty()) {
-                entity->sort_components();
-            }
-        }
-    }
-
-    bool LuaScriptSystem::run_engine_file(const std::filesystem::path& relative_path) {
-        return run_file_in(PathUtils::get_engine_root(), relative_path);
-    }
-
-    bool LuaScriptSystem::run_project_file(const std::filesystem::path& relative_path) {
-        return run_file_in(PathUtils::get_project_root(), relative_path);
-    }
-
-    bool LuaScriptSystem::run_engine_folder(const std::filesystem::path& relative_path,
-                                            const std::vector<std::string>& excludes) {
-        return run_folder_in(PathUtils::get_engine_root(), relative_path, excludes);
-    }
-
-    bool LuaScriptSystem::run_project_folder(const std::filesystem::path& relative_path,
-                                             const std::vector<std::string>& excludes) {
-        return run_folder_in(PathUtils::get_project_root(), relative_path, excludes);
-    }
-
-    bool LuaScriptSystem::run_file_in(const std::filesystem::path& base, const std::filesystem::path& relative_path) {
+    bool LuaScriptSystem::run_file(const std::filesystem::path& base, const std::filesystem::path& relative_path) {
         const std::filesystem::path full_path = base / relative_path;
 
         auto result = m_impl->lua.safe_script_file(full_path.string(), sol::script_pass_on_error);
@@ -223,9 +195,9 @@ namespace hob {
         return true;
     }
 
-    bool LuaScriptSystem::run_folder_in(const std::filesystem::path& base,
-                                        const std::filesystem::path& relative_path,
-                                        const std::vector<std::string>& excludes) {
+    bool LuaScriptSystem::run_folder(const std::filesystem::path& base,
+                                     const std::filesystem::path& relative_path,
+                                     const std::vector<std::string>& excludes) {
         const std::filesystem::path root = base / relative_path;
         if (!std::filesystem::exists(root)) {
             log::lua.error("LuaScriptSystem::run_folder_in: '{}' does not exist", root.string());
@@ -274,12 +246,47 @@ namespace hob {
         return all_ok;
     }
 
+    bool LuaScriptSystem::run_engine_file(const std::filesystem::path& relative_path) {
+        return run_file(PathUtils::get_engine_root(), relative_path);
+    }
+
+    bool LuaScriptSystem::run_engine_folder(const std::filesystem::path& relative_path,
+                                            const std::vector<std::string>& excludes) {
+        return run_folder(PathUtils::get_engine_root(), relative_path, excludes);
+    }
+
+    bool LuaScriptSystem::run_project_file(const std::filesystem::path& relative_path) {
+        return run_file(PathUtils::get_project_root(), relative_path);
+    }
+
+    bool LuaScriptSystem::run_project_folder(const std::filesystem::path& relative_path,
+                                             const std::vector<std::string>& excludes) {
+        return run_folder(PathUtils::get_project_root(), relative_path, excludes);
+    }
+
     bool LuaScriptSystem::run_bootstrap() {
         return run_engine_file("scripts/bootstrap.lua");
     }
 
     bool LuaScriptSystem::run_project_main() {
         return run_project_file("scripts/main.lua");
+    }
+
+    void LuaScriptSystem::refresh_lua_component_class_caches() {
+        std::vector<Entity*> entities;
+        m_engine.get_entity_spawner().get_entities(entities);
+
+        for (Entity* entity : entities) {
+            const std::vector<LuaScriptComponent*> components = entity->get_components<LuaScriptComponent>();
+            for (LuaScriptComponent* component : components) {
+                component->refresh_class_cache();
+            }
+
+            // Priorities may have changed during refresh; re-sort so execution order stays correct.
+            if (!components.empty()) {
+                entity->sort_components();
+            }
+        }
     }
 
     void LuaScriptSystem::register_cvars(Console& console) {

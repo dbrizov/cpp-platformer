@@ -18,6 +18,7 @@ namespace hob::editor {
 
         constexpr const char* EMPTY_LABEL = "##";
         constexpr const char* FLOAT_FORMAT = "%.3f";
+        constexpr const char* INT_FORMAT = "%lld";
         constexpr uint32_t FIELD_STRING_CAPACITY = 256;
         constexpr const char* COLOR_PICKER_POPUP = "picker";
         constexpr ImGuiColorEditFlags COLOR_EDIT_FLAGS = ImGuiColorEditFlags_Float;
@@ -258,14 +259,14 @@ namespace hob::editor {
         ImGui::PopID();
     }
 
-    bool field_angle(const char* label, float& radians, float drag_speed) {
-        float degrees = math::normalize_angle(radians * RAD_TO_DEG);
-        float* components[] = {&degrees};
+    bool field_angle(const char* label, float& degrees, float drag_speed) {
+        float normalized = math::normalize_angle(degrees);
+        float* components[] = {&normalized};
         const bool changed =
             field_components(label, &COLOR_AXIS_Z, components, IM_COUNTOF(components), drag_speed, 0.0f, 0.0f);
 
         if (changed) {
-            radians = degrees * DEG_TO_RAD;
+            degrees = normalized;
         }
 
         return changed;
@@ -280,9 +281,10 @@ namespace hob::editor {
         return changed;
     }
 
-    bool field_int(const char* label, int& value, float drag_speed, int min, int max) {
+    bool field_int(const char* label, int64_t& value, float drag_speed, int64_t min, int64_t max) {
         begin_field(label);
-        const bool changed = ImGui::DragInt(EMPTY_LABEL, &value, drag_speed, min, max, "%d", clamp_flags(min, max));
+        const bool changed = ImGui::DragScalar(
+            EMPTY_LABEL, ImGuiDataType_S64, &value, drag_speed, &min, &max, INT_FORMAT, clamp_flags(min, max));
         end_field();
 
         return changed;
@@ -309,6 +311,15 @@ namespace hob::editor {
         }
 
         return changed;
+    }
+
+    void field_text(const char* label, const std::string& value) {
+        char buffer[FIELD_STRING_CAPACITY];
+        std::snprintf(buffer, sizeof(buffer), "%s", value.c_str());
+
+        begin_field(label);
+        ImGui::InputText(EMPTY_LABEL, buffer, sizeof(buffer), ImGuiInputTextFlags_ReadOnly);
+        end_field();
     }
 
     bool field_vector2(const char* label, Vector2& value, float drag_speed) {

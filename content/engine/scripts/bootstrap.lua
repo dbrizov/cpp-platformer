@@ -7,9 +7,10 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
 end
 
 -- Engine modules (registries / metatables / enums) + generated path/factory registries.
--- lib/ and meta/ are excluded; hot_reload.lua is imperative, run on demand by C++.
+-- lib/, meta/ and editor/ are excluded; hot_reload.lua is imperative, run on demand by C++,
+-- and editor/ is run by the editor host itself (it does not exist in a plain game run).
 function _G.__load_engine_modules()
-    Scripts.run_engine_folder("scripts", { "bootstrap.lua", "hot_reload.lua", "lib", "meta" })
+    Scripts.run_engine_folder("scripts", { "bootstrap.lua", "hot_reload.lua", "lib", "meta", "editor" })
     __install_path_registries()
     __install_factory_registries()
 end

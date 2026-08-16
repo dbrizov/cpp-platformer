@@ -10,6 +10,7 @@ namespace hob {
         virtual void tick(float delta_time) {}
         virtual void draw_gui() {}
         virtual void render_passes() {}
+        virtual void on_lua_hot_reloaded() {}
 
         virtual bool on_quit_requested() {
             return false;

@@ -20,6 +20,7 @@
 namespace hob::editor {
     namespace {
         constexpr float MIN_SCENE_RECT_SIZE_PX = 8.0f;
+        constexpr uint32_t MIN_COLOR_TARGET_SIZE_PX = 1;
 
         // Hit radius around a sprite-less entity's origin. Independent of the marker drawn for it,
         // which is a touch larger so the outline sits just outside what it selects.
@@ -162,6 +163,36 @@ namespace hob::editor {
             }
         }
         end_panel();
+    }
+
+    void Editor::ensure_scene_color_target(uint32_t width, uint32_t height) {
+        width = std::max(width, MIN_COLOR_TARGET_SIZE_PX);
+        height = std::max(height, MIN_COLOR_TARGET_SIZE_PX);
+
+        if (m_scene_color_target && width == m_scene_color_target_width && height == m_scene_color_target_height) {
+            return;
+        }
+
+        release_scene_color_target();
+
+        m_scene_color_target = m_engine.get_renderer().create_color_target(width, height);
+        if (m_scene_color_target == nullptr) {
+            return;
+        }
+
+        m_scene_color_target_width = width;
+        m_scene_color_target_height = height;
+    }
+
+    void Editor::release_scene_color_target() {
+        if (m_scene_color_target == nullptr) {
+            return;
+        }
+
+        SDL_ReleaseGPUTexture(m_engine.get_renderer().get_gpu_device(), m_scene_color_target);
+        m_scene_color_target = nullptr;
+        m_scene_color_target_width = 0;
+        m_scene_color_target_height = 0;
     }
 
     void Editor::handle_scene_view_mouse_input(const SceneRect& scene_rect) {
