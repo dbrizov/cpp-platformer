@@ -21,12 +21,6 @@ namespace hob::editor {
     namespace {
         constexpr float MIN_SCENE_RECT_SIZE_PX = 8.0f;
 
-        constexpr float MIN_GRID_SPACING_PX = 24.0f;
-        constexpr float GRID_SPACING_STEP_FACTOR = 5.0f;
-
-        const ImU32 GRID_MINOR_COLOR = IM_COL32(255, 255, 255, 24);
-        const ImU32 GRID_AXIS_COLOR = IM_COL32(255, 255, 255, 90);
-
         // Hit radius around a sprite-less entity's origin. Independent of the marker drawn for it,
         // which is a touch larger so the outline sits just outside what it selects.
         constexpr float PICK_RADIUS_PX = 12.0f;
@@ -37,6 +31,23 @@ namespace hob::editor {
 
         // Half-extent, in meters, of the box F frames around a sprite-less entity.
         constexpr float FOCUS_FALLBACK_EXTENT = 0.5f;
+
+        constexpr float GRID_CELL_METERS = 1.0f;
+        constexpr int GRID_MAJOR_EVERY = 5;
+        constexpr float MIN_GRID_SPACING_PX = 24.0f;
+
+        float grid_cell_meters(float pixels_per_meter) {
+            float step = GRID_CELL_METERS;
+            while (step * pixels_per_meter < MIN_GRID_SPACING_PX) {
+                step *= static_cast<float>(GRID_MAJOR_EVERY);
+            }
+
+            return step;
+        }
+        bool is_major_grid_line(float world_value, float cell_meters) {
+            const long long index = std::llround(world_value / cell_meters);
+            return index % GRID_MAJOR_EVERY == 0;
+        }
 
         ImVec2 to_imvec(const Vector2& v) {
             return ImVec2(v.x, v.y);
@@ -315,12 +326,7 @@ namespace hob::editor {
     }
 
     void Editor::draw_grid(ImDrawList* draw_list, const SceneRect& scene_rect) const {
-        const float ppm = m_camera.pixels_per_meter;
-
-        float world_step = 1.0f;
-        while (world_step * ppm < MIN_GRID_SPACING_PX) {
-            world_step *= GRID_SPACING_STEP_FACTOR;
-        }
+        const float cell_meters = grid_cell_meters(m_camera.pixels_per_meter);
 
         const Vector2 top_left = scene_rect.top_left;
         const Vector2 bottom_right = scene_rect.top_left + scene_rect.size;
@@ -329,18 +335,44 @@ namespace hob::editor {
         const Vector2 world_min = m_camera.screen_to_world(Vector2(top_left.x, bottom_right.y), scene_rect);
         const Vector2 world_max = m_camera.screen_to_world(Vector2(bottom_right.x, top_left.y), scene_rect);
 
-        const float world_start_x = std::floor(world_min.x / world_step) * world_step;
-        for (float world_x = world_start_x; world_x <= world_max.x; world_x += world_step) {
+        const ImU32 minor_color = ImGui::GetColorU32(COLOR_GRID_MINOR);
+        const ImU32 major_color = ImGui::GetColorU32(COLOR_GRID_MAJOR);
+        const ImU32 axis_x_color = ImGui::GetColorU32(COLOR_GRID_AXIS_X);
+        const ImU32 axis_y_color = ImGui::GetColorU32(COLOR_GRID_AXIS_Y);
+
+        // Vertical lines: the one at world x == 0 is the Y axis, drawn separately below.
+        const float world_start_x = std::floor(world_min.x / cell_meters) * cell_meters;
+        for (float world_x = world_start_x; world_x <= world_max.x; world_x += cell_meters) {
+            if (std::abs(world_x) < cell_meters * 0.5f) {
+                continue;
+            }
+
             const float screen_x = m_camera.world_to_screen(Vector2(world_x, 0.0f), scene_rect).x;
-            const ImU32 color = (std::abs(world_x) < world_step * 0.5f) ? GRID_AXIS_COLOR : GRID_MINOR_COLOR;
+            const ImU32 color = is_major_grid_line(world_x, cell_meters) ? major_color : minor_color;
             draw_list->AddLine(ImVec2(screen_x, top_left.y), ImVec2(screen_x, bottom_right.y), color);
         }
 
-        const float world_start_y = std::floor(world_min.y / world_step) * world_step;
-        for (float world_y = world_start_y; world_y <= world_max.y; world_y += world_step) {
+        // Horizontal lines: the one at world y == 0 is the X axis, drawn separately below.
+        const float world_start_y = std::floor(world_min.y / cell_meters) * cell_meters;
+        for (float world_y = world_start_y; world_y <= world_max.y; world_y += cell_meters) {
+            if (std::abs(world_y) < cell_meters * 0.5f) {
+                continue;
+            }
+
             const float screen_y = m_camera.world_to_screen(Vector2(0.0f, world_y), scene_rect).y;
-            const ImU32 color = (std::abs(world_y) < world_step * 0.5f) ? GRID_AXIS_COLOR : GRID_MINOR_COLOR;
+            const ImU32 color = is_major_grid_line(world_y, cell_meters) ? major_color : minor_color;
             draw_list->AddLine(ImVec2(top_left.x, screen_y), ImVec2(bottom_right.x, screen_y), color);
+        }
+
+        // The axes are the origin lines, always drawn regardless of how dense the grid got.
+        if (world_min.x <= 0.0f && world_max.x >= 0.0f) {
+            const float screen_x = m_camera.world_to_screen(Vector2(0.0f, 0.0f), scene_rect).x;
+            draw_list->AddLine(ImVec2(screen_x, top_left.y), ImVec2(screen_x, bottom_right.y), axis_y_color);
+        }
+
+        if (world_min.y <= 0.0f && world_max.y >= 0.0f) {
+            const float screen_y = m_camera.world_to_screen(Vector2(0.0f, 0.0f), scene_rect).y;
+            draw_list->AddLine(ImVec2(top_left.x, screen_y), ImVec2(bottom_right.x, screen_y), axis_x_color);
         }
     }
 

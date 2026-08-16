@@ -3,6 +3,8 @@
 #include <imgui.h>
 
 namespace hob::editor {
+    void apply_style();
+
     constexpr ImVec4 with_alpha(const ImVec4& color, float alpha) {
         return ImVec4(color.x, color.y, color.z, alpha);
     }
@@ -115,6 +117,10 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_AXIS_W{0.584f, 0.584f, 0.584f, 1.0f};
 
     // Scene View
+    constexpr ImVec4 COLOR_GRID_AXIS_X = with_alpha(COLOR_AXIS_X, 0.70f);
+    constexpr ImVec4 COLOR_GRID_AXIS_Y = with_alpha(COLOR_AXIS_Y, 0.70f);
+    constexpr ImVec4 COLOR_GRID_MINOR{1.0f, 1.0f, 1.0f, 0.094f};
+    constexpr ImVec4 COLOR_GRID_MAJOR{1.0f, 1.0f, 1.0f, 0.20f};
     constexpr ImVec4 COLOR_SELECTION_PRIMARY{1.000f, 0.627f, 0.118f, 1.0f};
     constexpr ImVec4 COLOR_SELECTION = with_alpha(COLOR_SELECTION_PRIMARY, 0.55f);
     constexpr ImVec4 COLOR_CAMERA_VIEW_RECT = with_alpha(COLOR_ACCENT, 0.70f);
@@ -122,6 +128,4 @@ namespace hob::editor {
     constexpr float SELECTION_OUTLINE_THICKNESS = 2.0f;
     constexpr float SELECTION_MARKER_RADIUS_PX = 14.0f;
     constexpr float CAMERA_VIEW_RECT_THICKNESS = 1.0f;
-
-    void apply_style();
 } // namespace hob::editor
