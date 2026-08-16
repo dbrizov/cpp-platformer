@@ -1,5 +1,7 @@
 #include "editor_gui_utils.h"
 
+#include <algorithm>
+#include <cctype>
 #include <concepts>
 #include <cstdarg>
 #include <cstdio>
@@ -23,9 +25,31 @@ namespace hob::editor {
         constexpr const char* COLOR_PICKER_POPUP = "picker";
         constexpr ImGuiColorEditFlags COLOR_EDIT_FLAGS = ImGuiColorEditFlags_Float;
 
+        // Words that read wrong title-cased. Matched whole, against a lowercase snake_case word.
+        constexpr std::string_view LABEL_ACRONYMS[] = {"aabb"};
+
         template<std::totally_ordered T>
         ImGuiSliderFlags clamp_flags(T min, T max) {
             return min < max ? ImGuiSliderFlags_AlwaysClamp : ImGuiSliderFlags_None;
+        }
+
+        char to_upper(char c) {
+            return static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+        }
+
+        void append_label_word(std::string& label, std::string_view word) {
+            for (const std::string_view acronym : LABEL_ACRONYMS) {
+                if (word == acronym) {
+                    for (const char c : word) {
+                        label += to_upper(c);
+                    }
+
+                    return;
+                }
+            }
+
+            label += to_upper(word.front());
+            label.append(word.substr(1));
         }
 
         ImRect inset_rect(const ImVec2& min, const ImVec2& max, const ImVec2& inset) {
@@ -45,6 +69,7 @@ namespace hob::editor {
         void draw_highlight(ImDrawList* draw_list, const ImRect& rect, const ImVec4& color, float rounding) {
             draw_list->AddRectFilled(rect.Min, rect.Max, ImGui::GetColorU32(color), rounding);
         }
+
         bool field_components(const char* label,
                               const ImVec4* colors,
                               float* const* values,
@@ -77,6 +102,32 @@ namespace hob::editor {
             return changed;
         }
     } // namespace
+
+    std::string to_display_label(std::string_view name) {
+        std::string label;
+        label.reserve(name.size());
+
+        for (size_t start = 0; start <= name.size();) {
+            const size_t separator = name.find('_', start);
+            const size_t end = (separator == std::string_view::npos) ? name.size() : separator;
+
+            if (end > start) {
+                if (!label.empty()) {
+                    label += ' ';
+                }
+
+                append_label_word(label, name.substr(start, end - start));
+            }
+
+            if (separator == std::string_view::npos) {
+                break;
+            }
+
+            start = separator + 1;
+        }
+
+        return label;
+    }
 
     ImGuiID dock_space_over_viewport(ImGuiDockNodeFlags flags) {
         const ImGuiStyle& style = ImGui::GetStyle();
@@ -247,11 +298,23 @@ namespace hob::editor {
         return open;
     }
 
+    bool component_header(const char* label) {
+        StyleColorStack colors;
+        colors.push(ImGuiCol_Header, COLOR_COMPONENT_HEADER);
+        colors.push(ImGuiCol_HeaderHovered, COLOR_COMPONENT_HEADER_HOVER);
+        colors.push(ImGuiCol_HeaderActive, COLOR_COMPONENT_HEADER_HOVER);
+
+        const bool open = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen);
+        colors.pop();
+
+        return open;
+    }
+
     void begin_field(const char* label) {
         ImGui::PushID(label);
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(label);
-        ImGui::SameLine(INSPECTOR_LABEL_WIDTH);
+        ImGui::SameLine(std::max(INSPECTOR_LABEL_WIDTH, ImGui::GetItemRectSize().x + ITEM_SPACING.x));
         ImGui::SetNextItemWidth(-EPSILON);
     }
 

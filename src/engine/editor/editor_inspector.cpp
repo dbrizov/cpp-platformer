@@ -20,7 +20,7 @@ namespace hob::editor {
         }
 
         void draw_field(Engine& engine, const sol::table& field) {
-            const std::string name = field.get_or<std::string>("name", "?");
+            const std::string label = to_display_label(field.get_or<std::string>("name", "?"));
             const std::string kind = field.get_or<std::string>("kind", "");
             const sol::object value = field["value"];
 
@@ -28,55 +28,55 @@ namespace hob::editor {
 
             if (kind == "int") {
                 int64_t number = value_or<int64_t>(value, 0);
-                field_int(name.c_str(), number);
+                field_int(label.c_str(), number);
             }
             else if (kind == "float") {
                 float number = value_or<float>(value, 0.0f);
-                field_float(name.c_str(), number);
+                field_float(label.c_str(), number);
             }
             else if (kind == "angle") {
                 float degrees = value_or<float>(value, 0.0f);
-                field_angle(name.c_str(), degrees);
+                field_angle(label.c_str(), degrees);
             }
             else if (kind == "bool") {
                 bool flag = value_or<bool>(value, false);
-                field_bool(name.c_str(), flag);
+                field_bool(label.c_str(), flag);
             }
             else if (kind == "string") {
                 std::string text = value_or<std::string>(value, "");
-                field_string(name.c_str(), text);
+                field_string(label.c_str(), text);
             }
             else if (kind == "vector2") {
                 Vector2 vector = value_or<Vector2>(value, Vector2());
-                field_vector2(name.c_str(), vector);
+                field_vector2(label.c_str(), vector);
             }
             else if (kind == "color") {
                 Color color = value_or<Color>(value, Color());
-                field_color(name.c_str(), color);
+                field_color(label.c_str(), color);
             }
             else {
-                field_text(name.c_str(), lua_object_to_display_string(engine, value));
+                field_text(label.c_str(), lua_object_to_display_string(engine, value));
             }
 
             ImGui::EndDisabled();
         }
 
         void draw_component(Engine& engine, int index, const sol::table& component) {
-            const std::string name = component.get_or<std::string>("name", "?");
+            const std::string label = to_display_label(component.get_or<std::string>("name", "?"));
             const bool is_lua = component.get_or("is_lua", false);
-            const std::string header = is_lua ? name + " (Lua)" : name;
-
-            ImGui::SeparatorText(header.c_str());
+            const std::string header = is_lua ? label + " (Lua)" : label;
 
             ImGui::PushID(index);
 
-            const sol::object fields = component["fields"];
-            if (fields.is<sol::table>()) {
-                const sol::table rows = fields.as<sol::table>();
-                for (int i = 1; i <= rows.size(); ++i) {
-                    const sol::object row = rows[i];
-                    if (row.is<sol::table>()) {
-                        draw_field(engine, row.as<sol::table>());
+            if (component_header(header.c_str())) {
+                const sol::object fields = component["fields"];
+                if (fields.is<sol::table>()) {
+                    const sol::table rows = fields.as<sol::table>();
+                    for (int i = 1; i <= rows.size(); ++i) {
+                        const sol::object row = rows[i];
+                        if (row.is<sol::table>()) {
+                            draw_field(engine, row.as<sol::table>());
+                        }
                     }
                 }
             }

@@ -57,8 +57,10 @@ namespace hob::editor {
     constexpr float BAR_ITEM_PADDING_X = 7.0f;
     constexpr float BAR_ITEM_SPACING_X = 4.0f;
 
-    constexpr float INSPECTOR_LABEL_WIDTH = 120.0f;
+    constexpr ImVec4 COLOR_COMPONENT_HEADER{0.220f, 0.220f, 0.220f, 1.0f};
+    constexpr ImVec4 COLOR_COMPONENT_HEADER_HOVER{0.259f, 0.259f, 0.259f, 1.0f};
 
+    constexpr float INSPECTOR_LABEL_WIDTH = 180.0f;
     constexpr float INSPECTOR_DRAG_SPEED_FLOAT = 0.02f;
     constexpr float INSPECTOR_DRAG_SPEED_INT = 0.1f;
     constexpr float INSPECTOR_DRAG_SPEED_POSITION = 0.02f;

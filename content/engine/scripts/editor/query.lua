@@ -84,13 +84,13 @@ end
 -- ---------------------------------------------------------------------------------------------
 
 -- A transform's position/rotation/scale are spawn arguments, not prefab data, so entity_def.lua
--- deliberately keeps them out of the component schema. Synthesize them here instead: the
--- Inspector then draws the transform exactly like every other component. Rotation travels in
--- degrees, matching the scene format's `rotation_deg`.
+-- deliberately keeps them out of the component schema.
+-- Synthesize them here instead: the Inspector then draws the transform exactly like every other component.
+-- Rotation travels in degrees; the "angle" kind is what says so.
 local function get_transform_fields(transform)
     return {
         { name = "position",     value = transform:get_local_position(),                   kind = "vector2" },
-        { name = "rotation_deg", value = transform:get_local_rotation() * Math.RAD_TO_DEG, kind = "angle" },
+        { name = "rotation",     value = transform:get_local_rotation() * Math.RAD_TO_DEG, kind = "angle" },
         { name = "scale",        value = transform:get_local_scale(),                      kind = "vector2" },
     }
 end

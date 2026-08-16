@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
 #include <imgui.h>
 
@@ -37,6 +38,8 @@ namespace hob::editor {
         }
     };
 
+    std::string to_display_label(std::string_view name);
+
     ImGuiID dock_space_over_viewport(ImGuiDockNodeFlags flags);
 
     bool begin_panel(const char* name, ImGuiWindowFlags flags = 0);
@@ -51,6 +54,8 @@ namespace hob::editor {
     float bar_button_width(const char* label);
 
     bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) IM_FMTARGS(4);
+
+    bool component_header(const char* label);
 
     void begin_field(const char* label);
     void end_field();
