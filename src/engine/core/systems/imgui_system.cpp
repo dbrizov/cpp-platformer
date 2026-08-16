@@ -33,7 +33,7 @@ namespace hob {
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
         const std::filesystem::path font_path =
-            PathUtils::get_engine_assets_path() / "fonts" / "jetbrains_mono_bold.ttf";
+            PathUtils::get_engine_assets_root() / "fonts" / "jetbrains_mono_bold.ttf";
         const std::string font_path_str = font_path.string();
         ImFont* font = io.Fonts->AddFontFromFileTTF(font_path_str.c_str());
         HOB_CHECK(font, "Failed to load ImGui font: {}", font_path_str);

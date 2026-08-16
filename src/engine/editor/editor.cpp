@@ -26,7 +26,7 @@ namespace hob::editor {
 
     Editor::Editor(Engine& engine)
         : m_engine(engine)
-        , m_imgui_ini_path(get_editor_imgui_ini_path().string()) {
+        , m_imgui_ini_path(get_editor_imgui_ini_file_path().string()) {
         ImGui::GetIO().IniFilename = m_imgui_ini_path.c_str();
 
         apply_style();
@@ -197,6 +197,6 @@ namespace hob::editor {
         SDL_GetWindowPosition(window, &editor_config.x, &editor_config.y);
         SDL_GetWindowSize(window, &editor_config.width, &editor_config.height);
         editor_config.maximized = (SDL_GetWindowFlags(window) & SDL_WINDOW_MAXIMIZED) != 0;
-        editor_config.save(get_editor_config_path());
+        editor_config.save(get_editor_config_file_path());
     }
 } // namespace hob::editor

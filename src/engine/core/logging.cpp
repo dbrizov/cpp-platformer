@@ -13,7 +13,7 @@ namespace hob::log::detail {
 
         // Opened once on first use and truncated, so each run starts a fresh log file.
         std::ofstream& log_file() {
-            static std::ofstream file(PathUtils::get_log_path(), std::ios::out | std::ios::trunc);
+            static std::ofstream file(PathUtils::get_log_file_path(), std::ios::out | std::ios::trunc);
             return file;
         }
 

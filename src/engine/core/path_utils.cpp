@@ -35,7 +35,7 @@ namespace hob {
         return root_dir() / "content" / "engine";
     }
 
-    std::filesystem::path PathUtils::get_engine_assets_path() {
+    std::filesystem::path PathUtils::get_engine_assets_root() {
         return get_engine_root() / "assets";
     }
 
@@ -77,35 +77,36 @@ namespace hob {
     }
 
     std::filesystem::path PathUtils::get_project_root() {
-        HOB_CHECK(!s_project_root.empty(), "project root requested before set_project_root() was called");
+        HOB_CHECK(!s_project_root.empty(), "Project root requested before set_project_root() was called");
         return s_project_root;
     }
 
-    std::filesystem::path PathUtils::get_project_assets_path() {
+    std::filesystem::path PathUtils::get_project_assets_root() {
         return get_project_root() / "assets";
     }
 
-    std::filesystem::path PathUtils::get_project_config_path() {
+    std::filesystem::path PathUtils::get_project_config_root() {
         return get_project_root() / "config";
     }
 
+    std::filesystem::path PathUtils::get_engine_config_file_path() {
+        return get_project_config_root() / "engine_config.json";
+    }
+
+    std::filesystem::path PathUtils::get_input_config_file_path() {
+        return get_project_config_root() / "input_config.json";
+    }
+
+    std::filesystem::path PathUtils::get_log_file_path() {
+        return root_dir() / "hob2d.log";
+    }
+
     std::filesystem::path PathUtils::resolve_asset_path(const std::filesystem::path& relative_path) {
-        std::filesystem::path project_path = get_project_assets_path() / relative_path;
+        std::filesystem::path project_path = get_project_assets_root() / relative_path;
         if (std::filesystem::exists(project_path)) {
             return project_path;
         }
-        return get_engine_assets_path() / relative_path;
-    }
 
-    std::filesystem::path PathUtils::get_engine_config_path() {
-        return get_project_config_path() / "engine_config.json";
-    }
-
-    std::filesystem::path PathUtils::get_input_config_path() {
-        return get_project_config_path() / "input_config.json";
-    }
-
-    std::filesystem::path PathUtils::get_log_path() {
-        return root_dir() / "hob2d.log";
+        return get_engine_assets_root() / relative_path;
     }
 } // namespace hob

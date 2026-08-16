@@ -530,7 +530,7 @@ namespace hob {
     }
 
     bool Renderer::init_blit_pipeline() {
-        const std::filesystem::path shader_dir = PathUtils::get_engine_assets_path() / BUILTIN_SHADERS_DIR;
+        const std::filesystem::path shader_dir = PathUtils::get_engine_assets_root() / BUILTIN_SHADERS_DIR;
 
         SDL_GPUShader* vs = load_shader(shader_dir / "blit.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
 
@@ -576,7 +576,7 @@ namespace hob {
     }
 
     bool Renderer::init_debug_line_pipeline() {
-        const std::filesystem::path shader_dir = PathUtils::get_engine_assets_path() / BUILTIN_SHADERS_DIR;
+        const std::filesystem::path shader_dir = PathUtils::get_engine_assets_root() / BUILTIN_SHADERS_DIR;
 
         SDL_GPUShader* vs = load_shader(shader_dir / "line.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
 
@@ -667,7 +667,7 @@ namespace hob {
     }
 
     bool Renderer::init_debug_text_pipeline() {
-        const std::filesystem::path shader_dir = PathUtils::get_engine_assets_path() / BUILTIN_SHADERS_DIR;
+        const std::filesystem::path shader_dir = PathUtils::get_engine_assets_root() / BUILTIN_SHADERS_DIR;
 
         SDL_GPUShader* vs = load_shader(shader_dir / "debug_text.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
 
@@ -794,7 +794,7 @@ namespace hob {
     }
 
     bool Renderer::init_debug_font() {
-        const std::filesystem::path font_path = PathUtils::get_engine_assets_path() / DEBUG_FONT_PATH;
+        const std::filesystem::path font_path = PathUtils::get_engine_assets_root() / DEBUG_FONT_PATH;
 
         // Bake the atlas scaled by pixel_density for crispness on HiDPI displays.
         const float pixel_density = m_game_window->get_pixel_density();

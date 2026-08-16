@@ -21,7 +21,7 @@ namespace hob {
 
     Input::Input(const Renderer& renderer)
         : m_renderer(renderer) {
-        m_input_config = InputConfig(PathUtils::get_input_config_path());
+        m_input_config = InputConfig(PathUtils::get_input_config_file_path());
         m_digital_sources = m_input_config.digital_sources();
 
         for (const auto& [axis, _] : m_input_config.axes) {

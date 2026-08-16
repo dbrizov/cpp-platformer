@@ -73,17 +73,17 @@ namespace hob::editor {
         out << json.dump(JSON_INDENT) << '\n';
     }
 
-    std::filesystem::path get_editor_config_path() {
-        return PathUtils::get_project_config_path() / "editor_config.json";
+    std::filesystem::path get_editor_config_file_path() {
+        return PathUtils::get_project_config_root() / "editor_config.json";
     }
 
-    std::filesystem::path get_editor_imgui_ini_path() {
-        return PathUtils::get_project_config_path() / "editor_imgui.ini";
+    std::filesystem::path get_editor_imgui_ini_file_path() {
+        return PathUtils::get_project_config_root() / "editor_imgui.ini";
     }
 
     HostConfig make_editor_host_config(const GraphicsConfig& graphics_config, const EditorConfig& editor_config) {
         WindowConfig window_config;
-        window_config.title = graphics_config.window_title + " Editor";
+        window_config.title = "Hob2D Editor";
         window_config.vsync = graphics_config.vsync_enabled;
 
         const bool have_saved_geometry = editor_config.width > 0 && editor_config.height > 0;

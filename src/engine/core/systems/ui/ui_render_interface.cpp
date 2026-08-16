@@ -47,7 +47,7 @@ namespace hob {
 
     void UiRenderInterface::init() {
         SDL_GPUDevice* gpu_device = m_renderer.get_gpu_device();
-        const std::filesystem::path shader_dir = PathUtils::get_engine_assets_path() / "shaders";
+        const std::filesystem::path shader_dir = PathUtils::get_engine_assets_root() / "shaders";
 
         SDL_GPUShader* vs = m_renderer.load_shader(shader_dir / "ui.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
         HOB_CHECK(vs, "UiRenderInterface init failed: could not load ui.vert.hlsl");

@@ -11,11 +11,11 @@
 int main(int argc, char* argv[]) {
     const std::filesystem::path project_root = hob::PathUtils::resolve_project_root(argc, argv);
     HOB_CHECK(std::filesystem::exists(project_root / "scripts" / "main.lua"),
-              "no game project found at '{}' (expected scripts/main.lua); pass --project <path>",
+              "No game project found at '{}' (expected scripts/main.lua); pass --project <path>",
               project_root.string());
     hob::PathUtils::set_project_root(project_root);
 
-    hob::EngineConfig config(hob::PathUtils::get_engine_config_path());
+    hob::EngineConfig config(hob::PathUtils::get_engine_config_file_path());
 
     bool editor_enabled = false;
 #ifdef HOB_EDITOR
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (editor_enabled) {
-        const hob::editor::EditorConfig editor_config(hob::editor::get_editor_config_path());
+        const hob::editor::EditorConfig editor_config(hob::editor::get_editor_config_file_path());
         config.host_config = hob::editor::make_editor_host_config(config.graphics_config, editor_config);
     }
 

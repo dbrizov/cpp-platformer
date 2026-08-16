@@ -561,8 +561,8 @@ namespace hob {
         std::filesystem::file_time_type newest_rcss = std::filesystem::file_time_type::min();
         std::error_code ec;
 
-        const std::filesystem::path roots[] = {PathUtils::get_project_assets_path(),
-                                               PathUtils::get_engine_assets_path()};
+        const std::filesystem::path roots[] = {PathUtils::get_project_assets_root(),
+                                               PathUtils::get_engine_assets_root()};
         for (const auto& assets_root : roots) {
             for (const auto& entry : std::filesystem::recursive_directory_iterator(assets_root, ec)) {
                 if (ec) {
