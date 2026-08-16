@@ -14,9 +14,8 @@
 #include "renderer/renderer.h"
 
 namespace hob {
-    ImGuiSystem::ImGuiSystem(const Renderer& renderer, bool is_editor_enabled)
-        : m_renderer(renderer)
-        , m_is_editor_enabled(is_editor_enabled) {
+    ImGuiSystem::ImGuiSystem(const Renderer& renderer)
+        : m_renderer(renderer) {
         SDL_Window* window = m_renderer.get_main_window()->get_window();
         HOB_CHECK(window && renderer.get_gpu_device(), "ImGuiSystem init failed: window/GPU device is null");
 
@@ -73,6 +72,10 @@ namespace hob {
         m_clear_color = SDL_FColor{color.x, color.y, color.z, color.w};
     }
 
+    void ImGuiSystem::set_clear_swapchain(bool clear) {
+        m_clear_swapchain = clear;
+    }
+
     void ImGuiSystem::process_event(const SDL_Event& event) {
         ImGui_ImplSDL3_ProcessEvent(&event);
     }
@@ -91,7 +94,7 @@ namespace hob {
         SDL_GPUColorTargetInfo ct{};
         ct.texture = m_renderer.get_main_swap_texture();
         ct.clear_color = m_clear_color;
-        ct.load_op = m_is_editor_enabled ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
+        ct.load_op = m_clear_swapchain ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
         ct.store_op = SDL_GPU_STOREOP_STORE;
 
         // Render pass

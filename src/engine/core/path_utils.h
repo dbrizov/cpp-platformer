@@ -14,14 +14,15 @@ namespace hob {
         static void set_project_root(const std::filesystem::path& project_root);
         static std::filesystem::path get_project_root();
         static std::filesystem::path get_project_assets_path();
+        static std::filesystem::path get_project_config_path();
 
         // Resolve an asset by relative path: the project's assets win, engine assets are the fallback.
         static std::filesystem::path resolve_asset_path(const std::filesystem::path& relative_path);
 
+        // Individual files under the project's config/.
         static std::filesystem::path get_engine_config_path();
-        static std::filesystem::path get_editor_config_path();
-        static std::filesystem::path get_editor_imgui_ini_path();
         static std::filesystem::path get_input_config_path();
+
         static std::filesystem::path get_log_path();
     };
 } // namespace hob

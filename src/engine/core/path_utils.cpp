@@ -85,6 +85,10 @@ namespace hob {
         return get_project_root() / "assets";
     }
 
+    std::filesystem::path PathUtils::get_project_config_path() {
+        return get_project_root() / "config";
+    }
+
     std::filesystem::path PathUtils::resolve_asset_path(const std::filesystem::path& relative_path) {
         std::filesystem::path project_path = get_project_assets_path() / relative_path;
         if (std::filesystem::exists(project_path)) {
@@ -94,19 +98,11 @@ namespace hob {
     }
 
     std::filesystem::path PathUtils::get_engine_config_path() {
-        return get_project_root() / "config" / "engine_config.json";
-    }
-
-    std::filesystem::path PathUtils::get_editor_config_path() {
-        return get_project_root() / "config" / "editor_config.json";
-    }
-
-    std::filesystem::path PathUtils::get_editor_imgui_ini_path() {
-        return get_project_root() / "config" / "editor_imgui.ini";
+        return get_project_config_path() / "engine_config.json";
     }
 
     std::filesystem::path PathUtils::get_input_config_path() {
-        return get_project_root() / "config" / "input_config.json";
+        return get_project_config_path() / "input_config.json";
     }
 
     std::filesystem::path PathUtils::get_log_path() {

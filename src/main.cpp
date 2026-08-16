@@ -1,9 +1,11 @@
 #include <cstring>
+#include <memory>
 
 #include "engine/core/assert.h"
 #include "engine/core/engine.h"
 #include "engine/core/engine_config.h"
 #include "engine/core/path_utils.h"
+#include "engine/editor/editor.h"
 #include "engine/editor/editor_config.h"
 
 int main(int argc, char* argv[]) {
@@ -13,7 +15,7 @@ int main(int argc, char* argv[]) {
               project_root.string());
     hob::PathUtils::set_project_root(project_root);
 
-    const hob::EngineConfig config(hob::PathUtils::get_engine_config_path());
+    hob::EngineConfig config(hob::PathUtils::get_engine_config_path());
 
     bool editor_enabled = false;
 #ifdef HOB_EDITOR
@@ -25,14 +27,23 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    hob::editor::EditorConfig editor_config;
     if (editor_enabled) {
-        editor_config = hob::editor::EditorConfig(hob::PathUtils::get_editor_config_path());
-        editor_config.enabled = true;
+        const hob::editor::EditorConfig editor_config(hob::editor::get_editor_config_path());
+        config.host_config = hob::editor::make_editor_host_config(config.graphics_config, editor_config);
     }
 
-    hob::Engine engine(config, editor_config);
+    hob::Engine engine(config);
+
+    std::unique_ptr<hob::editor::Editor> editor;
+    if (editor_enabled) {
+        editor = std::make_unique<hob::editor::Editor>(engine);
+        engine.set_hooks(editor.get());
+    }
 
     engine.run();
+
+    engine.set_hooks(nullptr);
+    editor.reset();
+
     return 0;
 }

@@ -9,6 +9,7 @@
 
 #include "editor_camera.h"
 #include "editor_entity_selection.h"
+#include "engine/core/engine_hooks.h"
 #include "engine/math/vector2.h"
 
 struct ImDrawList;
@@ -19,7 +20,7 @@ namespace hob {
 } // namespace hob
 
 namespace hob::editor {
-    class Editor {
+    class Editor : public EngineHooks {
     public:
         enum class State {
             Edit,
@@ -35,7 +36,6 @@ namespace hob::editor {
 
         State m_state = State::Edit;
         bool m_step_requested = false;
-        bool m_simulate_this_frame = false;
 
         EditorCamera m_camera;
 
@@ -58,7 +58,7 @@ namespace hob::editor {
         static constexpr const char* PANEL_ASSETS = " Assets ###Assets";
 
         explicit Editor(Engine& engine);
-        ~Editor();
+        ~Editor() override;
 
         Editor(const Editor&) = delete;
         Editor& operator=(const Editor&) = delete;
@@ -68,13 +68,12 @@ namespace hob::editor {
 
         void set_state(State state);
 
-        bool is_simulating() const;
+        void tick(float delta_time) override;
+        void draw_gui() override;
+        void render_passes() override;
 
-        bool wants_game_input() const;
-
-        void tick(float delta_time);
-        void draw_gui();
-        void render_passes();
+        bool on_quit_requested() override;
+        bool on_window_close_requested(SDL_WindowID window_id) override;
 
     private:
         void draw_menu_bar();

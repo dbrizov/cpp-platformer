@@ -10,9 +10,8 @@
 #include "engine/components/sockets_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
+#include "engine/core/engine_hooks.h"
 #include "engine/core/systems/window.h"
-#include "engine/editor/editor.h"
-#include "engine/editor/editor_config.h"
 #include "engine/math/matrix2x3.h"
 #include "logging.h"
 
@@ -27,47 +26,24 @@ namespace hob {
             return config;
         }
 
-        WindowConfig make_main_window_config(const GraphicsConfig& graphics_config,
-                                             const editor::EditorConfig& editor_config) {
-            if (editor_config.enabled) {
-                WindowConfig config;
-                config.title = graphics_config.window_title + " Editor";
-                config.vsync = graphics_config.vsync_enabled;
-
-                const bool have_saved_geometry = editor_config.width > 0 && editor_config.height > 0;
-                if (have_saved_geometry) {
-                    config.width = editor_config.width;
-                    config.height = editor_config.height;
-                    config.x = editor_config.x;
-                    config.y = editor_config.y;
-                    config.maximized = editor_config.maximized;
-                }
-                else {
-                    config.maximized = true;
-                }
-
-                return config;
-            }
-
-            WindowConfig config = make_game_window_config(graphics_config);
-            return config;
+        WindowConfig make_main_window_config(const EngineConfig& config) {
+            return config.host_config.main_window_override.value_or(make_game_window_config(config.graphics_config));
         }
     } // namespace
 
-    Engine::Engine(const EngineConfig& config, const editor::EditorConfig& editor_config)
-        : m_is_editor_enabled(editor_config.enabled)
-        , m_sdl_context()
-        , m_main_window(m_sdl_context.get_gpu_device(), make_main_window_config(config.graphics_config, editor_config))
+    Engine::Engine(const EngineConfig& config)
+        : m_sdl_context()
+        , m_main_window(m_sdl_context.get_gpu_device(), make_main_window_config(config))
         , m_renderer(config.graphics_config, m_sdl_context.get_gpu_device(), m_main_window)
         , m_timer(config.graphics_config)
         , m_input(m_renderer)
         , m_ui_system(config.ui_system_config, m_renderer, m_timer)
-        , m_imgui_system(m_renderer, editor_config.enabled)
+        , m_imgui_system(m_renderer)
         , m_console()
         , m_physics(config.physics_config)
         , m_audio(config.audio_config)
         , m_entity_spawner(*this)
-        , m_lua_script_system(*this)
+        , m_lua_script_system(*this, config.host_config.run_project_main_on_boot)
         , m_game_window_config(make_game_window_config(config.graphics_config)) {
 
         m_renderer.register_cvars(m_console);
@@ -77,11 +53,7 @@ namespace hob {
         m_lua_script_system.register_cvars(m_console);
         SocketsComponent::register_cvars(m_console);
 
-        if (m_is_editor_enabled) {
-            m_editor = std::make_unique<editor::Editor>(*this);
-            m_renderer.set_game_window(nullptr);
-        }
-        else {
+        if (config.host_config.main_window_hosts_game) {
             m_renderer.set_game_window(&m_main_window);
 
             int width_px = 0;
@@ -89,6 +61,9 @@ namespace hob {
             m_main_window.get_size_px(width_px, height_px);
             m_renderer.on_window_resized(width_px, height_px);
             m_ui_system.on_window_resized(width_px, height_px);
+        }
+        else {
+            m_renderer.set_game_window(nullptr);
         }
     }
 
@@ -105,6 +80,10 @@ namespace hob {
         m_ui_system.clear_data_models();
     }
 
+    void Engine::set_hooks(EngineHooks* hooks) {
+        m_hooks = hooks;
+    }
+
     void Engine::run() {
         bool is_running = true;
         std::vector<Entity*> entities;
@@ -119,18 +98,12 @@ namespace hob {
                 m_input.process_event(event);
 
                 if (event.type == SDL_EVENT_QUIT) {
-                    if (m_editor && m_game_window) {
-                        m_editor->set_state(editor::Editor::State::Edit);
-                    }
-                    else {
+                    if (m_hooks == nullptr || !m_hooks->on_quit_requested()) {
                         is_running = false;
                     }
                 }
                 else if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
-                    if (m_editor && m_game_window && event.window.windowID == m_game_window->get_id()) {
-                        m_editor->set_state(editor::Editor::State::Edit);
-                    }
-                    else {
+                    if (m_hooks == nullptr || !m_hooks->on_window_close_requested(event.window.windowID)) {
                         is_running = false;
                     }
                 }
@@ -160,13 +133,12 @@ namespace hob {
             m_ui_system.poll_hot_reload(delta_time);
 #endif
 
-            if (m_editor) {
-                m_editor->tick(delta_time);
+            if (m_hooks != nullptr) {
+                m_hooks->tick(delta_time);
             }
 
-            const bool simulating = (m_editor == nullptr) || m_editor->is_simulating();
-            const bool game_input =
-                (m_editor == nullptr) ? get_play_window().has_focus() : m_editor->wants_game_input();
+            const bool simulating = m_is_simulation_enabled;
+            const bool game_input = m_is_game_input_enabled && get_play_window().has_focus();
 
             if (!m_console.is_open() && simulating && game_input) {
                 m_input.tick(scaled_delta_time);
@@ -205,8 +177,8 @@ namespace hob {
                 m_console.draw();
             }
 
-            if (m_editor) {
-                m_editor->draw_gui();
+            if (m_hooks != nullptr) {
+                m_hooks->draw_gui();
             }
 
             m_renderer.set_time(m_timer.get_game_time(), m_timer.get_real_time());
@@ -222,8 +194,8 @@ namespace hob {
                     m_renderer.discard_pending_debug_draws();
                 }
 
-                if (m_editor) {
-                    m_editor->render_passes();
+                if (m_hooks != nullptr) {
+                    m_hooks->render_passes();
                 }
 
                 m_imgui_system.render_pass();
@@ -242,14 +214,6 @@ namespace hob {
 
     SdlContext& Engine::get_sdl_context() {
         return m_sdl_context;
-    }
-
-    const Window& Engine::get_main_window() const {
-        return m_main_window;
-    }
-
-    Console& Engine::get_console() {
-        return m_console;
     }
 
     Renderer& Engine::get_renderer() {
@@ -272,6 +236,10 @@ namespace hob {
         return m_imgui_system;
     }
 
+    Console& Engine::get_console() {
+        return m_console;
+    }
+
     Physics& Engine::get_physics() {
         return m_physics;
     }
@@ -288,12 +256,8 @@ namespace hob {
         return m_lua_script_system;
     }
 
-    bool Engine::is_editor_enabled() const {
-        return m_is_editor_enabled;
-    }
-
-    editor::Editor* Engine::get_editor() const {
-        return m_editor.get();
+    const Window& Engine::get_main_window() const {
+        return m_main_window;
     }
 
     const Window& Engine::get_play_window() const {
@@ -331,6 +295,22 @@ namespace hob {
         m_game_window.reset();
     }
 
+    bool Engine::is_simulation_enabled() const {
+        return m_is_simulation_enabled;
+    }
+
+    void Engine::set_simulation_enabled(bool enabled) {
+        m_is_simulation_enabled = enabled;
+    }
+
+    bool Engine::is_game_input_enabled() const {
+        return m_is_game_input_enabled;
+    }
+
+    void Engine::set_game_input_enabled(bool enabled) {
+        m_is_game_input_enabled = enabled;
+    }
+
     CameraComponent* Engine::get_active_camera() const {
         return m_active_camera;
     }
@@ -349,7 +329,8 @@ namespace hob {
     Matrix4x4 Engine::get_game_camera_view_projection() const {
         const CameraComponent* camera = get_active_camera();
         if (camera == nullptr) {
-            if (!m_warned_no_active_camera && !m_editor) {
+            // A host may legitimately run frames with no game camera (the editor's Edit state).
+            if (!m_warned_no_active_camera && m_hooks == nullptr) {
                 log::engine.error("Engine::draw_entities: no active camera (spawn a Camera entity to render)");
                 m_warned_no_active_camera = true;
             }

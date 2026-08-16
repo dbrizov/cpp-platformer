@@ -23,7 +23,7 @@ namespace hob {
         float m_script_watch_accumulator = 0.0f;
 
     public:
-        explicit LuaScriptSystem(Engine& engine);
+        LuaScriptSystem(Engine& engine, bool run_project_main_on_boot);
         ~LuaScriptSystem();
 
         LuaScriptSystem(const LuaScriptSystem&) = delete;

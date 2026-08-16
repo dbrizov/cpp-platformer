@@ -18,15 +18,9 @@
 namespace hob {
     struct EngineConfig;
     class CameraComponent;
-
-    namespace editor {
-        class Editor;
-        struct EditorConfig;
-    } // namespace editor
+    class EngineHooks;
 
     class Engine {
-        bool m_is_editor_enabled = false;
-
         // Order matters
         SdlContext m_sdl_context;
         Window m_main_window;
@@ -41,39 +35,48 @@ namespace hob {
         EntitySpawner m_entity_spawner;
         LuaScriptSystem m_lua_script_system;
 
-        std::unique_ptr<editor::Editor> m_editor;
         std::unique_ptr<Window> m_game_window;
         WindowConfig m_game_window_config;
+
+        EngineHooks* m_hooks = nullptr;
+
+        bool m_is_simulation_enabled = true;
+        bool m_is_game_input_enabled = true;
 
         CameraComponent* m_active_camera = nullptr;
         mutable bool m_warned_no_active_camera = false;
 
     public:
-        Engine(const EngineConfig& config, const editor::EditorConfig& editor_config);
+        explicit Engine(const EngineConfig& config);
         ~Engine();
+
+        void set_hooks(EngineHooks* hooks);
 
         void run();
 
         SdlContext& get_sdl_context();
-        const Window& get_main_window() const;
-        Console& get_console();
         Renderer& get_renderer();
         Timer& get_timer();
         Input& get_input();
         UiSystem& get_ui_system();
         ImGuiSystem& get_imgui_system();
+        Console& get_console();
         Physics& get_physics();
         Audio& get_audio();
         EntitySpawner& get_entity_spawner();
         LuaScriptSystem& get_lua_script_system();
 
-        bool is_editor_enabled() const;
-        editor::Editor* get_editor() const;
-
+        const Window& get_main_window() const;
         const Window& get_play_window() const;
         const Window* get_game_window() const;
         void open_game_window();
         void close_game_window();
+
+        bool is_simulation_enabled() const;
+        void set_simulation_enabled(bool enabled);
+
+        bool is_game_input_enabled() const;
+        void set_game_input_enabled(bool enabled);
 
         CameraComponent* get_active_camera() const;
         void set_active_camera(CameraComponent* camera);

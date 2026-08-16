@@ -12,8 +12,8 @@
 #include "editor_style.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
-#include "engine/core/path_utils.h"
 #include "engine/core/systems/entity_spawner.h"
+#include "engine/core/systems/window.h"
 
 namespace hob::editor {
     namespace {
@@ -26,11 +26,12 @@ namespace hob::editor {
 
     Editor::Editor(Engine& engine)
         : m_engine(engine)
-        , m_imgui_ini_path(PathUtils::get_editor_imgui_ini_path().string()) {
+        , m_imgui_ini_path(get_editor_imgui_ini_path().string()) {
         ImGui::GetIO().IniFilename = m_imgui_ini_path.c_str();
 
         apply_style();
         m_engine.get_imgui_system().set_clear_color(COLOR_CLEAR);
+        m_engine.get_imgui_system().set_clear_swapchain(true); // Nothing but ImGui draws to the editor window.
 
         m_reset_layout = !std::filesystem::exists(m_imgui_ini_path);
 
@@ -76,19 +77,33 @@ namespace hob::editor {
         m_state = state;
     }
 
-    bool Editor::is_simulating() const {
-        return m_simulate_this_frame;
-    }
-
-    bool Editor::wants_game_input() const {
-        return m_state == State::Play && m_engine.get_game_window() && m_engine.get_game_window()->has_focus();
-    }
-
     void Editor::tick(float delta_time) {
-        m_simulate_this_frame = (m_state == State::Play) || (m_state == State::Paused && m_step_requested);
+        const bool simulate = (m_state == State::Play) || (m_state == State::Paused && m_step_requested);
         m_step_requested = false;
 
+        m_engine.set_simulation_enabled(simulate);
+        m_engine.set_game_input_enabled(m_state == State::Play);
+
         prune_selection();
+    }
+
+    bool Editor::on_quit_requested() {
+        if (m_engine.get_game_window() == nullptr) {
+            return false;
+        }
+
+        set_state(State::Edit);
+        return true;
+    }
+
+    bool Editor::on_window_close_requested(SDL_WindowID window_id) {
+        const Window* game_window = m_engine.get_game_window();
+        if (game_window == nullptr || game_window->get_id() != window_id) {
+            return false;
+        }
+
+        set_state(State::Edit);
+        return true;
     }
 
     void Editor::draw_gui() {
@@ -182,6 +197,6 @@ namespace hob::editor {
         SDL_GetWindowPosition(window, &editor_config.x, &editor_config.y);
         SDL_GetWindowSize(window, &editor_config.width, &editor_config.height);
         editor_config.maximized = (SDL_GetWindowFlags(window) & SDL_WINDOW_MAXIMIZED) != 0;
-        editor_config.save(PathUtils::get_editor_config_path());
+        editor_config.save(get_editor_config_path());
     }
 } // namespace hob::editor

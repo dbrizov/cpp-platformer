@@ -69,8 +69,8 @@ namespace hob {
         float m_render_scale;
         float m_pixel_density;
 
-        // In editor mode: m_main_window is the editor, m_game_window is the game
-        // In game mode: m_main_windows = m_game_window
+        // Plain game launch: m_main_window == m_game_window.
+        // Hosted launch: m_main_window belongs to the host, m_game_window is null until one is opened.
         const Window* m_main_window = nullptr;
         const Window* m_game_window = nullptr;
 

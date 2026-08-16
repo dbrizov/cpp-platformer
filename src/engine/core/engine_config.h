@@ -1,10 +1,12 @@
 #pragma once
 
 #include <filesystem>
+#include <optional>
 #include <string>
 
 #include "engine/core/aspect_mode.h"
 #include "engine/core/systems/renderer/sampler.h"
+#include "engine/core/systems/window.h"
 #include "engine/math/vector2.h"
 
 namespace hob {
@@ -40,11 +42,19 @@ namespace hob {
         bool enabled = true;
     };
 
+    // Boot policy a host driving the engine (the editor) overrides. Never read from JSON.
+    struct HostConfig {
+        std::optional<WindowConfig> main_window_override;
+        bool main_window_hosts_game = true;
+        bool run_project_main_on_boot = true;
+    };
+
     struct EngineConfig {
         GraphicsConfig graphics_config;
         UiSystemConfig ui_system_config;
         PhysicsConfig physics_config;
         AudioConfig audio_config;
+        HostConfig host_config;
 
         EngineConfig() = default;
         explicit EngineConfig(const std::filesystem::path& json_path);

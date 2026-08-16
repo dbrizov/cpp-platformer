@@ -5,6 +5,8 @@
 #include <nlohmann/json.hpp>
 
 #include "engine/core/logging.h"
+#include "engine/core/path_utils.h"
+#include "engine/core/systems/window.h"
 
 namespace hob::editor {
     namespace {
@@ -69,5 +71,38 @@ namespace hob::editor {
             return;
         }
         out << json.dump(JSON_INDENT) << '\n';
+    }
+
+    std::filesystem::path get_editor_config_path() {
+        return PathUtils::get_project_config_path() / "editor_config.json";
+    }
+
+    std::filesystem::path get_editor_imgui_ini_path() {
+        return PathUtils::get_project_config_path() / "editor_imgui.ini";
+    }
+
+    HostConfig make_editor_host_config(const GraphicsConfig& graphics_config, const EditorConfig& editor_config) {
+        WindowConfig window_config;
+        window_config.title = graphics_config.window_title + " Editor";
+        window_config.vsync = graphics_config.vsync_enabled;
+
+        const bool have_saved_geometry = editor_config.width > 0 && editor_config.height > 0;
+        if (have_saved_geometry) {
+            window_config.width = editor_config.width;
+            window_config.height = editor_config.height;
+            window_config.x = editor_config.x;
+            window_config.y = editor_config.y;
+            window_config.maximized = editor_config.maximized;
+        }
+        else {
+            window_config.maximized = true;
+        }
+
+        HostConfig host_config;
+        host_config.main_window_override = window_config;
+        host_config.main_window_hosts_game = false;
+        host_config.run_project_main_on_boot = false;
+
+        return host_config;
     }
 } // namespace hob::editor

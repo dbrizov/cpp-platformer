@@ -11,12 +11,12 @@ namespace hob {
     class ImGuiSystem {
         ImGuiContext* m_context = nullptr;
         const Renderer& m_renderer;
-        bool m_is_editor_enabled;
 
         SDL_FColor m_clear_color{0.0f, 0.0f, 0.0f, 1.0f};
+        bool m_clear_swapchain = false;
 
     public:
-        explicit ImGuiSystem(const Renderer& renderer, bool is_editor_enabled);
+        explicit ImGuiSystem(const Renderer& renderer);
         ~ImGuiSystem();
 
         ImGuiSystem(const ImGuiSystem&) = delete;
@@ -26,6 +26,7 @@ namespace hob {
         ImGuiSystem& operator=(ImGuiSystem&&) = delete;
 
         void set_clear_color(const ImVec4& color);
+        void set_clear_swapchain(bool clear);
 
         void process_event(const SDL_Event& event);
 

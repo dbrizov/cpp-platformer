@@ -60,7 +60,7 @@ namespace hob {
         }
     } // namespace
 
-    LuaScriptSystem::LuaScriptSystem(Engine& engine)
+    LuaScriptSystem::LuaScriptSystem(Engine& engine, bool run_project_main_on_boot)
         : m_engine(engine)
         , m_impl(std::make_unique<LuaScriptSystemImpl>()) {
         sol::state& lua = m_impl->lua;
@@ -88,9 +88,8 @@ namespace hob {
         dump_path_schemas();
         dump_factory_schemas();
 
-        // In editor mode the bootstrap skips main.lua; the editor runs it on Play (run_project_main).
-        if (m_engine.is_editor_enabled()) {
-            lua["__editor_mode"] = true;
+        if (!run_project_main_on_boot) {
+            lua["__defer_project_main"] = true;
         }
 
         const bool bootstrap_succeeded = run_bootstrap();
