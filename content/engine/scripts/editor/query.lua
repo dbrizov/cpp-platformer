@@ -131,7 +131,7 @@ local HIDDEN_LUA_FIELDS = {
 
 local function is_lua_component_field(key, value)
     return type(key) == "string"
-        and key:sub(1, 2) ~= "__"
+        and key:sub(1, 1) ~= "_"
         and not HIDDEN_LUA_FIELDS[key]
         and type(value) ~= "function"
 end

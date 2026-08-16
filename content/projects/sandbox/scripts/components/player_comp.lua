@@ -7,61 +7,57 @@ local Player = Player
 function Player:init()
     self.speed = 7.0
     self.camera_follow_speed = 10.0
-    self.movement_input = Vector2.zero()
-    self.aim_input = Vector2.zero()
-    self.x_axis_id = nil
-    self.y_axis_id = nil
-    self.aim_x_axis_id = nil
-    self.aim_y_axis_id = nil
-    self.fire_action_id = nil
-    self.slow_motion_action_id = nil
-
-    self.camera_zoom_time = 0.0
-    self.camera_min_zoom = 0.5
-    self.camera_max_zoom = 2.0
-
     self.max_health = 100
     self.health = self.max_health
     self.health_regen = 12.0 -- per second
-    self.fire_damage = 15
-    self.hud_model = nil
-    self.hud_doc = nil
+    self.fire_damage = 15.0
+
+    self._movement_input = Vector2.zero()
+    self._aim_input = Vector2.zero()
+    self._x_axis_id = nil
+    self._y_axis_id = nil
+    self._aim_x_axis_id = nil
+    self._aim_y_axis_id = nil
+    self._fire_action_id = nil
+    self._slow_motion_action_id = nil
+    self._hud_model = nil
+    self._hud_doc = nil
 end
 
 function Player:enter_play()
     -- The data model must exist before the document that binds to it loads.
-    self.hud_model = UI.create_model("player_hud", {
+    self._hud_model = UI.create_model("player_hud", {
         health = self.health,
         max_health = self.max_health,
         fill_width = "100%",
     })
-    self.hud_doc = UI.load_document("ui/healthbar.rml")
-    UI.show_document(self.hud_doc)
+    self._hud_doc = UI.load_document("ui/healthbar.rml")
+    UI.show_document(self._hud_doc)
 
     local input = self.entity:get_input()
 
-    self.x_axis_id = input:bind_axis("horizontal", function(axis)
-        self.movement_input.x = axis
+    self._x_axis_id = input:bind_axis("horizontal", function(axis)
+        self._movement_input.x = axis
     end)
 
-    self.y_axis_id = input:bind_axis("vertical", function(axis)
-        self.movement_input.y = axis
+    self._y_axis_id = input:bind_axis("vertical", function(axis)
+        self._movement_input.y = axis
     end)
 
-    self.aim_x_axis_id = input:bind_axis("aim_x", function(axis)
-        self.aim_input.x = axis
+    self._aim_x_axis_id = input:bind_axis("aim_x", function(axis)
+        self._aim_input.x = axis
     end)
 
-    self.aim_y_axis_id = input:bind_axis("aim_y", function(axis)
-        self.aim_input.y = axis
+    self._aim_y_axis_id = input:bind_axis("aim_y", function(axis)
+        self._aim_input.y = axis
     end)
 
-    self.fire_action_id = input:bind_action("fire", InputEventType.Pressed, function()
+    self._fire_action_id = input:bind_action("fire", InputEventType.Pressed, function()
         self:set_health(self.health - self.fire_damage)
         self.entity:get_audio():play()
     end)
 
-    self.slow_motion_action_id = input:bind_action("slow_motion", InputEventType.Pressed, function()
+    self._slow_motion_action_id = input:bind_action("slow_motion", InputEventType.Pressed, function()
         local new_scale = Timer.get_time_scale() < 1.0 and 1.0 or 0.2
         Timer.set_time_scale(new_scale)
     end)
@@ -69,22 +65,22 @@ end
 
 function Player:exit_play()
     local input = self.entity:get_input()
-    input:unbind_axis("horizontal", self.x_axis_id)
-    input:unbind_axis("vertical", self.y_axis_id)
-    input:unbind_axis("aim_x", self.aim_x_axis_id)
-    input:unbind_axis("aim_y", self.aim_y_axis_id)
-    input:unbind_action("fire", self.fire_action_id)
-    input:unbind_action("slow_motion", self.slow_motion_action_id)
+    input:unbind_axis("horizontal", self._x_axis_id)
+    input:unbind_axis("vertical", self._y_axis_id)
+    input:unbind_axis("aim_x", self._aim_x_axis_id)
+    input:unbind_axis("aim_y", self._aim_y_axis_id)
+    input:unbind_action("fire", self._fire_action_id)
+    input:unbind_action("slow_motion", self._slow_motion_action_id)
 
     -- Unload the document before destroying the model it binds to.
-    UI.unload_document(self.hud_doc)
-    UI.destroy_model(self.hud_model)
-    self.hud_doc = nil
-    self.hud_model = nil
+    UI.unload_document(self._hud_doc)
+    UI.destroy_model(self._hud_model)
+    self._hud_doc = nil
+    self._hud_model = nil
 end
 
 function Player:physics_tick(fixed_delta_time)
-    self:move(self.movement_input, fixed_delta_time)
+    self:move(self._movement_input, fixed_delta_time)
 end
 
 function Player:late_tick(delta_time)
@@ -97,11 +93,6 @@ function Player:late_tick(delta_time)
     local position = self.entity:get_transform():get_position()
     self:update_camera_position(position, delta_time)
     self:update_rotation(delta_time)
-
-    -- self.camera_zoom_time = self.camera_zoom_time + delta_time
-    -- local t = (math.sin(self.camera_zoom_time) + 1.0) * 0.5
-    -- local zoom = Math.lerp(self.camera_min_zoom, self.camera_max_zoom, t)
-    -- Camera.set_zoom(zoom)
 end
 
 function Player:debug_draw_tick(delta_time)
@@ -123,13 +114,13 @@ end
 
 function Player:set_health(value)
     self.health = math.max(0, math.min(self.max_health, value))
-    if self.hud_model == nil then
+    if self._hud_model == nil then
         return
     end
 
     local percent = math.floor(self.health / self.max_health * 100)
-    UI.set(self.hud_model, "health", math.floor(self.health))
-    UI.set(self.hud_model, "fill_width", string.format("%d%%", percent))
+    UI.set(self._hud_model, "health", math.floor(self.health))
+    UI.set(self._hud_model, "fill_width", string.format("%d%%", percent))
 end
 
 function Player:update_animation()
@@ -158,8 +149,8 @@ function Player:update_rotation(delta_time)
 
     -- Twin-stick aiming: the right stick rotates the character toward its direction.
     -- It already passes through the engine deadzone, so any non-zero value means it's in use.
-    if self.aim_input:length_sqr() > 0.0 then
-        local radians = math.atan(self.aim_input.y, self.aim_input.x)
+    if self._aim_input:length_sqr() > 0.0 then
+        local radians = math.atan(self._aim_input.y, self._aim_input.x)
         character_body:set_rotation(radians)
         return
     end
