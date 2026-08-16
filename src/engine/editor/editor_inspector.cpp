@@ -10,6 +10,7 @@
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/entity/entity.h"
 #include "engine/math/constants.h"
+#include "engine/math/mathf.h"
 
 namespace hob::editor {
     void Editor::draw_inspector() {
@@ -68,19 +69,17 @@ namespace hob::editor {
             EditorCommandSetTransform::apply(m_engine, entity.get_id(), next);
         };
 
-        float position[2] = {state.position.x, state.position.y};
-        inspector_field_label("Position");
-        if (ImGui::DragFloat2("##position", position, INSPECTOR_DRAG_SPEED_POSITION)) {
+        Vector2 position = state.position;
+        if (field_vector2("Position", position, INSPECTOR_DRAG_SPEED_POSITION)) {
             TransformState next = state;
-            next.position = Vector2(position[0], position[1]);
+            next.position = position;
             apply_live(next);
         }
         capture_on_activate();
         push_on_release("Move");
 
-        float rotation_deg = state.rotation * RAD_TO_DEG;
-        inspector_field_label("Rotation");
-        if (ImGui::DragFloat("##rotation", &rotation_deg, INSPECTOR_DRAG_SPEED_ROTATION_DEG, 0.0f, 0.0f, "%.2f")) {
+        float rotation_deg = math::normalize_angle(state.rotation * RAD_TO_DEG);
+        if (field_float("Rotation", rotation_deg, INSPECTOR_DRAG_SPEED_ROTATION_DEG)) {
             TransformState next = state;
             next.rotation = rotation_deg * DEG_TO_RAD;
             apply_live(next);
@@ -88,11 +87,10 @@ namespace hob::editor {
         capture_on_activate();
         push_on_release("Rotate");
 
-        float scale[2] = {state.scale.x, state.scale.y};
-        inspector_field_label("Scale");
-        if (ImGui::DragFloat2("##scale", scale, INSPECTOR_DRAG_SPEED_SCALE)) {
+        Vector2 scale = state.scale;
+        if (field_vector2("Scale", scale, INSPECTOR_DRAG_SPEED_SCALE)) {
             TransformState next = state;
-            next.scale = Vector2(scale[0], scale[1]);
+            next.scale = scale;
             apply_live(next);
         }
         capture_on_activate();

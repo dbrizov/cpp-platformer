@@ -1,6 +1,8 @@
 #include "editor_gui_utils.h"
 
+#include <concepts>
 #include <cstdarg>
+#include <cstdio>
 
 #include <imgui_internal.h>
 
@@ -12,6 +14,14 @@ namespace hob::editor {
         constexpr int DRAW_CHANNEL_COUNT = 2;
         constexpr int DRAW_CHANNEL_BACKGROUND = 0;
         constexpr int DRAW_CHANNEL_FOREGROUND = 1;
+
+        constexpr const char* EMPTY_LABEL = "##";
+        constexpr uint32_t FIELD_STRING_CAPACITY = 256;
+
+        template<std::totally_ordered T>
+        ImGuiSliderFlags clamp_flags(T min, T max) {
+            return min < max ? ImGuiSliderFlags_AlwaysClamp : ImGuiSliderFlags_None;
+        }
 
         ImRect inset_rect(const ImVec2& min, const ImVec2& max, const ImVec2& inset) {
             return ImRect(min.x + inset.x, min.y + inset.y, max.x - inset.x, max.y - inset.y);
@@ -166,13 +176,6 @@ namespace hob::editor {
         return pressed;
     }
 
-    void inspector_field_label(const char* label) {
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(label);
-        ImGui::SameLine(INSPECTOR_LABEL_WIDTH);
-        ImGui::SetNextItemWidth(-EPSILON); // Negative width means "fill the remaining space".
-    }
-
     bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         ImDrawListSplitter splitter;
@@ -206,5 +209,84 @@ namespace hob::editor {
         splitter.Merge(draw_list);
 
         return open;
+    }
+
+    void begin_field(const char* label) {
+        ImGui::PushID(label);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(label);
+        ImGui::SameLine(INSPECTOR_LABEL_WIDTH);
+        ImGui::SetNextItemWidth(-EPSILON);
+    }
+
+    void end_field() {
+        ImGui::PopID();
+    }
+
+    bool field_float(const char* label, float& value, float drag_speed, float min, float max) {
+        begin_field(label);
+        const bool changed = ImGui::DragFloat(EMPTY_LABEL, &value, drag_speed, min, max, "%.3f", clamp_flags(min, max));
+        end_field();
+
+        return changed;
+    }
+
+    bool field_int(const char* label, int& value, float drag_speed, int min, int max) {
+        begin_field(label);
+        const bool changed = ImGui::DragInt(EMPTY_LABEL, &value, drag_speed, min, max, "%d", clamp_flags(min, max));
+        end_field();
+
+        return changed;
+    }
+
+    bool field_bool(const char* label, bool& value) {
+        begin_field(label);
+        const bool changed = ImGui::Checkbox(EMPTY_LABEL, &value);
+        end_field();
+
+        return changed;
+    }
+
+    bool field_string(const char* label, std::string& value) {
+        char buffer[FIELD_STRING_CAPACITY];
+        std::snprintf(buffer, sizeof(buffer), "%s", value.c_str());
+
+        begin_field(label);
+        const bool changed = ImGui::InputText(EMPTY_LABEL, buffer, sizeof(buffer));
+        end_field();
+
+        if (changed) {
+            value = buffer;
+        }
+
+        return changed;
+    }
+
+    bool field_vector2(const char* label, Vector2& value, float drag_speed) {
+        float xy[2] = {value.x, value.y};
+
+        begin_field(label);
+        const bool changed = ImGui::DragFloat2(EMPTY_LABEL, xy, drag_speed);
+        end_field();
+
+        if (changed) {
+            value = Vector2(xy[0], xy[1]);
+        }
+
+        return changed;
+    }
+
+    bool field_color(const char* label, Color& value) {
+        float rgba[4] = {value.r, value.g, value.b, value.a};
+
+        begin_field(label);
+        const bool changed = ImGui::ColorEdit4(EMPTY_LABEL, rgba);
+        end_field();
+
+        if (changed) {
+            value = Color(rgba[0], rgba[1], rgba[2], rgba[3]);
+        }
+
+        return changed;
     }
 } // namespace hob::editor

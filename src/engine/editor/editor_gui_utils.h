@@ -1,6 +1,11 @@
 #pragma once
 
+#include <string>
+
 #include <imgui.h>
+
+#include "engine/math/color.h"
+#include "engine/math/vector2.h"
 
 namespace hob::editor {
     struct StyleColorStack {
@@ -46,7 +51,13 @@ namespace hob::editor {
 
     bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) IM_FMTARGS(4);
 
-    // Leaves the cursor ready for a full-width widget.
-    // The widget that follows takes a hidden label ("##named_id"), since the visible one is here.
-    void inspector_field_label(const char* label);
+    void begin_field(const char* label);
+    void end_field();
+
+    bool field_float(const char* label, float& value, float drag_speed, float min = 0.0f, float max = 0.0f);
+    bool field_int(const char* label, int& value, float drag_speed, int min = 0, int max = 0);
+    bool field_bool(const char* label, bool& value);
+    bool field_string(const char* label, std::string& value);
+    bool field_vector2(const char* label, Vector2& value, float drag_speed);
+    bool field_color(const char* label, Color& value);
 } // namespace hob::editor
