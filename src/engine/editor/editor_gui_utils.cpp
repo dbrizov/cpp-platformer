@@ -8,6 +8,7 @@
 
 #include "editor_style.h"
 #include "engine/math/constants.h"
+#include "engine/math/mathf.h"
 
 namespace hob::editor {
     namespace {
@@ -16,7 +17,10 @@ namespace hob::editor {
         constexpr int DRAW_CHANNEL_FOREGROUND = 1;
 
         constexpr const char* EMPTY_LABEL = "##";
+        constexpr const char* FLOAT_FORMAT = "%.3f";
         constexpr uint32_t FIELD_STRING_CAPACITY = 256;
+        constexpr const char* COLOR_PICKER_POPUP = "picker";
+        constexpr ImGuiColorEditFlags COLOR_EDIT_FLAGS = ImGuiColorEditFlags_Float;
 
         template<std::totally_ordered T>
         ImGuiSliderFlags clamp_flags(T min, T max) {
@@ -39,6 +43,37 @@ namespace hob::editor {
 
         void draw_highlight(ImDrawList* draw_list, const ImRect& rect, const ImVec4& color, float rounding) {
             draw_list->AddRectFilled(rect.Min, rect.Max, ImGui::GetColorU32(color), rounding);
+        }
+        bool field_components(const char* label,
+                              const ImVec4* colors,
+                              float* const* values,
+                              int count,
+                              float drag_speed,
+                              float min,
+                              float max) {
+            begin_field(label);
+            ImGui::BeginGroup();
+            ImGui::PushMultiItemsWidths(count, ImGui::CalcItemWidth());
+
+            bool changed = false;
+            for (int i = 0; i < count; ++i) {
+                ImGui::PushID(i);
+                if (i > 0) {
+                    ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+                }
+
+                ImGui::SetNextItemColorMarker(ImGui::GetColorU32(colors[i]));
+                changed |=
+                    ImGui::DragFloat(EMPTY_LABEL, values[i], drag_speed, min, max, FLOAT_FORMAT, clamp_flags(min, max));
+
+                ImGui::PopID();
+                ImGui::PopItemWidth();
+            }
+
+            ImGui::EndGroup();
+            end_field();
+
+            return changed;
         }
     } // namespace
 
@@ -223,9 +258,23 @@ namespace hob::editor {
         ImGui::PopID();
     }
 
+    bool field_angle(const char* label, float& radians, float drag_speed) {
+        float degrees = math::normalize_angle(radians * RAD_TO_DEG);
+        float* components[] = {&degrees};
+        const bool changed =
+            field_components(label, &COLOR_AXIS_Z, components, IM_COUNTOF(components), drag_speed, 0.0f, 0.0f);
+
+        if (changed) {
+            radians = degrees * DEG_TO_RAD;
+        }
+
+        return changed;
+    }
+
     bool field_float(const char* label, float& value, float drag_speed, float min, float max) {
         begin_field(label);
-        const bool changed = ImGui::DragFloat(EMPTY_LABEL, &value, drag_speed, min, max, "%.3f", clamp_flags(min, max));
+        const bool changed =
+            ImGui::DragFloat(EMPTY_LABEL, &value, drag_speed, min, max, FLOAT_FORMAT, clamp_flags(min, max));
         end_field();
 
         return changed;
@@ -263,29 +312,64 @@ namespace hob::editor {
     }
 
     bool field_vector2(const char* label, Vector2& value, float drag_speed) {
-        float xy[2] = {value.x, value.y};
+        const ImVec4 colors[] = {COLOR_AXIS_X, COLOR_AXIS_Y};
+        float* components[] = {&value.x, &value.y};
 
-        begin_field(label);
-        const bool changed = ImGui::DragFloat2(EMPTY_LABEL, xy, drag_speed);
-        end_field();
-
-        if (changed) {
-            value = Vector2(xy[0], xy[1]);
-        }
-
-        return changed;
+        return field_components(label, colors, components, IM_COUNTOF(components), drag_speed, 0.0f, 0.0f);
     }
 
     bool field_color(const char* label, Color& value) {
-        float rgba[4] = {value.r, value.g, value.b, value.a};
+        const ImVec4 colors[] = {COLOR_AXIS_X, COLOR_AXIS_Y, COLOR_AXIS_Z, COLOR_AXIS_W};
+        float* components[] = {&value.r, &value.g, &value.b, &value.a};
+        constexpr int count = IM_COUNTOF(components);
+
+        const ImGuiStyle& style = ImGui::GetStyle();
+        const float swatch_width = ImGui::GetFrameHeight(); // ColorButton is square at its default size.
 
         begin_field(label);
-        const bool changed = ImGui::ColorEdit4(EMPTY_LABEL, rgba);
-        end_field();
+        ImGui::BeginGroup();
 
-        if (changed) {
-            value = Color(rgba[0], rgba[1], rgba[2], rgba[3]);
+        // The drags share the row with the swatch, so they split what is left of the field width.
+        ImGui::PushMultiItemsWidths(count, ImGui::CalcItemWidth() - swatch_width - style.ItemInnerSpacing.x);
+
+        bool changed = false;
+        for (int i = 0; i < count; ++i) {
+            ImGui::PushID(i);
+            if (i > 0) {
+                ImGui::SameLine(0.0f, style.ItemInnerSpacing.x);
+            }
+
+            ImGui::SetNextItemColorMarker(ImGui::GetColorU32(colors[i]));
+            changed |= ImGui::DragFloat(EMPTY_LABEL,
+                                        components[i],
+                                        INSPECTOR_DRAG_SPEED_COLOR,
+                                        0.0f,
+                                        1.0f,
+                                        FLOAT_FORMAT,
+                                        ImGuiSliderFlags_AlwaysClamp);
+
+            ImGui::PopID();
+            ImGui::PopItemWidth();
         }
+
+        ImGui::SameLine(0.0f, style.ItemInnerSpacing.x);
+
+        float rgba[4] = {value.r, value.g, value.b, value.a};
+        if (ImGui::ColorButton(EMPTY_LABEL, ImVec4(rgba[0], rgba[1], rgba[2], rgba[3]), COLOR_EDIT_FLAGS)) {
+            ImGui::OpenPopup(COLOR_PICKER_POPUP);
+        }
+
+        // Scoped by begin_field's PushID, so every color field gets its own popup.
+        if (ImGui::BeginPopup(COLOR_PICKER_POPUP)) {
+            if (ImGui::ColorPicker4(EMPTY_LABEL, rgba, COLOR_EDIT_FLAGS)) {
+                value = Color(rgba[0], rgba[1], rgba[2], rgba[3]);
+                changed = true;
+            }
+            ImGui::EndPopup();
+        }
+
+        ImGui::EndGroup();
+        end_field();
 
         return changed;
     }

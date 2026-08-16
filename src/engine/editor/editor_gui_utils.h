@@ -4,6 +4,7 @@
 
 #include <imgui.h>
 
+#include "editor_style.h"
 #include "engine/math/color.h"
 #include "engine/math/vector2.h"
 
@@ -54,10 +55,16 @@ namespace hob::editor {
     void begin_field(const char* label);
     void end_field();
 
-    bool field_float(const char* label, float& value, float drag_speed, float min = 0.0f, float max = 0.0f);
-    bool field_int(const char* label, int& value, float drag_speed, int min = 0, int max = 0);
+    bool field_angle(const char* label, float& radians, float drag_speed = INSPECTOR_DRAG_SPEED_ROTATION_DEG);
+    bool field_float(const char* label,
+                     float& value,
+                     float drag_speed = INSPECTOR_DRAG_SPEED_FLOAT,
+                     float min = 0.0f,
+                     float max = 0.0f);
+    bool field_int(
+        const char* label, int& value, float drag_speed = INSPECTOR_DRAG_SPEED_INT, int min = 0, int max = 0);
     bool field_bool(const char* label, bool& value);
     bool field_string(const char* label, std::string& value);
-    bool field_vector2(const char* label, Vector2& value, float drag_speed);
+    bool field_vector2(const char* label, Vector2& value, float drag_speed = INSPECTOR_DRAG_SPEED_FLOAT);
     bool field_color(const char* label, Color& value);
 } // namespace hob::editor

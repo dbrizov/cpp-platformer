@@ -23,6 +23,7 @@ namespace hob::editor {
     constexpr ImVec2 FRAME_PADDING{10.0f, 6.0f};
     constexpr float FRAME_ROUNDING = 3.0f;
     constexpr float FRAME_BORDER_SIZE = 0.0f;
+    constexpr float COLOR_MARKER_SIZE = 3.0f;
 
     constexpr ImVec2 ITEM_SPACING{7.0f, 5.0f};
     constexpr ImVec2 ITEM_INNER_SPACING{6.0f, 4.0f};
@@ -55,9 +56,13 @@ namespace hob::editor {
     constexpr float BAR_ITEM_SPACING_X = 4.0f;
 
     constexpr float INSPECTOR_LABEL_WIDTH = 120.0f;
+
+    constexpr float INSPECTOR_DRAG_SPEED_FLOAT = 0.02f;
+    constexpr float INSPECTOR_DRAG_SPEED_INT = 0.1f;
     constexpr float INSPECTOR_DRAG_SPEED_POSITION = 0.02f;
     constexpr float INSPECTOR_DRAG_SPEED_ROTATION_DEG = 0.5f;
     constexpr float INSPECTOR_DRAG_SPEED_SCALE = 0.01f;
+    constexpr float INSPECTOR_DRAG_SPEED_COLOR = 0.005f;
 
     constexpr float DOCKING_SEPARATOR_SIZE = 2.0f;
     constexpr float SEPARATOR_SIZE = 1.0f;
@@ -103,6 +108,11 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_TABLE_ROW_ALT{1.0f, 1.0f, 1.0f, 0.02f};
     constexpr ImVec4 COLOR_NAV_WINDOWING_DIM_BG{0.0f, 0.0f, 0.0f, 0.45f};
     constexpr ImVec4 COLOR_MODAL_DIM_BG{0.0f, 0.0f, 0.0f, 0.55f};
+
+    constexpr ImVec4 COLOR_AXIS_X{0.898f, 0.286f, 0.345f, 1.0f};
+    constexpr ImVec4 COLOR_AXIS_Y{0.510f, 0.749f, 0.239f, 1.0f};
+    constexpr ImVec4 COLOR_AXIS_Z{0.318f, 0.565f, 0.906f, 1.0f};
+    constexpr ImVec4 COLOR_AXIS_W{0.584f, 0.584f, 0.584f, 1.0f};
 
     // Scene View
     constexpr ImVec4 COLOR_SELECTION_PRIMARY{1.000f, 0.627f, 0.118f, 1.0f};

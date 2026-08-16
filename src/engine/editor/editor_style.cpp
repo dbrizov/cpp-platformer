@@ -23,6 +23,7 @@ namespace hob::editor {
         style.FramePadding = FRAME_PADDING;
         style.FrameRounding = FRAME_ROUNDING;
         style.FrameBorderSize = FRAME_BORDER_SIZE;
+        style.ColorMarkerSize = COLOR_MARKER_SIZE;
 
         style.ItemSpacing = ITEM_SPACING;
         style.ItemInnerSpacing = ITEM_INNER_SPACING;

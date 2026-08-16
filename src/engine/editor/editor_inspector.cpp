@@ -9,8 +9,6 @@
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/entity/entity.h"
-#include "engine/math/constants.h"
-#include "engine/math/mathf.h"
 
 namespace hob::editor {
     void Editor::draw_inspector() {
@@ -78,10 +76,10 @@ namespace hob::editor {
         capture_on_activate();
         push_on_release("Move");
 
-        float rotation_deg = math::normalize_angle(state.rotation * RAD_TO_DEG);
-        if (field_float("Rotation", rotation_deg, INSPECTOR_DRAG_SPEED_ROTATION_DEG)) {
+        float rotation = state.rotation;
+        if (field_angle("Rotation", rotation)) {
             TransformState next = state;
-            next.rotation = rotation_deg * DEG_TO_RAD;
+            next.rotation = rotation;
             apply_live(next);
         }
         capture_on_activate();
