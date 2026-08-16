@@ -95,25 +95,33 @@ local function get_transform_fields(transform)
     }
 end
 
--- Only fields with both a getter and a setter are inspectable;
--- A read-only property has nothing for the Inspector to write back to.
-local function append_schema_fields(fields, component, schema)
+local function get_schema_field_order(schema)
+    if schema.__order ~= nil then
+        return schema.__order
+    end
+
     local names = {}
     for field in pairs(schema.getters) do
-        if schema.setters[field] then
-            names[#names + 1] = field
-        end
+        names[#names + 1] = field
     end
     table.sort(names)
 
-    for _, field in ipairs(names) do
-        local getter = schema.getters[field]
-        local ok, value = pcall(function()
-            return component[getter](component)
-        end)
+    return names
+end
 
-        if ok then
-            fields[#fields + 1] = { name = field, value = value, kind = get_usertype_kind_from_value(value) }
+-- Only fields with both a getter and a setter are inspectable;
+-- A read-only property has nothing for the Inspector to write back to.
+local function append_schema_fields(fields, component, schema)
+    for _, field in ipairs(get_schema_field_order(schema)) do
+        local getter = schema.getters[field]
+        if getter ~= nil and schema.setters[field] ~= nil then
+            local ok, value = pcall(function()
+                return component[getter](component)
+            end)
+
+            if ok then
+                fields[#fields + 1] = { name = field, value = value, kind = get_usertype_kind_from_value(value) }
+            end
         end
     end
 end

@@ -11,6 +11,9 @@ local schemas = {
         setters = {
             interpolate_physics = "set_interpolate_physics",
         },
+        __order = {
+            "interpolate_physics",
+        },
     },
     rigidbody = {
         add = "add_rigidbody",
@@ -22,6 +25,10 @@ local schemas = {
         setters = {
             body_type = "set_body_type",
             fixed_rotation = "set_fixed_rotation",
+        },
+        __order = {
+            "body_type",
+            "fixed_rotation",
         },
     },
     character_body = {
@@ -38,6 +45,12 @@ local schemas = {
             collision_mask = "set_collision_mask",
             solver_ignore_mask = "set_solver_ignore_mask",
             capsule = "set_capsule",
+        },
+        __order = {
+            "collision_layer",
+            "collision_mask",
+            "solver_ignore_mask",
+            "capsule",
         },
     },
     box_collider = {
@@ -61,6 +74,15 @@ local schemas = {
             collision_mask = "set_collision_mask",
             trigger = "set_trigger",
         },
+        __order = {
+            "aabb",
+            "density",
+            "friction",
+            "bounciness",
+            "collision_layer",
+            "collision_mask",
+            "trigger",
+        },
     },
     capsule_collider = {
         add = "add_capsule_collider",
@@ -82,6 +104,15 @@ local schemas = {
             collision_layer = "set_collision_layer",
             collision_mask = "set_collision_mask",
             trigger = "set_trigger",
+        },
+        __order = {
+            "capsule",
+            "density",
+            "friction",
+            "bounciness",
+            "collision_layer",
+            "collision_mask",
+            "trigger",
         },
     },
     circle_collider = {
@@ -105,12 +136,22 @@ local schemas = {
             collision_mask = "set_collision_mask",
             trigger = "set_trigger",
         },
+        __order = {
+            "circle",
+            "density",
+            "friction",
+            "bounciness",
+            "collision_layer",
+            "collision_mask",
+            "trigger",
+        },
     },
     input = {
         add = "add_input",
         get = "get_input",
         getters = {},
         setters = {},
+        __order = {},
     },
     sprite = {
         add = "add_sprite",
@@ -131,6 +172,14 @@ local schemas = {
             z_index = "set_z_index",
             pixels_per_meter = "set_pixels_per_meter",
         },
+        __order = {
+            "texture",
+            "material",
+            "pivot",
+            "scale",
+            "z_index",
+            "pixels_per_meter",
+        },
     },
     sprite_animator = {
         add = "add_sprite_animator",
@@ -142,6 +191,10 @@ local schemas = {
         setters = {
             clips = "set_clips",
             default_clip = "set_default_clip",
+        },
+        __order = {
+            "clips",
+            "default_clip",
         },
     },
     sockets = {
@@ -157,6 +210,9 @@ local schemas = {
         },
         setters = {
             pixels_per_meter = "set_pixels_per_meter",
+        },
+        __order = {
+            "pixels_per_meter",
         },
     },
     audio = {
@@ -177,6 +233,14 @@ local schemas = {
             spatial = "set_spatial",
             max_distance = "set_max_distance",
             autoplay = "set_autoplay",
+        },
+        __order = {
+            "clip",
+            "volume",
+            "looping",
+            "spatial",
+            "max_distance",
+            "autoplay",
         },
     },
 }

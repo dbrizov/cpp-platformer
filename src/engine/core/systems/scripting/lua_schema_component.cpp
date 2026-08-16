@@ -37,6 +37,7 @@ namespace hob {
             else if (s.fields.empty()) {
                 out << "        getters = {},\n";
                 out << "        setters = {},\n";
+                out << "        __order = {},\n";
             }
             else {
                 out << "        getters = {\n";
@@ -44,9 +45,16 @@ namespace hob {
                     out << "            " << f.name << " = \"" << f.get_method << "\",\n";
                 }
                 out << "        },\n";
+
                 out << "        setters = {\n";
                 for (const auto& f : s.fields) {
                     out << "            " << f.name << " = \"" << f.set_method << "\",\n";
+                }
+                out << "        },\n";
+
+                out << "        __order = {\n";
+                for (const auto& f : s.fields) {
+                    out << "            \"" << f.name << "\",\n";
                 }
                 out << "        },\n";
             }
