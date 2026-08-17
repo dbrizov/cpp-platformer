@@ -1,4 +1,4 @@
-#include "editor_scene_view.h"
+#include "editor_dock_scene_view.h"
 
 #include <algorithm>
 #include <cmath>
@@ -6,15 +6,15 @@
 
 #include <imgui.h>
 
-#include "editor.h"
-#include "editor_gui_utils.h"
-#include "editor_style.h"
 #include "engine/components/camera_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/renderer/renderer.h"
+#include "engine/editor/editor.h"
+#include "engine/editor/editor_gui_utils.h"
+#include "engine/editor/editor_style.h"
 #include "engine/math/aabb.h"
 #include "engine/math/constants.h"
 #include "engine/math/matrix2x3.h"
@@ -121,7 +121,10 @@ namespace hob::editor {
         }
     } // namespace
 
-    void EditorSceneView::update_input(Editor& editor) {
+    EditorDockSceneView::EditorDockSceneView()
+        : EditorDock(" Scene ###Scene", EditorActionContext::SceneView) {}
+
+    void EditorDockSceneView::update_input(Editor& editor) {
         if (!m_rect_valid || !m_hovered) {
             return;
         }
@@ -142,17 +145,16 @@ namespace hob::editor {
         }
     }
 
-    void EditorSceneView::draw(Editor& editor) {
+    void EditorDockSceneView::draw(Editor& editor) {
         m_rect_valid = false;
-        m_hovered = false;
-        m_focused = false;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        const bool visible = begin_panel(PANEL_NAME, ImGuiWindowFlags_NoScrollbar);
+        const bool visible = begin(ImGuiWindowFlags_NoScrollbar);
         ImGui::PopStyleVar();
 
         if (visible) {
-            m_focused = ImGui::IsWindowFocused();
+            // The image fills the dock, so hovering it is what counts -- not the tab bar above it.
+            m_hovered = false;
 
             const ImVec2 avail = ImGui::GetContentRegionAvail();
             if (avail.x > MIN_SCENE_RECT_SIZE_PX && avail.y > MIN_SCENE_RECT_SIZE_PX) {
@@ -182,10 +184,10 @@ namespace hob::editor {
                 }
             }
         }
-        end_panel();
+        end();
     }
 
-    void EditorSceneView::render_pass(Editor& editor) {
+    void EditorDockSceneView::render_pass(Editor& editor) {
         if (m_color_target == nullptr) {
             return;
         }
@@ -196,7 +198,7 @@ namespace hob::editor {
         editor.get_engine().get_renderer().render_world_pass_to(m_color_target, view_proj);
     }
 
-    void EditorSceneView::release_color_target(Editor& editor) {
+    void EditorDockSceneView::release_color_target(Editor& editor) {
         if (m_color_target == nullptr) {
             return;
         }
@@ -207,19 +209,11 @@ namespace hob::editor {
         m_color_target_height = 0;
     }
 
-    bool EditorSceneView::is_hovered() const {
-        return m_hovered;
-    }
-
-    bool EditorSceneView::is_focused() const {
-        return m_focused;
-    }
-
-    void EditorSceneView::reset_pick_cycle() {
+    void EditorDockSceneView::reset_pick_cycle() {
         m_pick_cycle_last_entity_id = INVALID_ENTITY_ID;
     }
 
-    void EditorSceneView::ensure_color_target(Editor& editor, uint32_t width, uint32_t height) {
+    void EditorDockSceneView::ensure_color_target(Editor& editor, uint32_t width, uint32_t height) {
         width = std::max(width, MIN_COLOR_TARGET_SIZE_PX);
         height = std::max(height, MIN_COLOR_TARGET_SIZE_PX);
 
@@ -238,7 +232,9 @@ namespace hob::editor {
         m_color_target_height = height;
     }
 
-    void EditorSceneView::handle_pick(Editor& editor, const Vector2& mouse_screen_pos, const Vector2& mouse_world_pos) {
+    void EditorDockSceneView::handle_pick(Editor& editor,
+                                          const Vector2& mouse_screen_pos,
+                                          const Vector2& mouse_world_pos) {
         const bool additive = ImGui::GetIO().KeyCtrl;
         EditorEntitySelection& selection = editor.get_selection();
 
@@ -272,9 +268,9 @@ namespace hob::editor {
         editor.get_hierarchy().scroll_to_primary();
     }
 
-    void EditorSceneView::gather_pick_candidates(const Editor& editor,
-                                                 const Vector2& world_pos,
-                                                 std::vector<EntityId>& out_candidates) const {
+    void EditorDockSceneView::gather_pick_candidates(const Editor& editor,
+                                                     const Vector2& world_pos,
+                                                     std::vector<EntityId>& out_candidates) const {
         out_candidates.clear();
 
         const EntitySpawner& spawner = editor.get_engine().get_entity_spawner();
@@ -340,7 +336,7 @@ namespace hob::editor {
         }
     }
 
-    void EditorSceneView::focus_on_selection(const Editor& editor) {
+    void EditorDockSceneView::focus_on_selection(const Editor& editor) {
         if (!m_rect_valid) {
             return;
         }
@@ -363,7 +359,7 @@ namespace hob::editor {
         }
     }
 
-    void EditorSceneView::draw_grid(ImDrawList* draw_list, const SceneRect& scene_rect) const {
+    void EditorDockSceneView::draw_grid(ImDrawList* draw_list, const SceneRect& scene_rect) const {
         const float cell_meters = grid_cell_meters(m_camera.pixels_per_meter);
 
         const Vector2 top_left = scene_rect.top_left;
@@ -414,9 +410,9 @@ namespace hob::editor {
         }
     }
 
-    void EditorSceneView::draw_camera_view_rect(const Editor& editor,
-                                                ImDrawList* draw_list,
-                                                const SceneRect& scene_rect) const {
+    void EditorDockSceneView::draw_camera_view_rect(const Editor& editor,
+                                                    ImDrawList* draw_list,
+                                                    const SceneRect& scene_rect) const {
         Engine& engine = editor.get_engine();
 
         const CameraComponent* camera = engine.get_active_camera();
@@ -449,9 +445,9 @@ namespace hob::editor {
                            SCENE_VIEW_CAMERA_RECT_THICKNESS);
     }
 
-    void EditorSceneView::draw_selection_overlay(const Editor& editor,
-                                                 ImDrawList* draw_list,
-                                                 const SceneRect& scene_rect) const {
+    void EditorDockSceneView::draw_selection_overlay(const Editor& editor,
+                                                     ImDrawList* draw_list,
+                                                     const SceneRect& scene_rect) const {
         const EntitySpawner& spawner = editor.get_engine().get_entity_spawner();
         const EditorEntitySelection& selection = editor.get_selection();
         const EntityId primary_entity_id = selection.primary();

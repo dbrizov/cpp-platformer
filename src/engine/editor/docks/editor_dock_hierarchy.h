@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "editor_dock.h"
 #include "engine/entity/entity.h"
 
 namespace hob {
@@ -9,20 +10,13 @@ namespace hob {
 } // namespace hob
 
 namespace hob::editor {
-    class Editor;
-
-    class EditorHierarchy {
+    class EditorDockHierarchy : public EditorDock {
         bool m_scroll_to_primary = false;
-        bool m_hovered = false;
-        bool m_focused = false;
 
     public:
-        static constexpr const char* PANEL_NAME = " Hierarchy ###Hierarchy";
+        EditorDockHierarchy();
 
-        void draw(Editor& editor);
-
-        bool is_hovered() const;
-        bool is_focused() const;
+        void draw(Editor& editor) override;
 
         void scroll_to_primary();
 

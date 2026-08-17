@@ -1,8 +1,8 @@
 #include "editor_menu_bar.h"
 
-#include "editor.h"
-#include "editor_action.h"
-#include "editor_gui_utils.h"
+#include "engine/editor/actions/editor_action.h"
+#include "engine/editor/editor.h"
+#include "engine/editor/editor_gui_utils.h"
 
 namespace hob::editor {
     void EditorMenuBar::draw(Editor& editor) {

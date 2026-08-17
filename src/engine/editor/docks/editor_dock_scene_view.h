@@ -4,16 +4,15 @@
 
 #include <SDL3/SDL_gpu.h>
 
-#include "editor_camera.h"
+#include "editor_dock.h"
+#include "engine/editor/editor_camera.h"
 #include "engine/entity/entity.h"
 #include "engine/math/vector2.h"
 
 struct ImDrawList;
 
 namespace hob::editor {
-    class Editor;
-
-    class EditorSceneView {
+    class EditorDockSceneView : public EditorDock {
         EditorCamera m_camera;
 
         SDL_GPUTexture* m_color_target = nullptr;
@@ -23,23 +22,18 @@ namespace hob::editor {
         // Recorded while drawing, consumed by the next frame's input phase.
         SceneRect m_rect;
         bool m_rect_valid = false;
-        bool m_hovered = false;
-        bool m_focused = false;
 
         // Clicking the same spot repeatedly cycles through overlapping candidates.
         Vector2 m_pick_cycle_screen_position;
         EntityId m_pick_cycle_last_entity_id = INVALID_ENTITY_ID;
 
     public:
-        static constexpr const char* PANEL_NAME = " Scene ###Scene";
+        EditorDockSceneView();
 
         void update_input(Editor& editor);
-        void draw(Editor& editor);
+        void draw(Editor& editor) override;
         void render_pass(Editor& editor);
         void release_color_target(Editor& editor);
-
-        bool is_hovered() const;
-        bool is_focused() const;
 
         void focus_on_selection(const Editor& editor);
         void reset_pick_cycle();

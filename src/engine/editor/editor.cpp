@@ -8,7 +8,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#include "editor_action.h"
+#include "actions/editor_action.h"
 #include "editor_config.h"
 #include "editor_gui_utils.h"
 #include "editor_style.h"
@@ -135,19 +135,19 @@ namespace hob::editor {
         return m_toolbar;
     }
 
-    EditorSceneView& Editor::get_scene_view() {
+    EditorDockSceneView& Editor::get_scene_view() {
         return m_scene_view;
     }
 
-    EditorHierarchy& Editor::get_hierarchy() {
+    EditorDockHierarchy& Editor::get_hierarchy() {
         return m_hierarchy;
     }
 
-    EditorInspector& Editor::get_inspector() {
+    EditorDockInspector& Editor::get_inspector() {
         return m_inspector;
     }
 
-    EditorAssets& Editor::get_assets() {
+    EditorDockAssets& Editor::get_assets() {
         return m_assets;
     }
 
@@ -176,10 +176,9 @@ namespace hob::editor {
             build_default_layout(dock_space_id);
         }
 
-        m_scene_view.draw(*this);
-        m_hierarchy.draw(*this);
-        m_inspector.draw(*this);
-        m_assets.draw(*this);
+        for (EditorDock* dock : get_docks()) {
+            dock->draw(*this);
+        }
 
         // Every Begin/End has closed, so an action is free to spawn, destroy or open a window.
         m_actions.flush(*this);
@@ -212,6 +211,10 @@ namespace hob::editor {
         return true;
     }
 
+    std::array<EditorDock*, Editor::DOCK_COUNT> Editor::get_docks() {
+        return {&m_scene_view, &m_hierarchy, &m_inspector, &m_assets};
+    }
+
     void Editor::update_input() {
         m_active_contexts = 0;
 
@@ -219,20 +222,10 @@ namespace hob::editor {
         if (m_engine.get_main_window().has_focus() && !ImGui::GetIO().WantTextInput) {
             m_active_contexts |= context_bit(EditorActionContext::Global);
 
-            if (m_scene_view.is_hovered() || m_scene_view.is_focused()) {
-                m_active_contexts |= context_bit(EditorActionContext::SceneView);
-            }
-
-            if (m_hierarchy.is_hovered() || m_hierarchy.is_focused()) {
-                m_active_contexts |= context_bit(EditorActionContext::Hierarchy);
-            }
-
-            if (m_inspector.is_hovered() || m_inspector.is_focused()) {
-                m_active_contexts |= context_bit(EditorActionContext::Inspector);
-            }
-
-            if (m_assets.is_hovered() || m_assets.is_focused()) {
-                m_active_contexts |= context_bit(EditorActionContext::Assets);
+            for (const EditorDock* dock : get_docks()) {
+                if (dock->is_hovered() || dock->is_focused()) {
+                    m_active_contexts |= context_bit(dock->get_context());
+                }
             }
 
             for (const EditorAction& action : get_actions()) {
@@ -278,10 +271,10 @@ namespace hob::editor {
         const ImGuiID assets =
             ImGui::DockBuilderSplitNode(center, ImGuiDir_Down, LAYOUT_ASSETS_RATIO, nullptr, &center);
 
-        ImGui::DockBuilderDockWindow(EditorHierarchy::PANEL_NAME, right);
-        ImGui::DockBuilderDockWindow(EditorInspector::PANEL_NAME, inspector);
-        ImGui::DockBuilderDockWindow(EditorAssets::PANEL_NAME, assets);
-        ImGui::DockBuilderDockWindow(EditorSceneView::PANEL_NAME, center);
+        ImGui::DockBuilderDockWindow(m_hierarchy.get_name(), right);
+        ImGui::DockBuilderDockWindow(m_inspector.get_name(), inspector);
+        ImGui::DockBuilderDockWindow(m_assets.get_name(), assets);
+        ImGui::DockBuilderDockWindow(m_scene_view.get_name(), center);
 
         ImGui::DockBuilderFinish(dock_space_id);
     }

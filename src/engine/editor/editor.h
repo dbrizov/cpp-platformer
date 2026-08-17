@@ -1,18 +1,19 @@
 #pragma once
 
+#include <array>
 #include <string>
 
 #include <imgui.h>
 
+#include "actions/editor_action_queue.h"
+#include "bars/editor_menu_bar.h"
+#include "bars/editor_toolbar.h"
 #include "commands/editor_command_stack.h"
-#include "editor_action_queue.h"
-#include "editor_assets.h"
+#include "docks/editor_dock_assets.h"
+#include "docks/editor_dock_hierarchy.h"
+#include "docks/editor_dock_inspector.h"
+#include "docks/editor_dock_scene_view.h"
 #include "editor_entity_selection.h"
-#include "editor_hierarchy.h"
-#include "editor_inspector.h"
-#include "editor_menu_bar.h"
-#include "editor_scene_view.h"
-#include "editor_toolbar.h"
 #include "engine/core/engine_hooks.h"
 
 namespace hob {
@@ -44,10 +45,10 @@ namespace hob::editor {
 
         EditorMenuBar m_menu_bar;
         EditorToolbar m_toolbar;
-        EditorSceneView m_scene_view;
-        EditorHierarchy m_hierarchy;
-        EditorInspector m_inspector;
-        EditorAssets m_assets;
+        EditorDockSceneView m_scene_view;
+        EditorDockHierarchy m_hierarchy;
+        EditorDockInspector m_inspector;
+        EditorDockAssets m_assets;
 
     public:
         explicit Editor(Engine& engine);
@@ -77,10 +78,10 @@ namespace hob::editor {
 
         EditorMenuBar& get_menu_bar();
         EditorToolbar& get_toolbar();
-        EditorSceneView& get_scene_view();
-        EditorHierarchy& get_hierarchy();
-        EditorInspector& get_inspector();
-        EditorAssets& get_assets();
+        EditorDockSceneView& get_scene_view();
+        EditorDockHierarchy& get_hierarchy();
+        EditorDockInspector& get_inspector();
+        EditorDockAssets& get_assets();
 
 #pragma region EngineHooks
         void tick(float delta_time) override;
@@ -92,6 +93,11 @@ namespace hob::editor {
 #pragma endregion
 
     private:
+        static constexpr size_t DOCK_COUNT = 4;
+
+        // Drawn in this order, and the source of the shortcut contexts.
+        std::array<EditorDock*, DOCK_COUNT> get_docks();
+
         void update_input();
         bool is_context_active(EditorActionContext context) const;
         void prune_selection();

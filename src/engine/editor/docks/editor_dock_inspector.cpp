@@ -1,4 +1,4 @@
-#include "editor_inspector.h"
+#include "editor_dock_inspector.h"
 
 #include <memory>
 #include <string>
@@ -7,20 +7,20 @@
 #include <imgui.h>
 #include <sol/sol.hpp>
 
-#include "commands/editor_command_set_field.h"
-#include "editor.h"
-#include "editor_gui_utils.h"
-#include "editor_lua.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/scripting/lua_script_system.h"
+#include "engine/editor/commands/editor_command_set_field.h"
+#include "engine/editor/editor.h"
+#include "engine/editor/editor_gui_utils.h"
+#include "engine/editor/editor_lua.h"
 #include "engine/entity/entity.h"
 #include "engine/math/color.h"
 #include "engine/math/constants.h"
 #include "engine/math/vector2.h"
 
 namespace hob::editor {
-    struct EditorInspectorPendingEdit {
+    struct EditorDockInspectorPendingEdit {
         EditorFieldTarget target;
         sol::object old_value;
         bool active = false;
@@ -32,7 +32,7 @@ namespace hob::editor {
             return value.is<T>() ? value.as<T>() : fallback;
         }
 
-        void begin_pending_edit(EditorInspectorPendingEdit& pending,
+        void begin_pending_edit(EditorDockInspectorPendingEdit& pending,
                                 const EditorFieldTarget& target,
                                 const sol::object& old_value) {
             pending.target = target;
@@ -40,12 +40,12 @@ namespace hob::editor {
             pending.active = true;
         }
 
-        void clear_pending_edit(EditorInspectorPendingEdit& pending) {
-            pending = EditorInspectorPendingEdit{};
+        void clear_pending_edit(EditorDockInspectorPendingEdit& pending) {
+            pending = EditorDockInspectorPendingEdit{};
         }
 
         void commit_field_edit(Editor& editor,
-                               EditorInspectorPendingEdit& pending,
+                               EditorDockInspectorPendingEdit& pending,
                                const EditorFieldTarget& target,
                                const std::string& command_label,
                                const sol::object& old_value,
@@ -78,7 +78,7 @@ namespace hob::editor {
         }
 
         void draw_field(Editor& editor,
-                        EditorInspectorPendingEdit& pending,
+                        EditorDockInspectorPendingEdit& pending,
                         const EditorFieldTarget& component_target,
                         const std::string& component_label,
                         const sol::table& field) {
@@ -154,7 +154,7 @@ namespace hob::editor {
         }
 
         void draw_component(Editor& editor,
-                            EditorInspectorPendingEdit& pending,
+                            EditorDockInspectorPendingEdit& pending,
                             EntityId entity_id,
                             int index,
                             const sol::table& component) {
@@ -187,7 +187,7 @@ namespace hob::editor {
             ImGui::PopID();
         }
 
-        void draw_components(Editor& editor, EditorInspectorPendingEdit& pending, EntityId entity_id) {
+        void draw_components(Editor& editor, EditorDockInspectorPendingEdit& pending, EntityId entity_id) {
             if (pending.active && pending.target.entity_id != entity_id) {
                 clear_pending_edit(pending);
             }
@@ -210,19 +210,14 @@ namespace hob::editor {
         }
     } // namespace
 
-    EditorInspector::EditorInspector()
-        : m_pending(std::make_unique<EditorInspectorPendingEdit>()) {}
+    EditorDockInspector::EditorDockInspector()
+        : EditorDock(" Inspector ###Inspector", EditorActionContext::Inspector)
+        , m_pending(std::make_unique<EditorDockInspectorPendingEdit>()) {}
 
-    EditorInspector::~EditorInspector() = default;
+    EditorDockInspector::~EditorDockInspector() = default;
 
-    void EditorInspector::draw(Editor& editor) {
-        m_hovered = false;
-        m_focused = false;
-
-        if (begin_panel(PANEL_NAME)) {
-            m_hovered = ImGui::IsWindowHovered();
-            m_focused = ImGui::IsWindowFocused();
-
+    void EditorDockInspector::draw(Editor& editor) {
+        if (begin()) {
             const EditorEntitySelection& selection = editor.get_selection();
 
             // Multi-selection inspects the primary; the rest still move together via the SceneView.
@@ -246,18 +241,10 @@ namespace hob::editor {
                 draw_components(editor, *m_pending, entity->get_id());
             }
         }
-        end_panel();
+        end();
     }
 
-    bool EditorInspector::is_hovered() const {
-        return m_hovered;
-    }
-
-    bool EditorInspector::is_focused() const {
-        return m_focused;
-    }
-
-    void EditorInspector::reset_edit_state() {
+    void EditorDockInspector::reset_edit_state() {
         clear_pending_edit(*m_pending);
     }
 } // namespace hob::editor

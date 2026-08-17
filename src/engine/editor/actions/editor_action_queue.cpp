@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "editor.h"
+#include "engine/editor/editor.h"
 
 namespace hob::editor {
     void EditorActionQueue::request(EditorActionId id) {
