@@ -10,7 +10,7 @@
 namespace hob {
     namespace {
         AudioClipRef resolve_clip(Audio& audio, const sol::object& value) {
-            if (value.is<AudioClipRef>()) {
+            if (value.is<AudioClip>()) {
                 return value.as<AudioClipRef>();
             }
             if (value.is<std::string>()) {

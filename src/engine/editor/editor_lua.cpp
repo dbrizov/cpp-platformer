@@ -21,17 +21,17 @@ namespace hob::editor {
             return "none";
         }
 
-        if (value.is<TextureRef>()) {
+        if (value.is<Texture>()) {
             const TextureRef texture = value.as<TextureRef>();
             return texture != nullptr ? texture->get_path() : "none";
         }
 
-        if (value.is<AudioClipRef>()) {
+        if (value.is<AudioClip>()) {
             const AudioClipRef clip = value.as<AudioClipRef>();
             return clip != nullptr ? clip->get_path() : "none";
         }
 
-        if (value.is<MaterialRef>()) {
+        if (value.is<Material>()) {
             const MaterialRef material = value.as<MaterialRef>();
             return material != nullptr ? material->get_name() : "none";
         }

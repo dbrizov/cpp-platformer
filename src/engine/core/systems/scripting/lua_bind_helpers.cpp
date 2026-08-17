@@ -4,7 +4,7 @@
 
 namespace hob {
     TextureRef resolve_texture(Renderer& renderer, const sol::object& value) {
-        if (value.is<TextureRef>()) {
+        if (value.is<Texture>()) {
             return value.as<TextureRef>();
         }
         if (value.is<std::string>()) {

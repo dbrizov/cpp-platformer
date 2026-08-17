@@ -154,6 +154,18 @@ else ()
     target_compile_options(${PROJECT_NAME} PRIVATE -include cstdint)
 endif ()
 
+# Opt-in AddressSanitizer: -DHOB_ASAN=ON.
+option(HOB_ASAN "Build with AddressSanitizer" OFF)
+if (HOB_ASAN)
+    if (MSVC)
+        target_compile_options(${PROJECT_NAME} PRIVATE /fsanitize=address)
+        target_link_options(${PROJECT_NAME} PRIVATE /INCREMENTAL:NO)
+    else ()
+        target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+        target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address)
+    endif ()
+endif ()
+
 # Precompiled header.
 target_precompile_headers(${PROJECT_NAME} PRIVATE
         # Standard library — slow parsers first.

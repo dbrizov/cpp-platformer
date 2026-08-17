@@ -405,7 +405,7 @@ namespace hob {
                     if (!value.valid()) {
                         self.clear_texture();
                     }
-                    else if (value.is<TextureRef>()) {
+                    else if (value.is<Texture>()) {
                         self.set_texture(value.as<TextureRef>());
                     }
                     else if (value.is<std::string>()) {
