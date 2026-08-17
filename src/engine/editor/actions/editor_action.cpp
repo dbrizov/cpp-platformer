@@ -114,7 +114,7 @@ namespace hob::editor {
                 .id = EditorActionId::FocusSelection,
                 .label = "Focus Selection",
                 .chord = ImGuiKey_F,
-                .context = EditorActionContext::SceneView,
+                .context = EditorActionContext::Global,
                 .is_enabled =
                     [](const Editor& editor) {
                         return !editor.get_selection().empty();
