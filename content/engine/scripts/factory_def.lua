@@ -1,28 +1,7 @@
 -- Generic factory-type registry.
---
--- Drives DefineMaterial / DefineAnimationClip (and any future DefineX where X is a
--- C++ usertype bound with a `factory_ctor` that takes a single config table).
--- The per-type field list lives in factory_schemas.generated.lua, which is dumped
--- from C++ by LuaScriptSystem::dump_factory_schemas(). To add a new factory type,
--- call bind_factory_schema(...) next to its bind_usertype<T>() and the Lua side
--- picks it up on the next run; no edits to this file are needed.
---
--- Usage (same contract as DefineAsset / DefineTexture / DefineShader):
---   DefineMaterial.Outline = { outline_width = 2.0, outline_color = Color(1,1,1,1) }
---   sprite = { material = Materials.Outline }
---
--- `Materials.Name` / `AnimationClips.Name` return deferred refs. The actual C++
--- object is constructed lazily on first unwrap_def(...) call and cached.
--- Define calls can live in any file in any load order.
 
--- Per-registry list of declared alias names, populated as `DefineX.Foo = { ... }` runs.
--- Read by C++ (LuaScriptSystem::dump_factory_aliases_meta) after bootstrap completes to emit
--- <project>/scripts/meta/factory_aliases_meta.generated.lua so editors get autocomplete on
--- `Materials.Foo`, `AnimationClips.Foo`, etc.
+-- Declared alias names per registry; read by C++ after bootstrap to emit factory_aliases_meta.generated.lua.
 _G.__factory_alias_names = _G.__factory_alias_names or {}
-
--- Per-registry cache-clear callbacks, invoked by __clear_factory_caches() on hot reload so
--- redefined factory objects (e.g. DefineMaterial) rebuild lazily from their updated defs.
 _G.__factory_cache_clearers = {}
 
 local function install_factory_registry(registry_name, schema)
@@ -46,7 +25,6 @@ local function install_factory_registry(registry_name, schema)
             return nil
         end
 
-        -- Forward every authored key (unwrapping deferred refs); the C++ ctor reads what it needs.
         local cfg = {}
         for key, value in pairs(def) do
             cfg[key] = unwrap_def(value)
@@ -102,7 +80,6 @@ local function install_factory_registry(registry_name, schema)
     })
 end
 
--- Drop every cached factory object so redefined defs (materials, animation clips, ...) rebuild.
 function _G.__clear_factory_caches()
     for _, clear in ipairs(_G.__factory_cache_clearers) do
         clear()

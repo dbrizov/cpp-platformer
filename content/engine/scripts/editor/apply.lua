@@ -1,15 +1,4 @@
 -- Editor apply: the write side of the Editor.* contract.
---
--- Loaded ONLY in editor mode, alongside query.lua (see the notes there). The folder loads
--- alphabetically, so this file runs first -- it may only reach into `Editor` from inside a function.
---
--- These edit LIVE entities. Nothing is written back to the prefab, so the edits are lost on Stop.
---
--- Neither setter returns the old value: the undo snapshot is the value C++ already received from the
--- previous frame's query, which works precisely because the Inspector caches nothing.
---
---   Editor.set_live_field(entity_id, component_key, field, value)
---   Editor.set_live_lua_field(entity_id, component_index, field, value)
 
 ---@class Editor
 _G.Editor = _G.Editor or {}
@@ -25,7 +14,7 @@ end
 
 --- Write a field of a C++ component through its schema setter.
 ---@param entity_id integer
----@param component_key string Schema key, e.g. "sprite"
+---@param component_key string Schema key, e.g. "sprite", "box_collider"
 ---@param field string
 ---@param value any
 function Editor.set_live_field(entity_id, component_key, field, value)
@@ -55,8 +44,7 @@ function Editor.set_live_field(entity_id, component_key, field, value)
     _G.__call_component_setter(component, setter, unwrap_def(value))
 end
 
---- Write a field of a Lua component. A plain assignment, which is also what correctly creates the
---- instance shadow when the field was still resolving to a class-table default.
+--- Write a field of a Lua component.
 ---@param entity_id integer
 ---@param component_index integer Index into entity:get_lua_components()
 ---@param field string

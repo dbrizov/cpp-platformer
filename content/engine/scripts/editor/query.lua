@@ -1,23 +1,10 @@
 -- Editor query: the read side of the Editor.* contract.
---
--- Loaded ONLY in editor mode: `editor/` is excluded from bootstrap's engine scan, and the editor runs this folder itself.
---
--- The contract with C++: Lua never draws UI, C++ never touches the registries. Everything the
--- Inspector shows arrives as plain descriptor tables; `kind` is all C++ needs to pick a widget.
---
---   Editor.get_components(entity_id) ->
---     { { name = "sprite", is_lua = false, fields = { { name, value, kind }, ... } }, ... }
---
--- The descriptor is also the address the apply side writes through: `name` is the schema key for a
--- C++ component, `index` the position in get_lua_components() for a Lua one.
 
---- The editor's Lua support table. C++ reaches it as `_G.Editor[name]`, looked up fresh on
---- every call so a hot reload rebinds automatically.
 ---@class Editor
 _G.Editor = _G.Editor or {}
 
 -- ---------------------------------------------------------------------------------------------
--- Widget kinds
+-- Editor field kinds
 -- ---------------------------------------------------------------------------------------------
 
 -- Factory registries whose built objects are usertypes worth recognizing by identity.
@@ -28,7 +15,7 @@ local RESOURCE_REGISTRY_KINDS = {
     AnimationClips = "animation_clip",
 }
 
--- Metatable identity -> widget kind
+-- Metatable identity -> field kind
 local usertype_kinds = nil
 
 local function get_registry_metatable(registry_name)

@@ -1,21 +1,18 @@
--- Lua-side bootstrap. The C++ side runs ONLY this file; all script loading
--- (engine modules, user scripts, main.lua) is orchestrated from here.
+-- Lua-side bootstrap.
 
 -- Start the Lua debugger when launched under the VS Code Lua debugger extension.
 if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
     require("lldebugger").start()
 end
 
--- Engine modules (registries / metatables / enums) + generated path/factory registries.
--- lib/, meta/ and editor/ are excluded; hot_reload.lua is imperative, run on demand by C++,
--- and editor/ is run by the editor host itself (it does not exist in a plain game run).
+-- Excluded from the scan: hot_reload.lua is imperative (run on demand by C++), editor/ is run by
+-- the editor host itself, and lib/ + meta/ are third-party code and type stubs.
 function _G.__load_engine_modules()
     Scripts.run_engine_folder("scripts", { "bootstrap.lua", "hot_reload.lua", "lib", "meta", "editor" })
     __install_path_registries()
     __install_factory_registries()
 end
 
--- All user definition files + resolve the component inheritance graph.
 function _G.__load_project_definitions()
     Scripts.run_project_folder("scripts", { "main.lua", "meta" })
     __finalize_components()

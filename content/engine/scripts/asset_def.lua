@@ -4,26 +4,8 @@
 --   DefineTexture.PlayerTexture = "images/player/HJ_run01.png"
 --   DefineShader.MyShader       = "shaders/my_shader"
 --   DefineAsset.SomeFont        = "fonts/arial.ttf"
---
--- Then in prefabs / config:
---   sprite   = { texture = Textures.PlayerTexture }
---   material = { shader  = Shaders.MyShader }
---
--- Paths are relative to the assets/ root, same as a raw string would be.
---
--- `Textures.Name` / `Shaders.Name` / `Assets.Name` return deferred references, not eager
--- strings. The actual path lookup happens at dispatch time (apply_setters in entity_def.lua),
--- so DefineX calls can live in any file in any load order.
--- When passing a deferred ref directly to a C++ setter, unwrap with unwrap_def(...).
---
--- The full list of (Define, Registry) namespaces is C++-driven: hob:: bind_path_schema(...) calls
--- in lua_bind_assets.cpp emit path_schemas.generated.lua, which this file reads via
--- install_path_registries() (called from bootstrap.lua).
 
--- Per-registry list of declared alias names, populated as `DefineX.Foo = "..."` runs.
--- Read by C++ (LuaScriptSystem::dump_path_aliases_meta) after bootstrap completes to emit
--- <project>/scripts/meta/path_aliases_meta.generated.lua so editors get autocomplete on
--- `Textures.Foo`, `Shaders.Foo`, etc.
+-- Declared alias names per registry; read by C++ after bootstrap to emit path_aliases_meta.generated.lua.
 _G.__path_alias_names = _G.__path_alias_names or {}
 
 local function install_path_registry(define_name, registry_name, type_label)
