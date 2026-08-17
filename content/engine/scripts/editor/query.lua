@@ -144,14 +144,67 @@ local function is_lua_component_field(key, value)
         and type(value) ~= "function"
 end
 
+-- A Lua table cannot report the order its keys were assigned in, so recover it from the source:
+-- debug.getinfo gives init()'s file and line span, and the fields are whatever it assigns to self.
+-- Weak-keyed, so the class tables a hot reload discards take their cached order with them.
+local field_order_cache = setmetatable({}, { __mode = "k" })
+
+local function scan_init_field_order(class)
+    local init = rawget(class, "init")
+    if type(init) ~= "function" then
+        return {}
+    end
+
+    local info = debug.getinfo(init, "S")
+    -- "@path" means a file chunk. Anything else (precompiled, packed, a string chunk) has no
+    -- source to read, and the alphabetical fallback takes over.
+    if info == nil or info.source:sub(1, 1) ~= "@" then
+        return {}
+    end
+
+    local file = io.open(info.source:sub(2), "r")
+    if file == nil then
+        return {}
+    end
+
+    local order = {}
+    local seen = {}
+    local line_no = 0
+
+    for line in file:lines() do
+        line_no = line_no + 1
+        if line_no > info.linedefined and line_no < info.lastlinedefined then
+            local field = line:match("^%s*self%.([%w_]+)%s*=")
+            if field ~= nil and not seen[field] then
+                seen[field] = true
+                order[#order + 1] = field
+            end
+        end
+    end
+
+    file:close()
+
+    return order
+end
+
+local function get_declared_field_order(class)
+    local cached = field_order_cache[class]
+    if cached == nil then
+        cached = scan_init_field_order(class)
+        field_order_cache[class] = cached
+    end
+
+    return cached
+end
+
 local function get_lua_component_fields(comp_instance)
     local names = {}
-    local seen = {}
+    local present = {}
 
     local function gather(source)
         for key, value in pairs(source) do
-            if not seen[key] and is_lua_component_field(key, value) then
-                seen[key] = true
+            if not present[key] and is_lua_component_field(key, value) then
+                present[key] = true
                 names[#names + 1] = key
             end
         end
@@ -166,8 +219,28 @@ local function get_lua_component_fields(comp_instance)
 
     table.sort(names)
 
-    local fields = {}
+    -- Declared order first; then whatever the scan could not place -- class-table defaults,
+    -- fields born outside init(), computed names -- alphabetically behind it.
+    local ordered = {}
+    local taken = {}
+
+    if class ~= nil then
+        for _, name in ipairs(get_declared_field_order(class)) do
+            if present[name] and not taken[name] then
+                taken[name] = true
+                ordered[#ordered + 1] = name
+            end
+        end
+    end
+
     for _, name in ipairs(names) do
+        if not taken[name] then
+            ordered[#ordered + 1] = name
+        end
+    end
+
+    local fields = {}
+    for _, name in ipairs(ordered) do
         local value = comp_instance[name]
         fields[#fields + 1] = { name = name, value = value, kind = get_usertype_kind_from_value(value) }
     end
