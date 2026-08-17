@@ -38,6 +38,10 @@ namespace hob::editor {
         }
     };
 
+    inline ImVec2 to_imvec(const Vector2& v) {
+        return ImVec2(v.x, v.y);
+    }
+
     std::string to_display_label(std::string_view name);
 
     ImGuiID dock_space_over_viewport(ImGuiDockNodeFlags flags);

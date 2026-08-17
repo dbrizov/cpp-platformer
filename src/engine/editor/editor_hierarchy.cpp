@@ -1,20 +1,27 @@
-#include <algorithm>
-#include <utility>
+#include "editor_hierarchy.h"
+
 #include <vector>
 
 #include <imgui.h>
 
 #include "editor.h"
 #include "editor_gui_utils.h"
+#include "editor_style.h"
 #include "engine/components/transform_component.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
 
 namespace hob::editor {
-    void Editor::draw_hierarchy() {
-        if (begin_panel(PANEL_HIERARCHY)) {
+    void EditorHierarchy::draw(Editor& editor) {
+        m_hovered = false;
+        m_focused = false;
+
+        if (begin_panel(PANEL_NAME)) {
+            m_hovered = ImGui::IsWindowHovered();
+            m_focused = ImGui::IsWindowFocused();
+
             std::vector<Entity*> entities;
-            m_engine.get_entity_spawner().get_entities(entities);
+            editor.get_engine().get_entity_spawner().get_entities(entities);
 
             ImGui::Text("Entities: %zu", entities.size());
             ImGui::Separator();
@@ -35,26 +42,42 @@ namespace hob::editor {
                     continue;
                 }
 
-                draw_hierarchy_entity(transform, visible_order, clicked_entity_id);
+                draw_entity(editor, transform, visible_order, clicked_entity_id);
             }
 
             vars.pop();
 
             if (clicked_entity_id != INVALID_ENTITY_ID) {
-                apply_hierarchy_click(clicked_entity_id, visible_order);
+                const ImGuiIO& io = ImGui::GetIO();
+                editor.get_selection().apply_click(EditorSelectionClick{clicked_entity_id, io.KeyCtrl, io.KeyShift},
+                                                   visible_order);
             }
 
-            m_scroll_hierarchy_to_primary = false;
+            m_scroll_to_primary = false;
         }
         end_panel();
     }
 
-    void Editor::draw_hierarchy_entity(const TransformComponent* transform,
-                                       std::vector<EntityId>& visible_order,
-                                       EntityId& out_clicked_entity_id) {
+    bool EditorHierarchy::is_hovered() const {
+        return m_hovered;
+    }
+
+    bool EditorHierarchy::is_focused() const {
+        return m_focused;
+    }
+
+    void EditorHierarchy::scroll_to_primary() {
+        m_scroll_to_primary = true;
+    }
+
+    void EditorHierarchy::draw_entity(const Editor& editor,
+                                      const TransformComponent* transform,
+                                      std::vector<EntityId>& visible_order,
+                                      EntityId& out_clicked_entity_id) {
         const Entity& entity = transform->get_entity();
         const EntityId entity_id = entity.get_id();
         const std::vector<TransformComponent*>& children = transform->get_children();
+        const EditorEntitySelection& selection = editor.get_selection();
 
         visible_order.push_back(entity_id);
 
@@ -67,12 +90,12 @@ namespace hob::editor {
 
         const bool open = tree_item(reinterpret_cast<void*>(static_cast<intptr_t>(entity_id)),
                                     flags,
-                                    m_selection.contains(entity_id),
+                                    selection.contains(entity_id),
                                     "%s  #%lld",
                                     entity.get_display_name().c_str(),
                                     static_cast<long long>(entity_id));
 
-        if (m_scroll_hierarchy_to_primary && entity_id == m_selection.primary()) {
+        if (m_scroll_to_primary && entity_id == selection.primary()) {
             ImGui::SetScrollHereY(0.5f);
         }
 
@@ -82,42 +105,10 @@ namespace hob::editor {
 
         if (open) {
             for (const TransformComponent* child : children) {
-                draw_hierarchy_entity(child, visible_order, out_clicked_entity_id);
+                draw_entity(editor, child, visible_order, out_clicked_entity_id);
             }
             ImGui::TreePop();
         }
     }
 
-    void Editor::apply_hierarchy_click(EntityId entity_id, const std::vector<EntityId>& visible_order) {
-        const ImGuiIO& io = ImGui::GetIO();
-
-        if (io.KeyCtrl) {
-            m_selection.toggle(entity_id);
-            m_range_selection_anchor = entity_id;
-            return;
-        }
-
-        const auto anchor_it = std::find(visible_order.begin(), visible_order.end(), m_range_selection_anchor);
-        if (io.KeyShift && anchor_it != visible_order.end()) {
-            const auto clicked_it = std::find(visible_order.begin(), visible_order.end(), entity_id);
-
-            auto first = anchor_it;
-            auto last = clicked_it;
-            if (first > last) {
-                std::swap(first, last);
-            }
-
-            m_selection.clear();
-            for (auto it = first; it != last + 1; ++it) {
-                m_selection.add(*it);
-            }
-
-            // Keep the clicked row primary regardless of which way the range runs.
-            m_selection.add(entity_id);
-            return;
-        }
-
-        m_selection.set(entity_id);
-        m_range_selection_anchor = entity_id;
-    }
 } // namespace hob::editor

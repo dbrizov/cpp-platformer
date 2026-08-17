@@ -1,55 +1,50 @@
+#include "editor_toolbar.h"
+
 #include <algorithm>
 
 #include <imgui.h>
 
 #include "editor.h"
+#include "editor_action.h"
 #include "editor_gui_utils.h"
 #include "editor_style.h"
 
 namespace hob::editor {
     namespace {
         constexpr int TOOLBAR_MAX_ITEMS = 3;
-
-        enum class Action {
-            Play,
-            Pause,
-            Step,
-            Stop,
-        };
-
-        struct Item {
-            const char* label;
-            Action action;
-        };
     } // namespace
 
-    void Editor::draw_toolbar() {
-        Item items[TOOLBAR_MAX_ITEMS]{};
+    void EditorToolbar::draw(Editor& editor) {
+        const EditorState state = editor.get_state();
+
+        EditorActionId items[TOOLBAR_MAX_ITEMS]{};
         int item_count = 0;
 
-        switch (m_state) {
-            case State::Edit: {
-                items[item_count++] = {"Play", Action::Play};
+        switch (state) {
+            case EditorState::Edit: {
+                items[item_count++] = EditorActionId::Play;
                 break;
             }
-            case State::Play: {
-                items[item_count++] = {"Pause", Action::Pause};
-                items[item_count++] = {"Stop", Action::Stop};
+            case EditorState::Play: {
+                items[item_count++] = EditorActionId::Pause;
+                items[item_count++] = EditorActionId::Stop;
                 break;
             }
-            case State::Paused: {
-                items[item_count++] = {"Resume", Action::Play};
-                items[item_count++] = {"Step", Action::Step};
-                items[item_count++] = {"Stop", Action::Stop};
+            case EditorState::Paused: {
+                items[item_count++] = EditorActionId::Play;
+                items[item_count++] = EditorActionId::Step;
+                items[item_count++] = EditorActionId::Stop;
                 break;
             }
         }
 
-        const char* state_label = (m_state == State::Edit) ? "Edit" : (m_state == State::Play) ? "Play" : "Paused";
+        const char* state_label = (state == EditorState::Edit)   ? "Edit"
+                                  : (state == EditorState::Play) ? "Play"
+                                                                 : "Paused";
 
         float toolbar_width = ImGui::CalcTextSize(state_label).x + MENU_BAR_ITEM_SPACING_X;
         for (int i = 0; i < item_count; ++i) {
-            toolbar_width += bar_button_width(items[i].label);
+            toolbar_width += action_bar_button_width(editor, items[i]);
         }
 
         const float cursor_x = ImGui::GetCursorPosX();
@@ -57,22 +52,7 @@ namespace hob::editor {
         ImGui::SetCursorPosX(std::max(cursor_x, right_edge_x - toolbar_width));
 
         for (int i = 0; i < item_count; ++i) {
-            if (bar_button(items[i].label)) {
-                switch (items[i].action) {
-                    case Action::Play:
-                        set_state(State::Play);
-                        break;
-                    case Action::Pause:
-                        set_state(State::Paused);
-                        break;
-                    case Action::Step:
-                        m_step_requested = true;
-                        break;
-                    case Action::Stop:
-                        set_state(State::Edit);
-                        break;
-                }
-            }
+            action_bar_button(editor, items[i]);
         }
 
         ImGui::TextDisabled("%s", state_label);

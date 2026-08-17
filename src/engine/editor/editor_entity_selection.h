@@ -6,8 +6,15 @@
 #include "engine/entity/entity.h"
 
 namespace hob::editor {
+    struct EditorSelectionClick {
+        EntityId entity_id = INVALID_ENTITY_ID;
+        bool additive = false; // Ctrl
+        bool range = false; // Shift
+    };
+
     struct EditorEntitySelection {
         std::vector<EntityId> ids;
+        EntityId range_anchor = INVALID_ENTITY_ID;
 
         bool empty() const {
             return ids.empty();
@@ -23,6 +30,7 @@ namespace hob::editor {
 
         void clear() {
             ids.clear();
+            range_anchor = INVALID_ENTITY_ID;
         }
 
         void set(EntityId id) {
@@ -47,5 +55,8 @@ namespace hob::editor {
                 add(id);
             }
         }
+
+        // visible_order is the rows a range select may span, and is empty where ranges make no sense.
+        void apply_click(const EditorSelectionClick& click, const std::vector<EntityId>& visible_order);
     };
 } // namespace hob::editor

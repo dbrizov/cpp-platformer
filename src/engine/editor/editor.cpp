@@ -3,10 +3,12 @@
 #include <algorithm>
 #include <filesystem>
 
+#include <SDL3/SDL_events.h>
 #include <SDL3/SDL_video.h>
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include "editor_action.h"
 #include "editor_config.h"
 #include "editor_gui_utils.h"
 #include "editor_style.h"
@@ -50,26 +52,33 @@ namespace hob::editor {
         }
 
         save_layout();
-        release_scene_color_target();
-        reset_inspector_edit_state();
+        m_scene_view.release_color_target(*this);
+        m_inspector.reset_edit_state();
 
         log::engine.info("Editor::Shutdown");
     }
 
-    void Editor::set_state(State state) {
+    Engine& Editor::get_engine() const {
+        return m_engine;
+    }
+
+    EditorState Editor::get_state() const {
+        return m_state;
+    }
+
+    void Editor::set_state(EditorState state) {
         if (state == m_state) {
             return;
         }
 
-        const bool entering_play = (m_state == State::Edit);
-        const bool leaving_play = (state == State::Edit);
+        const bool entering_play = (m_state == EditorState::Edit);
+        const bool leaving_play = (state == EditorState::Edit);
 
         if (entering_play || leaving_play) {
             m_commands.clear();
             m_selection.clear();
-            m_range_selection_anchor = INVALID_ENTITY_ID;
-            m_pick_cycle_last_entity_id = INVALID_ENTITY_ID;
-            reset_inspector_edit_state();
+            m_scene_view.reset_pick_cycle();
+            m_inspector.reset_edit_state();
         }
 
         if (entering_play) {
@@ -84,21 +93,80 @@ namespace hob::editor {
         m_state = state;
     }
 
+    void Editor::request_step() {
+        m_step_requested = true;
+    }
+
+    void Editor::request_reset_layout() {
+        m_reset_layout = true;
+    }
+
+    void Editor::request_quit() {
+        SDL_Event quit_event{};
+        quit_event.type = SDL_EVENT_QUIT;
+        SDL_PushEvent(&quit_event);
+    }
+
+    void Editor::request_action(EditorActionId id) {
+        m_actions.request(id);
+    }
+
+    EditorEntitySelection& Editor::get_selection() {
+        return m_selection;
+    }
+
+    const EditorEntitySelection& Editor::get_selection() const {
+        return m_selection;
+    }
+
+    EditorCommandStack& Editor::get_commands() {
+        return m_commands;
+    }
+
+    const EditorCommandStack& Editor::get_commands() const {
+        return m_commands;
+    }
+
+    EditorMenuBar& Editor::get_menu_bar() {
+        return m_menu_bar;
+    }
+
+    EditorToolbar& Editor::get_toolbar() {
+        return m_toolbar;
+    }
+
+    EditorSceneView& Editor::get_scene_view() {
+        return m_scene_view;
+    }
+
+    EditorHierarchy& Editor::get_hierarchy() {
+        return m_hierarchy;
+    }
+
+    EditorInspector& Editor::get_inspector() {
+        return m_inspector;
+    }
+
+    EditorAssets& Editor::get_assets() {
+        return m_assets;
+    }
+
     void Editor::tick(float delta_time) {
-        const bool simulate = (m_state == State::Play) || (m_state == State::Paused && m_step_requested);
+        const bool simulate = (m_state == EditorState::Play) || (m_state == EditorState::Paused && m_step_requested);
         m_step_requested = false;
 
         m_engine.set_simulation_enabled(simulate);
-        m_engine.set_game_input_enabled(m_state == State::Play);
+        m_engine.set_game_input_enabled(m_state == EditorState::Play);
 
         prune_selection();
-        handle_undo_redo_shortcuts();
     }
 
     void Editor::draw_gui() {
+        update_input();
+
         if (ImGui::BeginMainMenuBar()) {
-            draw_menu_bar();
-            draw_toolbar();
+            m_menu_bar.draw(*this);
+            m_toolbar.draw(*this);
             ImGui::EndMainMenuBar();
         }
 
@@ -108,22 +176,17 @@ namespace hob::editor {
             build_default_layout(dock_space_id);
         }
 
-        draw_scene_view();
-        draw_hierarchy();
-        draw_inspector();
-        draw_assets();
+        m_scene_view.draw(*this);
+        m_hierarchy.draw(*this);
+        m_inspector.draw(*this);
+        m_assets.draw(*this);
+
+        // Every Begin/End has closed, so an action is free to spawn, destroy or open a window.
+        m_actions.flush(*this);
     }
 
     void Editor::render_passes() {
-        if (m_scene_color_target == nullptr) {
-            return;
-        }
-
-        const Vector2 scene_size(static_cast<float>(m_scene_color_target_width),
-                                 static_cast<float>(m_scene_color_target_height));
-        const Matrix4x4 view_proj = m_camera.build_view_projection(scene_size);
-
-        m_engine.get_renderer().render_world_pass_to(m_scene_color_target, view_proj);
+        m_scene_view.render_pass(*this);
     }
 
     void Editor::on_lua_hot_reloaded() {
@@ -135,7 +198,7 @@ namespace hob::editor {
             return false;
         }
 
-        set_state(State::Edit);
+        set_state(EditorState::Edit);
         return true;
     }
 
@@ -145,22 +208,57 @@ namespace hob::editor {
             return false;
         }
 
-        set_state(State::Edit);
+        set_state(EditorState::Edit);
         return true;
     }
 
-    void Editor::handle_undo_redo_shortcuts() {
-        const ImGuiIO& io = ImGui::GetIO();
-        if (!io.KeyCtrl || io.WantTextInput) {
-            return;
+    void Editor::update_input() {
+        m_active_contexts = 0;
+
+        // Panel records are from the previous frame, which is the only point a panel rect exists.
+        if (m_engine.get_main_window().has_focus() && !ImGui::GetIO().WantTextInput) {
+            m_active_contexts |= context_bit(EditorActionContext::Global);
+
+            if (m_scene_view.is_hovered() || m_scene_view.is_focused()) {
+                m_active_contexts |= context_bit(EditorActionContext::SceneView);
+            }
+
+            if (m_hierarchy.is_hovered() || m_hierarchy.is_focused()) {
+                m_active_contexts |= context_bit(EditorActionContext::Hierarchy);
+            }
+
+            if (m_inspector.is_hovered() || m_inspector.is_focused()) {
+                m_active_contexts |= context_bit(EditorActionContext::Inspector);
+            }
+
+            if (m_assets.is_hovered() || m_assets.is_focused()) {
+                m_active_contexts |= context_bit(EditorActionContext::Assets);
+            }
+
+            for (const EditorAction& action : get_actions()) {
+                if (is_context_active(action.context) && is_chord_pressed(action.chord) &&
+                    is_action_enabled(*this, action.id)) {
+                    m_actions.request(action.id);
+                }
+            }
         }
 
-        if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
-            m_commands.undo(m_engine);
-        }
+        m_scene_view.update_input(*this);
+    }
 
-        if (ImGui::IsKeyPressed(ImGuiKey_Y, false)) {
-            m_commands.redo(m_engine);
+    bool Editor::is_context_active(EditorActionContext context) const {
+        return (m_active_contexts & context_bit(context)) != 0;
+    }
+
+    void Editor::prune_selection() {
+        const EntitySpawner& spawner = m_engine.get_entity_spawner();
+
+        std::erase_if(m_selection.ids, [&spawner](EntityId id) {
+            return spawner.get_entity(id) == nullptr;
+        });
+
+        if (m_selection.range_anchor != INVALID_ENTITY_ID && spawner.get_entity(m_selection.range_anchor) == nullptr) {
+            m_selection.range_anchor = INVALID_ENTITY_ID;
         }
     }
 
@@ -180,10 +278,10 @@ namespace hob::editor {
         const ImGuiID assets =
             ImGui::DockBuilderSplitNode(center, ImGuiDir_Down, LAYOUT_ASSETS_RATIO, nullptr, &center);
 
-        ImGui::DockBuilderDockWindow(PANEL_HIERARCHY, right);
-        ImGui::DockBuilderDockWindow(PANEL_INSPECTOR, inspector);
-        ImGui::DockBuilderDockWindow(PANEL_ASSETS, assets);
-        ImGui::DockBuilderDockWindow(PANEL_SCENE, center);
+        ImGui::DockBuilderDockWindow(EditorHierarchy::PANEL_NAME, right);
+        ImGui::DockBuilderDockWindow(EditorInspector::PANEL_NAME, inspector);
+        ImGui::DockBuilderDockWindow(EditorAssets::PANEL_NAME, assets);
+        ImGui::DockBuilderDockWindow(EditorSceneView::PANEL_NAME, center);
 
         ImGui::DockBuilderFinish(dock_space_id);
     }

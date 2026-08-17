@@ -1,3 +1,5 @@
+#include "editor_scene_view.h"
+
 #include <algorithm>
 #include <cmath>
 #include <optional>
@@ -45,13 +47,10 @@ namespace hob::editor {
 
             return step;
         }
+
         bool is_major_grid_line(float world_value, float cell_meters) {
             const long long index = std::llround(world_value / cell_meters);
             return index % GRID_MAJOR_EVERY == 0;
-        }
-
-        ImVec2 to_imvec(const Vector2& v) {
-            return ImVec2(v.x, v.y);
         }
 
         struct SpriteRect {
@@ -122,85 +121,16 @@ namespace hob::editor {
         }
     } // namespace
 
-    void Editor::draw_scene_view() {
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        const bool visible = begin_panel(PANEL_SCENE, ImGuiWindowFlags_NoScrollbar);
-        ImGui::PopStyleVar();
-
-        if (visible) {
-            const ImVec2 avail = ImGui::GetContentRegionAvail();
-            if (avail.x > MIN_SCENE_RECT_SIZE_PX && avail.y > MIN_SCENE_RECT_SIZE_PX) {
-                ensure_scene_color_target(static_cast<uint32_t>(avail.x), static_cast<uint32_t>(avail.y));
-
-                if (m_scene_color_target != nullptr) {
-                    const Vector2 image_size(static_cast<float>(m_scene_color_target_width),
-                                             static_cast<float>(m_scene_color_target_height));
-
-                    ImGui::Image(m_scene_color_target,
-                                 ImVec2(image_size.x, image_size.y),
-                                 ImVec2(0.0f, 1.0f),
-                                 ImVec2(1.0f, 0.0f));
-
-                    const ImVec2 item_min = ImGui::GetItemRectMin();
-                    const SceneRect scene_rect{Vector2(item_min.x, item_min.y), image_size};
-
-                    if (ImGui::IsItemHovered()) {
-                        handle_scene_view_mouse_input(scene_rect);
-                    }
-
-                    if (m_engine.get_main_window().has_focus() && !ImGui::GetIO().WantTextInput) {
-                        handle_scene_view_shortcuts(scene_rect);
-                    }
-
-                    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-                    draw_list->PushClipRect(
-                        item_min, ImVec2(item_min.x + image_size.x, item_min.y + image_size.y), true);
-                    draw_grid(draw_list, scene_rect);
-                    draw_camera_view_rect(draw_list, scene_rect);
-                    draw_selection_overlay(draw_list, scene_rect);
-                    draw_list->PopClipRect();
-                }
-            }
-        }
-        end_panel();
-    }
-
-    void Editor::ensure_scene_color_target(uint32_t width, uint32_t height) {
-        width = std::max(width, MIN_COLOR_TARGET_SIZE_PX);
-        height = std::max(height, MIN_COLOR_TARGET_SIZE_PX);
-
-        if (m_scene_color_target && width == m_scene_color_target_width && height == m_scene_color_target_height) {
+    void EditorSceneView::update_input(Editor& editor) {
+        if (!m_rect_valid || !m_hovered) {
             return;
         }
 
-        release_scene_color_target();
-
-        m_scene_color_target = m_engine.get_renderer().create_color_target(width, height);
-        if (m_scene_color_target == nullptr) {
-            return;
-        }
-
-        m_scene_color_target_width = width;
-        m_scene_color_target_height = height;
-    }
-
-    void Editor::release_scene_color_target() {
-        if (m_scene_color_target == nullptr) {
-            return;
-        }
-
-        SDL_ReleaseGPUTexture(m_engine.get_renderer().get_gpu_device(), m_scene_color_target);
-        m_scene_color_target = nullptr;
-        m_scene_color_target_width = 0;
-        m_scene_color_target_height = 0;
-    }
-
-    void Editor::handle_scene_view_mouse_input(const SceneRect& scene_rect) {
         const ImGuiIO& io = ImGui::GetIO();
         const Vector2 mouse_screen_pos(io.MousePos.x, io.MousePos.y);
 
         if (io.MouseWheel != 0.0f) {
-            m_camera.zoom_at(mouse_screen_pos, scene_rect, io.MouseWheel);
+            m_camera.zoom_at(mouse_screen_pos, m_rect, io.MouseWheel);
         }
 
         if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle, 0.0f)) {
@@ -208,26 +138,116 @@ namespace hob::editor {
         }
 
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-            handle_scene_view_pick(mouse_screen_pos, m_camera.screen_to_world(mouse_screen_pos, scene_rect));
+            handle_pick(editor, mouse_screen_pos, m_camera.screen_to_world(mouse_screen_pos, m_rect));
         }
     }
 
-    void Editor::handle_scene_view_shortcuts(const SceneRect& scene_rect) {
-        if (ImGui::IsKeyPressed(ImGuiKey_F, false)) {
-            focus_camera_on_selection(scene_rect);
+    void EditorSceneView::draw(Editor& editor) {
+        m_rect_valid = false;
+        m_hovered = false;
+        m_focused = false;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        const bool visible = begin_panel(PANEL_NAME, ImGuiWindowFlags_NoScrollbar);
+        ImGui::PopStyleVar();
+
+        if (visible) {
+            m_focused = ImGui::IsWindowFocused();
+
+            const ImVec2 avail = ImGui::GetContentRegionAvail();
+            if (avail.x > MIN_SCENE_RECT_SIZE_PX && avail.y > MIN_SCENE_RECT_SIZE_PX) {
+                ensure_color_target(editor, static_cast<uint32_t>(avail.x), static_cast<uint32_t>(avail.y));
+
+                if (m_color_target != nullptr) {
+                    const Vector2 image_size(static_cast<float>(m_color_target_width),
+                                             static_cast<float>(m_color_target_height));
+
+                    ImGui::Image(
+                        m_color_target, ImVec2(image_size.x, image_size.y), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+
+                    const ImVec2 item_min = ImGui::GetItemRectMin();
+                    const SceneRect scene_rect{Vector2(item_min.x, item_min.y), image_size};
+
+                    m_rect = scene_rect;
+                    m_rect_valid = true;
+                    m_hovered = ImGui::IsItemHovered();
+
+                    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+                    draw_list->PushClipRect(
+                        item_min, ImVec2(item_min.x + image_size.x, item_min.y + image_size.y), true);
+                    draw_grid(draw_list, scene_rect);
+                    draw_camera_view_rect(editor, draw_list, scene_rect);
+                    draw_selection_overlay(editor, draw_list, scene_rect);
+                    draw_list->PopClipRect();
+                }
+            }
         }
+        end_panel();
     }
 
-    void Editor::handle_scene_view_pick(const Vector2& mouse_screen_pos, const Vector2& mouse_world_pos) {
+    void EditorSceneView::render_pass(Editor& editor) {
+        if (m_color_target == nullptr) {
+            return;
+        }
+
+        const Vector2 scene_size(static_cast<float>(m_color_target_width), static_cast<float>(m_color_target_height));
+        const Matrix4x4 view_proj = m_camera.build_view_projection(scene_size);
+
+        editor.get_engine().get_renderer().render_world_pass_to(m_color_target, view_proj);
+    }
+
+    void EditorSceneView::release_color_target(Editor& editor) {
+        if (m_color_target == nullptr) {
+            return;
+        }
+
+        SDL_ReleaseGPUTexture(editor.get_engine().get_renderer().get_gpu_device(), m_color_target);
+        m_color_target = nullptr;
+        m_color_target_width = 0;
+        m_color_target_height = 0;
+    }
+
+    bool EditorSceneView::is_hovered() const {
+        return m_hovered;
+    }
+
+    bool EditorSceneView::is_focused() const {
+        return m_focused;
+    }
+
+    void EditorSceneView::reset_pick_cycle() {
+        m_pick_cycle_last_entity_id = INVALID_ENTITY_ID;
+    }
+
+    void EditorSceneView::ensure_color_target(Editor& editor, uint32_t width, uint32_t height) {
+        width = std::max(width, MIN_COLOR_TARGET_SIZE_PX);
+        height = std::max(height, MIN_COLOR_TARGET_SIZE_PX);
+
+        if (m_color_target && width == m_color_target_width && height == m_color_target_height) {
+            return;
+        }
+
+        release_color_target(editor);
+
+        m_color_target = editor.get_engine().get_renderer().create_color_target(width, height);
+        if (m_color_target == nullptr) {
+            return;
+        }
+
+        m_color_target_width = width;
+        m_color_target_height = height;
+    }
+
+    void EditorSceneView::handle_pick(Editor& editor, const Vector2& mouse_screen_pos, const Vector2& mouse_world_pos) {
         const bool additive = ImGui::GetIO().KeyCtrl;
+        EditorEntitySelection& selection = editor.get_selection();
 
         std::vector<EntityId> candidates;
-        gather_pick_candidates(mouse_world_pos, candidates);
+        gather_pick_candidates(editor, mouse_world_pos, candidates);
 
         if (candidates.empty()) {
             if (!additive) {
-                m_selection.clear();
-                m_range_selection_anchor = INVALID_ENTITY_ID;
+                selection.clear();
             }
 
             m_pick_cycle_last_entity_id = INVALID_ENTITY_ID;
@@ -248,21 +268,16 @@ namespace hob::editor {
         m_pick_cycle_screen_position = mouse_screen_pos;
         m_pick_cycle_last_entity_id = picked_entity_id;
 
-        if (additive) {
-            m_selection.toggle(picked_entity_id);
-        }
-        else {
-            m_selection.set(picked_entity_id);
-        }
-
-        m_range_selection_anchor = picked_entity_id;
-        m_scroll_hierarchy_to_primary = true;
+        selection.apply_click(EditorSelectionClick{picked_entity_id, additive, false}, {});
+        editor.get_hierarchy().scroll_to_primary();
     }
 
-    void Editor::gather_pick_candidates(const Vector2& world_pos, std::vector<EntityId>& out_candidates) const {
+    void EditorSceneView::gather_pick_candidates(const Editor& editor,
+                                                 const Vector2& world_pos,
+                                                 std::vector<EntityId>& out_candidates) const {
         out_candidates.clear();
 
-        const EntitySpawner& spawner = m_engine.get_entity_spawner();
+        const EntitySpawner& spawner = editor.get_engine().get_entity_spawner();
         const std::vector<SpriteComponent*>& sprites = spawner.get_sprites();
 
         struct SpriteHit {
@@ -325,11 +340,15 @@ namespace hob::editor {
         }
     }
 
-    void Editor::focus_camera_on_selection(const SceneRect& scene_rect) {
-        const EntitySpawner& spawner = m_engine.get_entity_spawner();
+    void EditorSceneView::focus_on_selection(const Editor& editor) {
+        if (!m_rect_valid) {
+            return;
+        }
+
+        const EntitySpawner& spawner = editor.get_engine().get_entity_spawner();
 
         std::optional<AABB> world_bounds;
-        for (EntityId id : m_selection.ids) {
+        for (EntityId id : editor.get_selection().ids) {
             const Entity* entity = spawner.get_entity(id);
             if (entity == nullptr) {
                 continue;
@@ -340,23 +359,11 @@ namespace hob::editor {
         }
 
         if (world_bounds.has_value()) {
-            m_camera.focus_on(*world_bounds, scene_rect);
+            m_camera.focus_on(*world_bounds, m_rect);
         }
     }
 
-    void Editor::prune_selection() {
-        const EntitySpawner& spawner = m_engine.get_entity_spawner();
-
-        std::erase_if(m_selection.ids, [&spawner](EntityId id) {
-            return spawner.get_entity(id) == nullptr;
-        });
-
-        if (m_range_selection_anchor != INVALID_ENTITY_ID && spawner.get_entity(m_range_selection_anchor) == nullptr) {
-            m_range_selection_anchor = INVALID_ENTITY_ID;
-        }
-    }
-
-    void Editor::draw_grid(ImDrawList* draw_list, const SceneRect& scene_rect) const {
+    void EditorSceneView::draw_grid(ImDrawList* draw_list, const SceneRect& scene_rect) const {
         const float cell_meters = grid_cell_meters(m_camera.pixels_per_meter);
 
         const Vector2 top_left = scene_rect.top_left;
@@ -407,15 +414,19 @@ namespace hob::editor {
         }
     }
 
-    void Editor::draw_camera_view_rect(ImDrawList* draw_list, const SceneRect& scene_rect) const {
-        const CameraComponent* camera = m_engine.get_active_camera();
+    void EditorSceneView::draw_camera_view_rect(const Editor& editor,
+                                                ImDrawList* draw_list,
+                                                const SceneRect& scene_rect) const {
+        Engine& engine = editor.get_engine();
+
+        const CameraComponent* camera = engine.get_active_camera();
         if (camera == nullptr) {
             return;
         }
 
-        const Renderer& renderer = m_engine.get_renderer();
+        const Renderer& renderer = engine.get_renderer();
         const Vector2 view_size_px =
-            (m_engine.get_game_window() != nullptr) ? renderer.get_logical_size() : renderer.get_reference_size();
+            (engine.get_game_window() != nullptr) ? renderer.get_logical_size() : renderer.get_reference_size();
 
         const float camera_ppm = camera->get_pixels_per_meter();
         if (view_size_px.x <= EPSILON || view_size_px.y <= EPSILON || camera_ppm <= EPSILON) {
@@ -438,12 +449,15 @@ namespace hob::editor {
                            SCENE_VIEW_CAMERA_RECT_THICKNESS);
     }
 
-    void Editor::draw_selection_overlay(ImDrawList* draw_list, const SceneRect& scene_rect) const {
-        const EntitySpawner& spawner = m_engine.get_entity_spawner();
-        const EntityId primary_entity_id = m_selection.primary();
+    void EditorSceneView::draw_selection_overlay(const Editor& editor,
+                                                 ImDrawList* draw_list,
+                                                 const SceneRect& scene_rect) const {
+        const EntitySpawner& spawner = editor.get_engine().get_entity_spawner();
+        const EditorEntitySelection& selection = editor.get_selection();
+        const EntityId primary_entity_id = selection.primary();
 
-        // m_selection.ids is ordered with the primary last, so it naturally paints on top.
-        for (EntityId id : m_selection.ids) {
+        // selection.ids is ordered with the primary last, so it naturally paints on top.
+        for (EntityId id : selection.ids) {
             const Entity* entity = spawner.get_entity(id);
             if (entity == nullptr) {
                 continue;
@@ -487,4 +501,5 @@ namespace hob::editor {
             }
         }
     }
+
 } // namespace hob::editor

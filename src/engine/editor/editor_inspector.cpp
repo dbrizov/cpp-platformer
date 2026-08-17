@@ -1,3 +1,5 @@
+#include "editor_inspector.h"
+
 #include <memory>
 #include <string>
 #include <utility>
@@ -18,46 +20,48 @@
 #include "engine/math/vector2.h"
 
 namespace hob::editor {
+    struct EditorInspectorPendingEdit {
+        EditorFieldTarget target;
+        sol::object old_value;
+        bool active = false;
+    };
+
     namespace {
-        struct PendingEdit {
-            EditorFieldTarget target;
-            sol::object old_value;
-            bool active = false;
-        };
-
-        PendingEdit g_pending;
-
         template<typename T>
         T value_or(const sol::object& value, const T& fallback) {
             return value.is<T>() ? value.as<T>() : fallback;
         }
 
-        void begin_pending_edit(const EditorFieldTarget& target, const sol::object& old_value) {
-            g_pending.target = target;
-            g_pending.old_value = old_value;
-            g_pending.active = true;
+        void begin_pending_edit(EditorInspectorPendingEdit& pending,
+                                const EditorFieldTarget& target,
+                                const sol::object& old_value) {
+            pending.target = target;
+            pending.old_value = old_value;
+            pending.active = true;
         }
 
-        void clear_pending_edit() {
-            g_pending = PendingEdit{};
+        void clear_pending_edit(EditorInspectorPendingEdit& pending) {
+            pending = EditorInspectorPendingEdit{};
         }
 
-        void commit_field_edit(Engine& engine,
-                               EditorCommandStack& commands,
+        void commit_field_edit(Editor& editor,
+                               EditorInspectorPendingEdit& pending,
                                const EditorFieldTarget& target,
                                const std::string& command_label,
                                const sol::object& old_value,
                                const sol::object& new_value,
                                bool changed) {
+            Engine& engine = editor.get_engine();
+
             if (changed) {
-                if (!g_pending.active || !(g_pending.target == target)) {
-                    begin_pending_edit(target, old_value);
+                if (!pending.active || !(pending.target == target)) {
+                    begin_pending_edit(pending, target, old_value);
                 }
 
                 EditorCommandSetField::apply(engine, target, new_value);
             }
 
-            if (!g_pending.active || !(g_pending.target == target)) {
+            if (!pending.active || !(pending.target == target)) {
                 return;
             }
 
@@ -66,15 +70,15 @@ namespace hob::editor {
             // deactivation -- hence the second condition: nothing anywhere is being dragged any more.
             if (ImGui::IsItemDeactivatedAfterEdit() || !ImGui::IsAnyItemActive()) {
                 const sol::object final_value = changed ? new_value : old_value;
-                commands.push(engine,
-                              std::make_unique<EditorCommandSetField>(
-                                  command_label, g_pending.target, g_pending.old_value, final_value));
-                clear_pending_edit();
+                editor.get_commands().push(engine,
+                                           std::make_unique<EditorCommandSetField>(
+                                               command_label, pending.target, pending.old_value, final_value));
+                clear_pending_edit(pending);
             }
         }
 
-        void draw_field(Engine& engine,
-                        EditorCommandStack& commands,
+        void draw_field(Editor& editor,
+                        EditorInspectorPendingEdit& pending,
                         const EditorFieldTarget& component_target,
                         const std::string& component_label,
                         const sol::table& field) {
@@ -83,6 +87,7 @@ namespace hob::editor {
             const std::string kind = field.get_or<std::string>("kind", "");
             const sol::object value = field["value"];
 
+            Engine& engine = editor.get_engine();
             sol::state& lua = engine.get_lua_script_system().get_lua();
             sol::object new_value;
             bool changed = false;
@@ -145,11 +150,14 @@ namespace hob::editor {
             target.field = name;
 
             commit_field_edit(
-                engine, commands, target, "Set " + component_label + " " + label, value, new_value, changed);
+                editor, pending, target, "Set " + component_label + " " + label, value, new_value, changed);
         }
 
-        void draw_component(
-            Engine& engine, EditorCommandStack& commands, EntityId entity_id, int index, const sol::table& component) {
+        void draw_component(Editor& editor,
+                            EditorInspectorPendingEdit& pending,
+                            EntityId entity_id,
+                            int index,
+                            const sol::table& component) {
             const std::string name = component.get_or<std::string>("name", "?");
             const std::string label = to_display_label(name);
             const bool is_lua = component.get_or("is_lua", false);
@@ -170,7 +178,7 @@ namespace hob::editor {
                     for (int i = 1; i <= rows.size(); ++i) {
                         const sol::object row = rows[i];
                         if (row.is<sol::table>()) {
-                            draw_field(engine, commands, target, label, row.as<sol::table>());
+                            draw_field(editor, pending, target, label, row.as<sol::table>());
                         }
                     }
                 }
@@ -179,10 +187,12 @@ namespace hob::editor {
             ImGui::PopID();
         }
 
-        void draw_components(Engine& engine, EditorCommandStack& commands, EntityId entity_id) {
-            if (g_pending.active && g_pending.target.entity_id != entity_id) {
-                clear_pending_edit();
+        void draw_components(Editor& editor, EditorInspectorPendingEdit& pending, EntityId entity_id) {
+            if (pending.active && pending.target.entity_id != entity_id) {
+                clear_pending_edit(pending);
             }
+
+            Engine& engine = editor.get_engine();
 
             const sol::object components = editor_call(engine, "get_components", entity_id);
             if (!components.is<sol::table>()) {
@@ -194,20 +204,29 @@ namespace hob::editor {
             for (int i = 1; i <= sections.size(); ++i) {
                 const sol::object section = sections[i];
                 if (section.is<sol::table>()) {
-                    draw_component(engine, commands, entity_id, i, section.as<sol::table>());
+                    draw_component(editor, pending, entity_id, i, section.as<sol::table>());
                 }
             }
         }
     } // namespace
 
-    void reset_inspector_edit_state() {
-        clear_pending_edit();
-    }
+    EditorInspector::EditorInspector()
+        : m_pending(std::make_unique<EditorInspectorPendingEdit>()) {}
 
-    void Editor::draw_inspector() {
-        if (begin_panel(PANEL_INSPECTOR)) {
+    EditorInspector::~EditorInspector() = default;
+
+    void EditorInspector::draw(Editor& editor) {
+        m_hovered = false;
+        m_focused = false;
+
+        if (begin_panel(PANEL_NAME)) {
+            m_hovered = ImGui::IsWindowHovered();
+            m_focused = ImGui::IsWindowFocused();
+
+            const EditorEntitySelection& selection = editor.get_selection();
+
             // Multi-selection inspects the primary; the rest still move together via the SceneView.
-            Entity* entity = m_engine.get_entity_spawner().get_entity(m_selection.primary());
+            Entity* entity = editor.get_engine().get_entity_spawner().get_entity(selection.primary());
             if (entity == nullptr) {
                 ImGui::TextDisabled("Select an entity");
             }
@@ -220,13 +239,25 @@ namespace hob::editor {
                     ImGui::TextDisabled("Prefab: %s", entity->get_prefab_name().c_str());
                 }
 
-                if (m_selection.ids.size() > 1) {
-                    ImGui::TextDisabled("(%zu selected)", m_selection.ids.size());
+                if (selection.ids.size() > 1) {
+                    ImGui::TextDisabled("(%zu selected)", selection.ids.size());
                 }
 
-                draw_components(m_engine, m_commands, entity->get_id());
+                draw_components(editor, *m_pending, entity->get_id());
             }
         }
         end_panel();
+    }
+
+    bool EditorInspector::is_hovered() const {
+        return m_hovered;
+    }
+
+    bool EditorInspector::is_focused() const {
+        return m_focused;
+    }
+
+    void EditorInspector::reset_edit_state() {
+        clear_pending_edit(*m_pending);
     }
 } // namespace hob::editor
