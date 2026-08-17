@@ -47,7 +47,7 @@ namespace hob::editor {
 
         const char* state_label = (m_state == State::Edit) ? "Edit" : (m_state == State::Play) ? "Play" : "Paused";
 
-        float toolbar_width = ImGui::CalcTextSize(state_label).x + BAR_ITEM_SPACING_X;
+        float toolbar_width = ImGui::CalcTextSize(state_label).x + MENU_BAR_ITEM_SPACING_X;
         for (int i = 0; i < item_count; ++i) {
             toolbar_width += bar_button_width(items[i].label);
         }

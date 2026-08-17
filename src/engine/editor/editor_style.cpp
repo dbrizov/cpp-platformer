@@ -12,7 +12,7 @@ namespace hob::editor {
         style.WindowTitleAlign = WINDOW_TITLE_ALIGN;
         style.WindowRounding = WINDOW_ROUNDING;
         style.WindowBorderSize = WINDOW_BORDER_SIZE;
-        style.WindowMenuButtonPosition = ImGuiDir_None;
+        style.WindowMenuButtonPosition = WINDOW_MENU_BUTTON_POSITION;
 
         style.ChildRounding = CHILD_ROUNDING;
         style.ChildBorderSize = CHILD_BORDER_SIZE;
@@ -31,7 +31,7 @@ namespace hob::editor {
         style.ButtonTextAlign = BUTTON_TEXT_ALIGN;
         style.CellPadding = CELL_PADDING;
         style.IndentSpacing = INDENT_SPACING;
-        style.TreeLinesFlags = ImGuiTreeNodeFlags_DrawLinesToNodes;
+        style.TreeLinesFlags = TREE_LINES_FLAGS;
 
         style.ScrollbarSize = SCROLLBAR_SIZE;
         style.ScrollbarRounding = SCROLLBAR_ROUNDING;
@@ -91,6 +91,7 @@ namespace hob::editor {
         colors[ImGuiCol_ResizeGrip] = COLOR_TRANSPARENT;
         colors[ImGuiCol_ResizeGripHovered] = COLOR_RESIZE_GRIP_HOVER;
         colors[ImGuiCol_ResizeGripActive] = COLOR_RESIZE_GRIP_ACTIVE;
+
         colors[ImGuiCol_InputTextCursor] = COLOR_TEXT;
 
         colors[ImGuiCol_Tab] = COLOR_BG_DARK;

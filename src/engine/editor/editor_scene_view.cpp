@@ -366,10 +366,10 @@ namespace hob::editor {
         const Vector2 world_min = m_camera.screen_to_world(Vector2(top_left.x, bottom_right.y), scene_rect);
         const Vector2 world_max = m_camera.screen_to_world(Vector2(bottom_right.x, top_left.y), scene_rect);
 
-        const ImU32 minor_color = ImGui::GetColorU32(COLOR_GRID_MINOR);
-        const ImU32 major_color = ImGui::GetColorU32(COLOR_GRID_MAJOR);
-        const ImU32 axis_x_color = ImGui::GetColorU32(COLOR_GRID_AXIS_X);
-        const ImU32 axis_y_color = ImGui::GetColorU32(COLOR_GRID_AXIS_Y);
+        const ImU32 minor_color = ImGui::GetColorU32(COLOR_SCENE_VIEW_GRID_MINOR);
+        const ImU32 major_color = ImGui::GetColorU32(COLOR_SCENE_VIEW_GRID_MAJOR);
+        const ImU32 axis_x_color = ImGui::GetColorU32(COLOR_SCENE_VIEW_GRID_AXIS_X);
+        const ImU32 axis_y_color = ImGui::GetColorU32(COLOR_SCENE_VIEW_GRID_AXIS_Y);
 
         // Vertical lines: the one at world x == 0 is the Y axis, drawn separately below.
         const float world_start_x = std::floor(world_min.x / cell_meters) * cell_meters;
@@ -432,10 +432,10 @@ namespace hob::editor {
 
         draw_list->AddRect(to_imvec(top_left),
                            to_imvec(bottom_right),
-                           ImGui::GetColorU32(COLOR_CAMERA_VIEW_RECT),
+                           ImGui::GetColorU32(COLOR_SCENE_VIEW_CAMERA_RECT),
                            0.0f,
                            ImDrawFlags_None,
-                           CAMERA_VIEW_RECT_THICKNESS);
+                           SCENE_VIEW_CAMERA_RECT_THICKNESS);
     }
 
     void Editor::draw_selection_overlay(ImDrawList* draw_list, const SceneRect& scene_rect) const {
@@ -449,8 +449,8 @@ namespace hob::editor {
                 continue;
             }
 
-            const ImU32 color =
-                ImGui::GetColorU32((id == primary_entity_id) ? COLOR_SELECTION_PRIMARY : COLOR_SELECTION);
+            const ImU32 color = ImGui::GetColorU32((id == primary_entity_id) ? COLOR_SCENE_VIEW_SELECTION_PRIMARY
+                                                                             : COLOR_SCENE_VIEW_SELECTION);
 
             const SpriteComponent* sprite = entity->get_component<SpriteComponent>();
 
@@ -473,16 +473,17 @@ namespace hob::editor {
                     to_imvec(m_camera.world_to_screen(top_left, scene_rect)),
                 };
 
-                draw_list->AddPolyline(screen_corners, 4, color, ImDrawFlags_Closed, SELECTION_OUTLINE_THICKNESS);
+                draw_list->AddPolyline(
+                    screen_corners, 4, color, ImDrawFlags_Closed, SCENE_VIEW_SELECTION_OUTLINE_THICKNESS);
             }
             else {
                 const Vector2 world_pos = entity->get_transform()->get_position();
 
                 draw_list->AddCircle(to_imvec(m_camera.world_to_screen(world_pos, scene_rect)),
-                                     SELECTION_MARKER_RADIUS_PX,
+                                     SCENE_VIEW_SELECTION_MARKER_RADIUS_PX,
                                      color,
                                      0,
-                                     SELECTION_OUTLINE_THICKNESS);
+                                     SCENE_VIEW_SELECTION_OUTLINE_THICKNESS);
             }
         }
     }

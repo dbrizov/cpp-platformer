@@ -133,8 +133,8 @@ namespace hob::editor {
         const ImGuiStyle& style = ImGui::GetStyle();
 
         StyleVarStack vars;
-        vars.push(ImGuiStyleVar_ItemInnerSpacing, ImVec2(TAB_SPACING_X, style.ItemInnerSpacing.y));
-        vars.push(ImGuiStyleVar_FramePadding, ImVec2(TAB_PADDING_X, style.FramePadding.y));
+        vars.push(ImGuiStyleVar_ItemInnerSpacing, ImVec2(PANEL_TAB_SPACING_X, style.ItemInnerSpacing.y));
+        vars.push(ImGuiStyleVar_FramePadding, ImVec2(PANEL_TAB_PADDING_X, style.FramePadding.y));
 
         const ImGuiID dock_space_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), flags);
         vars.pop();
@@ -171,10 +171,10 @@ namespace hob::editor {
         colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
 
         StyleVarStack vars;
-        vars.push(ImGuiStyleVar_ItemSpacing, ImVec2(BAR_ITEM_PADDING_X, style.ItemSpacing.y));
-        vars.push(ImGuiStyleVar_WindowPadding, MENU_POPUP_PADDING);
+        vars.push(ImGuiStyleVar_ItemSpacing, ImVec2(MENU_BAR_ITEM_PADDING_X, style.ItemSpacing.y));
+        vars.push(ImGuiStyleVar_WindowPadding, MENU_BAR_POPUP_PADDING);
 
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + BAR_ITEM_SPACING_X);
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + MENU_BAR_ITEM_SPACING_X);
         const bool open = ImGui::BeginMenu(label);
         vars.pop();
         colors.pop();
@@ -183,14 +183,14 @@ namespace hob::editor {
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
             draw_highlight(draw_list,
                            ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()),
-                           open ? COLOR_MENU_ACTIVE : COLOR_MENU_HOVER,
-                           MENU_ITEM_ROUNDING);
+                           open ? COLOR_MENU_BAR_ITEM_ACTIVE : COLOR_MENU_BAR_ITEM_HOVER,
+                           MENU_BAR_ITEM_ROUNDING);
         }
 
         splitter.Merge(draw_list);
 
         if (open) {
-            ImGui::PushStyleColor(ImGuiCol_Separator, COLOR_MENU_SEPARATOR);
+            ImGui::PushStyleColor(ImGuiCol_Separator, COLOR_MENU_BAR_SEPARATOR);
         }
 
         return open;
@@ -202,7 +202,7 @@ namespace hob::editor {
     }
 
     float bar_button_width(const char* label) {
-        return ImGui::CalcTextSize(label).x + BAR_ITEM_PADDING_X * 2.0f + BAR_ITEM_SPACING_X;
+        return ImGui::CalcTextSize(label).x + MENU_BAR_ITEM_PADDING_X * 2.0f + MENU_BAR_ITEM_SPACING_X;
     }
 
     bool bar_button(const char* label) {
@@ -219,9 +219,9 @@ namespace hob::editor {
         colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
 
         StyleVarStack vars;
-        vars.push(ImGuiStyleVar_ItemSpacing, ImVec2(BAR_ITEM_PADDING_X * 2.0f, style.ItemSpacing.y));
+        vars.push(ImGuiStyleVar_ItemSpacing, ImVec2(MENU_BAR_ITEM_PADDING_X * 2.0f, style.ItemSpacing.y));
 
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + BAR_ITEM_SPACING_X);
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + MENU_BAR_ITEM_SPACING_X);
         const bool pressed = ImGui::Selectable(label, false, ImGuiSelectableFlags_None, ImGui::CalcTextSize(label));
         vars.pop();
         colors.pop();
@@ -231,7 +231,8 @@ namespace hob::editor {
                                                        : COLOR_BUTTON;
 
         splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
-        draw_highlight(draw_list, ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()), color, MENU_ITEM_ROUNDING);
+        draw_highlight(
+            draw_list, ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()), color, MENU_BAR_ITEM_ROUNDING);
         splitter.Merge(draw_list);
 
         return pressed;
@@ -255,7 +256,8 @@ namespace hob::editor {
         // A disabled row is inert, so it must not light up under the cursor either.
         if (enabled && ImGui::IsItemHovered()) {
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
-            draw_highlight(draw_list, row_rect(MENU_ITEM_INSET), COLOR_MENU_HOVER, MENU_ITEM_ROUNDING);
+            draw_highlight(
+                draw_list, row_rect(MENU_BAR_POPUP_ITEM_INSET), COLOR_MENU_BAR_ITEM_HOVER, MENU_BAR_ITEM_ROUNDING);
         }
 
         splitter.Merge(draw_list);
@@ -288,9 +290,9 @@ namespace hob::editor {
         if (selected || ImGui::IsItemHovered()) {
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
             draw_highlight(draw_list,
-                           row_rect(TREE_ITEM_INSET),
-                           selected ? COLOR_TREE_ITEM_SELECTED : COLOR_TREE_ITEM_HOVER,
-                           TREE_ITEM_ROUNDING);
+                           row_rect(HIERARCHY_ITEM_INSET),
+                           selected ? COLOR_HIERARCHY_ITEM_SELECTED : COLOR_HIERARCHY_ITEM_HOVER,
+                           HIERARCHY_ITEM_ROUNDING);
         }
 
         splitter.Merge(draw_list);
@@ -300,9 +302,9 @@ namespace hob::editor {
 
     bool component_header(const char* label) {
         StyleColorStack colors;
-        colors.push(ImGuiCol_Header, COLOR_COMPONENT_HEADER);
-        colors.push(ImGuiCol_HeaderHovered, COLOR_COMPONENT_HEADER_HOVER);
-        colors.push(ImGuiCol_HeaderActive, COLOR_COMPONENT_HEADER_HOVER);
+        colors.push(ImGuiCol_Header, COLOR_INSPECTOR_HEADER);
+        colors.push(ImGuiCol_HeaderHovered, COLOR_INSPECTOR_HEADER_HOVER);
+        colors.push(ImGuiCol_HeaderActive, COLOR_INSPECTOR_HEADER_HOVER);
 
         const bool open = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen);
         colors.pop();
