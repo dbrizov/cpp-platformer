@@ -56,11 +56,12 @@ namespace hob {
         std::unordered_map<uint32_t, bool> m_down_this_frame;
         std::unordered_map<uint32_t, bool> m_down_last_frame;
 
-        // Per-frame device state, refreshed in tick / process_event.
-        Vector2 m_mouse_screen_position;
-        Vector2 m_mouse_delta;
+        // Per-frame device state.
+        bool m_is_mouse_over_game_window = false;
         uint32_t m_mouse_button_mask = 0;
-        float m_wheel_delta = 0.0f;
+        Vector2 m_mouse_screen_position;
+        Vector2 m_mouse_motion_delta;
+        float m_mouse_wheel_delta = 0.0f;
 
         // Single gamepad (player 1) with hotplug. Null when none connected.
         SDL_Gamepad* m_gamepad = nullptr;
@@ -78,15 +79,17 @@ namespace hob {
 
         void process_event(const SDL_Event& event);
         void tick(float delta_time);
-        void end_frame();
+        void end_frame(bool is_game_input_active);
 
         InputEventHandlerId add_input_event_handler(InputEventHandler handler);
         bool remove_input_event_handler(InputEventHandlerId id);
 
         Vector2 get_mouse_screen_position() const;
+        bool is_mouse_over_game_window() const;
         bool is_gamepad_connected() const;
 
     private:
+        void reset_mouse_state();
         void update_mouse_state();
         void update_down_states();
 

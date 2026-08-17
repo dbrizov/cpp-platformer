@@ -96,6 +96,10 @@ function Player:late_tick(delta_time)
 end
 
 function Player:debug_draw_tick(delta_time)
+    if not Input.is_mouse_over_game_window() then
+        return
+    end
+
     local mouse_screen = Input.get_mouse_screen_position()
     local mouse_world = Camera.screen_to_world(mouse_screen)
     local player_pos = self.entity:get_transform():get_position()
@@ -147,15 +151,16 @@ end
 function Player:update_rotation(delta_time)
     local character_body = self.entity:get_character_body()
 
-    -- Twin-stick aiming: the right stick rotates the character toward its direction.
-    -- It already passes through the engine deadzone, so any non-zero value means it's in use.
     if self._aim_input:length_sqr() > 0.0 then
         local radians = math.atan(self._aim_input.y, self._aim_input.x)
         character_body:set_rotation(radians)
         return
     end
 
-    -- Fall back to aiming at the mouse cursor.
+    if not Input.is_mouse_over_game_window() then
+        return
+    end
+
     local mouse_screen = Input.get_mouse_screen_position()
     local mouse_world = Camera.screen_to_world(mouse_screen)
     local player_pos = character_body:get_position()

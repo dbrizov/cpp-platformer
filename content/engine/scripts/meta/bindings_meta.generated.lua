@@ -96,6 +96,9 @@ Input = {}
 function Input.get_mouse_screen_position() end
 
 ---@return boolean
+function Input.is_mouse_over_game_window() end
+
+---@return boolean
 function Input.is_gamepad_connected() end
 
 -- UI

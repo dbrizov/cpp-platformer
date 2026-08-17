@@ -47,23 +47,29 @@ namespace hob {
 
     void Input::process_event(const SDL_Event& event) {
         switch (event.type) {
-            case SDL_EVENT_GAMEPAD_ADDED:
+            case SDL_EVENT_GAMEPAD_ADDED: {
                 if (m_gamepad == nullptr) {
                     open_gamepad(event.gdevice.which);
                 }
                 break;
+            }
 
-            case SDL_EVENT_GAMEPAD_REMOVED:
+            case SDL_EVENT_GAMEPAD_REMOVED: {
                 if (m_gamepad != nullptr && event.gdevice.which == m_gamepad_id) {
                     close_gamepad();
                     adopt_any_gamepad();
                 }
                 break;
+            }
 
-            case SDL_EVENT_MOUSE_WHEEL:
-                // Accumulated here, consumed (and reset) in tick.
-                m_wheel_delta += event.wheel.y;
+            case SDL_EVENT_MOUSE_WHEEL: {
+                const Window* game_window = m_renderer.get_game_window();
+                const bool is_game_window = game_window && game_window->get_id() == event.wheel.windowID;
+                if (is_game_window) {
+                    m_mouse_wheel_delta += event.wheel.y;
+                }
                 break;
+            }
 
             default:
                 break;
@@ -78,20 +84,106 @@ namespace hob {
         dispatch_axes(delta_time);
     }
 
-    void Input::end_frame() {
+    void Input::end_frame(bool is_game_input_active) {
         // Wheel input is momentary: it lives for exactly one frame. Reset it every frame (even
         // when tick is skipped, e.g. while the console is open) so it can't leak into a later frame.
-        m_wheel_delta = 0.0f;
+        m_mouse_wheel_delta = 0.0f;
+
+        if (is_game_input_active) {
+            return;
+        }
+
+        reset_mouse_state();
+        SDL_GetRelativeMouseState(nullptr, nullptr);
+    }
+
+    InputEventHandlerId Input::add_input_event_handler(InputEventHandler handler) {
+        const InputEventHandlerId handler_id = m_next_handler_id;
+        m_next_handler_id += 1;
+
+        m_handler_index_by_id[handler_id] = static_cast<InputEventHandlerIndex>(m_handlers.size());
+        m_handlers.emplace_back(handler_id, std::move(handler));
+
+        return handler_id;
+    }
+
+    bool Input::remove_input_event_handler(InputEventHandlerId id) {
+        auto it = m_handler_index_by_id.find(id);
+        if (it == m_handler_index_by_id.end()) {
+            return false;
+        }
+
+        // Swap-pop; fix the moved handler's stored index.
+        const InputEventHandlerIndex index = it->second;
+        HOB_ASSERT(index < m_handlers.size(), "InputEventHandler index/map desynced");
+        const InputEventHandlerIndex last_index = static_cast<InputEventHandlerIndex>(m_handlers.size() - 1);
+        if (index != last_index) {
+            m_handlers[index] = std::move(m_handlers[last_index]);
+            m_handler_index_by_id[m_handlers[index].handler_id] = index;
+        }
+
+        m_handlers.pop_back();
+        m_handler_index_by_id.erase(it);
+        return true;
+    }
+
+    Vector2 Input::get_mouse_screen_position() const {
+        return m_mouse_screen_position;
+    }
+
+    bool Input::is_mouse_over_game_window() const {
+        return m_is_mouse_over_game_window;
+    }
+
+    bool Input::is_gamepad_connected() const {
+        return m_gamepad != nullptr;
+    }
+
+    void Input::reset_mouse_state() {
+        m_is_mouse_over_game_window = false;
+        m_mouse_button_mask = 0;
+        m_mouse_motion_delta = Vector2::zero();
     }
 
     void Input::update_mouse_state() {
+        float dx = 0.0f;
+        float dy = 0.0f;
+        SDL_GetRelativeMouseState(&dx, &dy);
+
+        const Window* game_window = m_renderer.get_game_window();
+        if (game_window == nullptr) {
+            reset_mouse_state();
+            return;
+        }
+
+        SDL_Window* sdl_window = game_window->get_window();
+        m_is_mouse_over_game_window = SDL_GetMouseFocus() == sdl_window;
+
         float x = 0.0f;
         float y = 0.0f;
-        m_mouse_button_mask = SDL_GetMouseState(&x, &y);
+
+        if (m_is_mouse_over_game_window) {
+            m_mouse_button_mask = SDL_GetMouseState(&x, &y);
+            m_mouse_motion_delta = Vector2(dx, dy);
+        }
+        else {
+            reset_mouse_state();
+
+            float global_x = 0.0f;
+            float global_y = 0.0f;
+            SDL_GetGlobalMouseState(&global_x, &global_y);
+
+            int window_x = 0;
+            int window_y = 0;
+            SDL_GetWindowPosition(sdl_window, &window_x, &window_y);
+
+            x = global_x - static_cast<float>(window_x);
+            y = global_y - static_cast<float>(window_y);
+        }
 
         // Map window pixels to logical (FBO) pixels. The FBO is blitted to the window with a
         // uniform STRETCH (no letterboxing today), so the mapping is just an axis-wise scale.
-        const Vector2 window_size = m_renderer.get_game_window()->get_size();
+        const Vector2 window_size = game_window->get_size();
         const Vector2 logical_size = m_renderer.get_logical_size();
 
         if (window_size.x > 0.0f && window_size.y > 0.0f) {
@@ -100,12 +192,6 @@ namespace hob {
         }
 
         m_mouse_screen_position = Vector2(x, y);
-
-        // Relative motion since last call (consumes the accumulated delta).
-        float dx = 0.0f;
-        float dy = 0.0f;
-        SDL_GetRelativeMouseState(&dx, &dy);
-        m_mouse_delta = Vector2(dx, dy);
     }
 
     void Input::update_down_states() {
@@ -219,9 +305,9 @@ namespace hob {
                     case MouseCode::ButtonMiddle:
                         return (m_mouse_button_mask & SDL_BUTTON_MMASK) != 0;
                     case MouseCode::WheelUp:
-                        return m_wheel_delta > 0.0f;
+                        return m_mouse_wheel_delta > 0.0f;
                     case MouseCode::WheelDown:
-                        return m_wheel_delta < 0.0f;
+                        return m_mouse_wheel_delta < 0.0f;
                     default:
                         return false;
                 }
@@ -241,11 +327,11 @@ namespace hob {
             case InputDevice::Mouse:
                 switch (static_cast<MouseCode>(source.code)) {
                     case MouseCode::AxisX:
-                        return m_mouse_delta.x;
+                        return m_mouse_motion_delta.x;
                     case MouseCode::AxisY:
-                        return m_mouse_delta.y;
+                        return m_mouse_motion_delta.y;
                     case MouseCode::AxisWheel:
-                        return m_wheel_delta;
+                        return m_mouse_wheel_delta;
                     default:
                         return 0.0f;
                 }
@@ -326,44 +412,6 @@ namespace hob {
         }
 
         SDL_free(ids);
-    }
-
-    InputEventHandlerId Input::add_input_event_handler(InputEventHandler handler) {
-        const InputEventHandlerId handler_id = m_next_handler_id;
-        m_next_handler_id += 1;
-
-        m_handler_index_by_id[handler_id] = static_cast<InputEventHandlerIndex>(m_handlers.size());
-        m_handlers.emplace_back(handler_id, std::move(handler));
-
-        return handler_id;
-    }
-
-    bool Input::remove_input_event_handler(InputEventHandlerId id) {
-        auto it = m_handler_index_by_id.find(id);
-        if (it == m_handler_index_by_id.end()) {
-            return false;
-        }
-
-        // Swap-pop; fix the moved handler's stored index.
-        const InputEventHandlerIndex index = it->second;
-        HOB_ASSERT(index < m_handlers.size(), "InputEventHandler index/map desynced");
-        const InputEventHandlerIndex last_index = static_cast<InputEventHandlerIndex>(m_handlers.size() - 1);
-        if (index != last_index) {
-            m_handlers[index] = std::move(m_handlers[last_index]);
-            m_handler_index_by_id[m_handlers[index].handler_id] = index;
-        }
-
-        m_handlers.pop_back();
-        m_handler_index_by_id.erase(it);
-        return true;
-    }
-
-    Vector2 Input::get_mouse_screen_position() const {
-        return m_mouse_screen_position;
-    }
-
-    bool Input::is_gamepad_connected() const {
-        return m_gamepad != nullptr;
     }
 
     uint32_t Input::pack_source(const InputSource& source) {

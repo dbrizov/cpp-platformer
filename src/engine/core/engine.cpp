@@ -141,14 +141,14 @@ namespace hob {
                 m_hooks->tick(delta_time);
             }
 
-            const bool simulating = m_is_simulation_enabled;
-            const bool game_input = m_is_game_input_enabled && get_play_window().has_focus();
+            const bool is_game_input_active = m_is_simulation_enabled && m_is_game_input_enabled &&
+                                              !m_console.is_open() && get_play_window().has_focus();
 
-            if (!m_console.is_open() && simulating && game_input) {
+            if (is_game_input_active) {
                 m_input.tick(scaled_delta_time);
             }
 
-            if (simulating) {
+            if (m_is_simulation_enabled) {
                 for (Entity* entity : m_entity_spawner.get_ticking_entities()) {
                     entity->tick(scaled_delta_time);
                 }
@@ -211,7 +211,7 @@ namespace hob {
                 m_renderer.cancel_command_buffer();
             }
 
-            m_input.end_frame();
+            m_input.end_frame(is_game_input_active);
             m_timer.frame_end();
         }
     }

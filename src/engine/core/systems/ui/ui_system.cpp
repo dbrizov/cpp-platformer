@@ -57,6 +57,20 @@ namespace hob {
             return result;
         }
 
+        bool is_mouse_event_for_window(const SDL_Event& event, SDL_WindowID window_id) {
+            switch (event.type) {
+                case SDL_EVENT_MOUSE_MOTION:
+                    return event.motion.windowID == window_id;
+                case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                case SDL_EVENT_MOUSE_BUTTON_UP:
+                    return event.button.windowID == window_id;
+                case SDL_EVENT_MOUSE_WHEEL:
+                    return event.wheel.windowID == window_id;
+                default:
+                    return false;
+            }
+        }
+
         int to_rml_mouse_button(uint8_t sdl_button) {
             switch (sdl_button) {
                 case SDL_BUTTON_LEFT:
@@ -152,13 +166,18 @@ namespace hob {
     }
 
     void UiSystem::process_event(const SDL_Event& event) {
-        if (m_context == nullptr || m_renderer.get_game_window() == nullptr) {
+        const Window* game_window = m_renderer.get_game_window();
+        if (m_context == nullptr || game_window == nullptr) {
+            return;
+        }
+
+        if (!is_mouse_event_for_window(event, game_window->get_id())) {
             return;
         }
 
         switch (event.type) {
             case SDL_EVENT_MOUSE_MOTION: {
-                const Vector2 window_size = m_renderer.get_game_window()->get_size();
+                const Vector2 window_size = game_window->get_size();
                 const Vector2 logical_size = m_render_interface.get_logical_size();
                 const float sx = (window_size.x > 0.0f) ? logical_size.x / window_size.x : 1.0f;
                 const float sy = (window_size.y > 0.0f) ? logical_size.y / window_size.y : 1.0f;

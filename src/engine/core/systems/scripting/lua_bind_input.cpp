@@ -16,6 +16,10 @@ namespace hob {
                   [&input]() {
                       return input.get_mouse_screen_position();
                   })
+            .func("is_mouse_over_game_window",
+                  [&input]() {
+                      return input.is_mouse_over_game_window();
+                  })
             .func("is_gamepad_connected", [&input]() {
                 return input.is_gamepad_connected();
             });
