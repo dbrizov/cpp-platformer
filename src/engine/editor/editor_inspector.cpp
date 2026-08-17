@@ -1,70 +1,165 @@
+#include <memory>
 #include <string>
+#include <utility>
 
 #include <imgui.h>
 #include <sol/sol.hpp>
 
+#include "commands/editor_command_set_field.h"
 #include "editor.h"
 #include "editor_gui_utils.h"
 #include "editor_lua.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
+#include "engine/core/systems/scripting/lua_script_system.h"
 #include "engine/entity/entity.h"
 #include "engine/math/color.h"
+#include "engine/math/constants.h"
 #include "engine/math/vector2.h"
 
 namespace hob::editor {
     namespace {
+        struct PendingEdit {
+            EditorFieldTarget target;
+            sol::object old_value;
+            bool active = false;
+        };
+
+        PendingEdit g_pending;
+
         template<typename T>
         T value_or(const sol::object& value, const T& fallback) {
             return value.is<T>() ? value.as<T>() : fallback;
         }
 
-        void draw_field(Engine& engine, const sol::table& field) {
-            const std::string label = to_display_label(field.get_or<std::string>("name", "?"));
+        void begin_pending_edit(const EditorFieldTarget& target, const sol::object& old_value) {
+            g_pending.target = target;
+            g_pending.old_value = old_value;
+            g_pending.active = true;
+        }
+
+        void clear_pending_edit() {
+            g_pending = PendingEdit{};
+        }
+
+        void commit_field_edit(Engine& engine,
+                               EditorCommandStack& commands,
+                               const EditorFieldTarget& target,
+                               const std::string& command_label,
+                               const sol::object& old_value,
+                               const sol::object& new_value,
+                               bool changed) {
+            if (changed) {
+                if (!g_pending.active || !(g_pending.target == target)) {
+                    begin_pending_edit(target, old_value);
+                }
+
+                EditorCommandSetField::apply(engine, target, new_value);
+            }
+
+            if (!g_pending.active || !(g_pending.target == target)) {
+                return;
+            }
+
+            // Drags, checkboxes and text input all report their release. A pick inside field_color's
+            // popup does not -- its items live in another window, so the row's own group never sees the
+            // deactivation -- hence the second condition: nothing anywhere is being dragged any more.
+            if (ImGui::IsItemDeactivatedAfterEdit() || !ImGui::IsAnyItemActive()) {
+                const sol::object final_value = changed ? new_value : old_value;
+                commands.push(engine,
+                              std::make_unique<EditorCommandSetField>(
+                                  command_label, g_pending.target, g_pending.old_value, final_value));
+                clear_pending_edit();
+            }
+        }
+
+        void draw_field(Engine& engine,
+                        EditorCommandStack& commands,
+                        const EditorFieldTarget& component_target,
+                        const std::string& component_label,
+                        const sol::table& field) {
+            const std::string name = field.get_or<std::string>("name", "?");
+            const std::string label = to_display_label(name);
             const std::string kind = field.get_or<std::string>("kind", "");
             const sol::object value = field["value"];
 
-            ImGui::BeginDisabled();
+            sol::state& lua = engine.get_lua_script_system().get_lua();
+            sol::object new_value;
+            bool changed = false;
 
             if (kind == "int") {
                 int64_t number = value_or<int64_t>(value, 0);
-                field_int(label.c_str(), number);
+                if (field_int(label.c_str(), number)) {
+                    new_value = sol::make_object(lua, number);
+                    changed = true;
+                }
             }
             else if (kind == "float") {
                 float number = value_or<float>(value, 0.0f);
-                field_float(label.c_str(), number);
+                if (field_float(label.c_str(), number)) {
+                    new_value = sol::make_object(lua, number);
+                    changed = true;
+                }
             }
             else if (kind == "angle") {
-                float degrees = value_or<float>(value, 0.0f);
-                field_angle(label.c_str(), degrees);
+                float degrees = value_or<float>(value, 0.0f) * RAD_TO_DEG;
+                if (field_angle(label.c_str(), degrees)) {
+                    new_value = sol::make_object(lua, degrees * DEG_TO_RAD);
+                    changed = true;
+                }
             }
             else if (kind == "bool") {
                 bool flag = value_or<bool>(value, false);
-                field_bool(label.c_str(), flag);
+                if (field_bool(label.c_str(), flag)) {
+                    new_value = sol::make_object(lua, flag);
+                    changed = true;
+                }
             }
             else if (kind == "string") {
                 std::string text = value_or<std::string>(value, "");
-                field_string(label.c_str(), text);
+                if (field_string(label.c_str(), text)) {
+                    new_value = sol::make_object(lua, text);
+                    changed = true;
+                }
             }
             else if (kind == "vector2") {
                 Vector2 vector = value_or<Vector2>(value, Vector2());
-                field_vector2(label.c_str(), vector);
+                if (field_vector2(label.c_str(), vector)) {
+                    new_value = sol::make_object(lua, vector);
+                    changed = true;
+                }
             }
             else if (kind == "color") {
                 Color color = value_or<Color>(value, Color());
-                field_color(label.c_str(), color);
+                if (field_color(label.c_str(), color)) {
+                    new_value = sol::make_object(lua, color);
+                    changed = true;
+                }
             }
             else {
                 field_text(label.c_str(), lua_object_to_display_string(engine, value));
+                return;
             }
 
-            ImGui::EndDisabled();
+            EditorFieldTarget target = component_target;
+            target.field = name;
+
+            commit_field_edit(
+                engine, commands, target, "Set " + component_label + " " + label, value, new_value, changed);
         }
 
-        void draw_component(Engine& engine, int index, const sol::table& component) {
-            const std::string label = to_display_label(component.get_or<std::string>("name", "?"));
+        void draw_component(
+            Engine& engine, EditorCommandStack& commands, EntityId entity_id, int index, const sol::table& component) {
+            const std::string name = component.get_or<std::string>("name", "?");
+            const std::string label = to_display_label(name);
             const bool is_lua = component.get_or("is_lua", false);
             const std::string header = is_lua ? label + " (Lua)" : label;
+
+            EditorFieldTarget target;
+            target.entity_id = entity_id;
+            target.is_lua = is_lua;
+            target.component_key = is_lua ? "" : name;
+            target.component_index = is_lua ? component.get_or("index", 0) : 0;
 
             ImGui::PushID(index);
 
@@ -75,7 +170,7 @@ namespace hob::editor {
                     for (int i = 1; i <= rows.size(); ++i) {
                         const sol::object row = rows[i];
                         if (row.is<sol::table>()) {
-                            draw_field(engine, row.as<sol::table>());
+                            draw_field(engine, commands, target, label, row.as<sol::table>());
                         }
                     }
                 }
@@ -84,7 +179,11 @@ namespace hob::editor {
             ImGui::PopID();
         }
 
-        void draw_components(Engine& engine, EntityId entity_id) {
+        void draw_components(Engine& engine, EditorCommandStack& commands, EntityId entity_id) {
+            if (g_pending.active && g_pending.target.entity_id != entity_id) {
+                clear_pending_edit();
+            }
+
             const sol::object components = editor_call(engine, "get_components", entity_id);
             if (!components.is<sol::table>()) {
                 ImGui::TextDisabled("Editor.get_components is unavailable");
@@ -95,11 +194,15 @@ namespace hob::editor {
             for (int i = 1; i <= sections.size(); ++i) {
                 const sol::object section = sections[i];
                 if (section.is<sol::table>()) {
-                    draw_component(engine, i, section.as<sol::table>());
+                    draw_component(engine, commands, entity_id, i, section.as<sol::table>());
                 }
             }
         }
     } // namespace
+
+    void reset_inspector_edit_state() {
+        clear_pending_edit();
+    }
 
     void Editor::draw_inspector() {
         if (begin_panel(PANEL_INSPECTOR)) {
@@ -121,7 +224,7 @@ namespace hob::editor {
                     ImGui::TextDisabled("(%zu selected)", m_selection.ids.size());
                 }
 
-                draw_components(m_engine, entity->get_id());
+                draw_components(m_engine, m_commands, entity->get_id());
             }
         }
         end_panel();

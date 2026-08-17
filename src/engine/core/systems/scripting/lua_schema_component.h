@@ -19,6 +19,8 @@ namespace hob {
         std::string name; // Prefab field, e.g. "body_type"
         std::string get_method; // Component method, e.g. "get_body_type"
         std::string set_method; // Component method, e.g. "set_body_type"
+        std::string type; // Editor type, e.g. "angle". Empty means the editor infers one from the Lua value.
+        bool reapply_on_hot_reload = true;
     };
 
     struct LuaComponentSchemaInfo {

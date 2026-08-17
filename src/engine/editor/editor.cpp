@@ -51,6 +51,7 @@ namespace hob::editor {
 
         save_layout();
         release_scene_color_target();
+        reset_inspector_edit_state();
 
         log::engine.info("Editor::Shutdown");
     }
@@ -68,6 +69,7 @@ namespace hob::editor {
             m_selection.clear();
             m_range_selection_anchor = INVALID_ENTITY_ID;
             m_pick_cycle_last_entity_id = INVALID_ENTITY_ID;
+            reset_inspector_edit_state();
         }
 
         if (entering_play) {

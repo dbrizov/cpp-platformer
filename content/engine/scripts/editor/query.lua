@@ -7,6 +7,9 @@
 --
 --   Editor.get_components(entity_id) ->
 --     { { name = "sprite", is_lua = false, fields = { { name, value, kind }, ... } }, ... }
+--
+-- The descriptor is also the address the apply side writes through: `name` is the schema key for a
+-- C++ component, `index` the position in get_lua_components() for a Lua one.
 
 --- The editor's Lua support table. C++ reaches it as `_G.Editor[name]`, looked up fresh on
 --- every call so a hot reload rebinds automatically.
@@ -83,16 +86,10 @@ end
 -- C++ components
 -- ---------------------------------------------------------------------------------------------
 
--- A transform's position/rotation/scale are spawn arguments, not prefab data, so entity_def.lua
--- deliberately keeps them out of the component schema.
--- Synthesize them here instead: the Inspector then draws the transform exactly like every other component.
--- Rotation travels in degrees; the "angle" kind is what says so.
-local function get_transform_fields(transform)
-    return {
-        { name = "position",     value = transform:get_local_position(),                   kind = "vector2" },
-        { name = "rotation",     value = transform:get_local_rotation() * Math.RAD_TO_DEG, kind = "angle" },
-        { name = "scale",        value = transform:get_local_scale(),                      kind = "vector2" },
-    }
+local function get_declared_kind(schema, field)
+    local types = schema.types
+    local declared = types ~= nil and types[field] or nil
+    return declared ~= nil and declared.type or nil
 end
 
 local function get_schema_field_order(schema)
@@ -120,7 +117,8 @@ local function append_schema_fields(fields, component, schema)
             end)
 
             if ok then
-                fields[#fields + 1] = { name = field, value = value, kind = get_usertype_kind_from_value(value) }
+                local kind = get_declared_kind(schema, field) or get_usertype_kind_from_value(value)
+                fields[#fields + 1] = { name = field, value = value, kind = kind }
             end
         end
     end
@@ -137,12 +135,14 @@ local HIDDEN_LUA_FIELDS = {
     new = true,
 }
 
-local function is_lua_component_field(key, value)
+function Editor.is_public_lua_field(key, value)
     return type(key) == "string"
         and key:sub(1, 1) ~= "_"
         and not HIDDEN_LUA_FIELDS[key]
         and type(value) ~= "function"
 end
+
+local is_lua_component_field = Editor.is_public_lua_field
 
 -- A Lua table cannot report the order its keys were assigned in, so recover it from the source:
 -- debug.getinfo gives init()'s file and line span, and the fields are whatever it assigns to self.
@@ -268,7 +268,7 @@ function Editor.get_components(entity_id)
         if not schema.map_setter then
             local component = entity[schema.get](entity)
             if component ~= nil then
-                local fields = (key == "transform") and get_transform_fields(component) or {}
+                local fields = {}
                 append_schema_fields(fields, component, schema)
                 out[#out + 1] = {
                     name = key,
@@ -279,10 +279,11 @@ function Editor.get_components(entity_id)
         end
     end
 
-    for _, instance in ipairs(entity:get_lua_components()) do
+    for index, instance in ipairs(entity:get_lua_components()) do
         out[#out + 1] = {
             name = instance.class_name or "?",
             is_lua = true,
+            index = index,
             fields = get_lua_component_fields(instance),
         }
     end

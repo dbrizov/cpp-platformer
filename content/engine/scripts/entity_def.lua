@@ -49,12 +49,20 @@ _G.Entities = setmetatable({}, {
 })
 
 -- Dispatch a schema setter, which is either a component method name or a function.
-local function call_setter(component, setter, value)
+-- Global so the editor's apply module writes fields through the same dispatch this file does.
+function _G.__call_component_setter(component, setter, value)
     if type(setter) == "string" then
         component[setter](component, value)
     else
         setter(component, value)
     end
+end
+
+local call_setter = _G.__call_component_setter
+
+local function should_reapply_field(schema, field)
+    local flags = schema.reapply_on_hot_reload
+    return flags == nil or flags[field] ~= false
 end
 
 -- The effective ticking state for a prefab: absent means the Entity default (not ticking).
@@ -143,8 +151,8 @@ end
 -- Uses each component's getter (never its `add`) so no component is duplicated and no C++ init() re-fires.
 -- Deliberately skipped: structure (no add/remove) and sections the prefab does not declare (the
 -- component may be owned by another, e.g. CharacterBody configures a Rigidbody, or added at runtime);
--- the prefab's lua_components (refreshed by the metatable swap in hot_reload.lua); and the transform's
--- position/rotation/scale (spawn arguments, not prefab data).
+-- the prefab's lua_components (refreshed by the metatable swap in hot_reload.lua); and every field the
+-- schema declares `reapply_on_hot_reload = false` (the transform's position/rotation/scale).
 local function reapply_prefab(entity, prefab, get_defaults)
     entity:set_ticking(resolve_ticking(prefab))
 
@@ -154,7 +162,9 @@ local function reapply_prefab(entity, prefab, get_defaults)
         else
             local defaults = get_defaults(key)
             for field, setter in pairs(schema.setters) do
-                call_setter(component, setter, resolve_field_value(section, field, defaults))
+                if should_reapply_field(schema, field) then
+                    call_setter(component, setter, resolve_field_value(section, field, defaults))
+                end
             end
         end
     end)
@@ -241,9 +251,15 @@ EntitySpawner.spawn_entity = function(prefab_name, position, rotation_deg, scale
     _G.__entity_prefab_by_id[entity:get_id()] = prefab_name
 
     local transform = entity:get_transform()
-    transform:set_position(position or Vector2())
-    transform:set_rotation((rotation_deg or 0) * Math.DEG_TO_RAD)
-    transform:set_scale(scale or Vector2.one())
+    if position ~= nil then
+        transform:set_position(position)
+    end
+    if rotation_deg ~= nil then
+        transform:set_rotation(rotation_deg * Math.DEG_TO_RAD)
+    end
+    if scale ~= nil then
+        transform:set_scale(scale)
+    end
 
     return entity
 end

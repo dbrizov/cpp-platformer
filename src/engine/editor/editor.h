@@ -21,6 +21,8 @@ namespace hob {
 } // namespace hob
 
 namespace hob::editor {
+    void reset_inspector_edit_state();
+
     class Editor : public EngineHooks {
     public:
         enum class State {

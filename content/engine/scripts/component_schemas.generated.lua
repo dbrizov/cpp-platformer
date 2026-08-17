@@ -6,13 +6,30 @@ local schemas = {
         add = "get_transform",
         get = "get_transform",
         getters = {
+            position = "get_local_position",
+            rotation = "get_local_rotation",
+            scale = "get_local_scale",
             interpolate_physics = "get_interpolate_physics",
         },
         setters = {
+            position = "set_local_position",
+            rotation = "set_local_rotation",
+            scale = "set_local_scale",
             interpolate_physics = "set_interpolate_physics",
         },
         __order = {
+            "position",
+            "rotation",
+            "scale",
             "interpolate_physics",
+        },
+        types = {
+            rotation = { type = "angle" },
+        },
+        reapply_on_hot_reload = {
+            position = false,
+            rotation = false,
+            scale = false,
         },
     },
     rigidbody = {
@@ -29,6 +46,9 @@ local schemas = {
         __order = {
             "body_type",
             "fixed_rotation",
+        },
+        types = {
+            body_type = { type = "enum" },
         },
     },
     character_body = {

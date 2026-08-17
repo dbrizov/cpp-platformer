@@ -153,6 +153,19 @@ namespace hob {
             "transform",
             "get_transform",
             {
+                {.name = "position",
+                 .get_method = "get_local_position",
+                 .set_method = "set_local_position",
+                 .reapply_on_hot_reload = false},
+                {.name = "rotation",
+                 .get_method = "get_local_rotation",
+                 .set_method = "set_local_rotation",
+                 .type = "angle",
+                 .reapply_on_hot_reload = false},
+                {.name = "scale",
+                 .get_method = "get_local_scale",
+                 .set_method = "set_local_scale",
+                 .reapply_on_hot_reload = false},
                 {"interpolate_physics", "get_interpolate_physics", "set_interpolate_physics"},
             });
 
@@ -177,16 +190,17 @@ namespace hob {
             .method("get_rotation", &RigidbodyComponent::get_rotation)
             .method("set_rotation", &RigidbodyComponent::set_rotation, {"radians"});
 
-        bind_component_schema<RigidbodyComponent>(lua,
-                                                  meta,
-                                                  schemas,
-                                                  "rigidbody",
-                                                  "add_rigidbody",
-                                                  "get_rigidbody",
-                                                  {
-                                                      {"body_type", "get_body_type", "set_body_type"},
-                                                      {"fixed_rotation", "has_fixed_rotation", "set_fixed_rotation"},
-                                                  });
+        bind_component_schema<RigidbodyComponent>(
+            lua,
+            meta,
+            schemas,
+            "rigidbody",
+            "add_rigidbody",
+            "get_rigidbody",
+            {
+                {.name = "body_type", .get_method = "get_body_type", .set_method = "set_body_type", .type = "enum"},
+                {"fixed_rotation", "has_fixed_rotation", "set_fixed_rotation"},
+            });
 
         // CharacterBodyComponent
         bind_usertype<CharacterBodyComponent>(lua, meta, Bases<Component>{})

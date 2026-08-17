@@ -1,11 +1,26 @@
 #include "lua_schema_component.h"
 
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 
 #include "engine/core/logging.h"
 
 namespace hob {
+    namespace {
+        bool has_declared_types(const std::vector<LuaComponentSchemaField>& fields) {
+            return std::any_of(fields.begin(), fields.end(), [](const LuaComponentSchemaField& f) {
+                return !f.type.empty();
+            });
+        }
+
+        bool has_reapply_exclusions(const std::vector<LuaComponentSchemaField>& fields) {
+            return std::any_of(fields.begin(), fields.end(), [](const LuaComponentSchemaField& f) {
+                return !f.reapply_on_hot_reload;
+            });
+        }
+    } // namespace
+
     void LuaComponentSchemaRegistry::add_schema(std::string key,
                                                 std::string add_method,
                                                 std::string get_method,
@@ -57,6 +72,26 @@ namespace hob {
                     out << "            \"" << f.name << "\",\n";
                 }
                 out << "        },\n";
+
+                if (has_declared_types(s.fields)) {
+                    out << "        types = {\n";
+                    for (const auto& f : s.fields) {
+                        if (!f.type.empty()) {
+                            out << "            " << f.name << " = { type = \"" << f.type << "\" },\n";
+                        }
+                    }
+                    out << "        },\n";
+                }
+
+                if (has_reapply_exclusions(s.fields)) {
+                    out << "        reapply_on_hot_reload = {\n";
+                    for (const auto& f : s.fields) {
+                        if (!f.reapply_on_hot_reload) {
+                            out << "            " << f.name << " = false,\n";
+                        }
+                    }
+                    out << "        },\n";
+                }
             }
 
             out << "    },\n";
