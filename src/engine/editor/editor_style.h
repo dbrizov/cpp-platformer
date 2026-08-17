@@ -108,6 +108,7 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_MENU_BAR_SEPARATOR{0.141f, 0.141f, 0.141f, 1.0f};
 
     // Hierarchy
+    constexpr ImVec2 HIERARCHY_ITEM_SPACING{0.0f, 2.0f};
     constexpr ImVec2 HIERARCHY_ITEM_INSET{4.0f, 1.0f};
     constexpr float HIERARCHY_ITEM_ROUNDING = 3.0f;
 

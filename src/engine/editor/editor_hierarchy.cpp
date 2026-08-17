@@ -25,6 +25,9 @@ namespace hob::editor {
 
             EntityId clicked_entity_id = INVALID_ENTITY_ID;
 
+            StyleVarStack vars;
+            vars.push(ImGuiStyleVar_ItemSpacing, HIERARCHY_ITEM_SPACING);
+
             // Draw parentless entities. Child entities are drawn recursively
             for (const Entity* entity : entities) {
                 const TransformComponent* transform = entity->get_transform();
@@ -34,6 +37,8 @@ namespace hob::editor {
 
                 draw_hierarchy_entity(transform, visible_order, clicked_entity_id);
             }
+
+            vars.pop();
 
             if (clicked_entity_id != INVALID_ENTITY_ID) {
                 apply_hierarchy_click(clicked_entity_id, visible_order);
