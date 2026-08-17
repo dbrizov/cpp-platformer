@@ -249,9 +249,24 @@ namespace hob::editor {
         colors.push(ImGuiCol_HeaderHovered, COLOR_TRANSPARENT);
         colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
 
+        // ImGui draws the shortcut left-aligned in its own column, so hide it and redraw it flush to the right edge.
+        colors.push(ImGuiCol_TextDisabled, COLOR_TRANSPARENT);
+
+        const ImGuiWindow* window = ImGui::GetCurrentWindow();
+        const float shortcut_y = window->DC.CursorPos.y + window->DC.CurrLineTextBaseOffset;
+
         const bool selected = false;
         const bool pressed = ImGui::MenuItem(label, shortcut, selected, enabled);
         colors.pop();
+
+        if (shortcut && shortcut[0]) {
+            const ImGuiStyle& style = ImGui::GetStyle();
+            ImVec4 color = style.Colors[ImGuiCol_TextDisabled];
+            color.w *= enabled ? 1.0f : style.DisabledAlpha;
+
+            const float shortcut_x = window->WorkRect.Max.x - ImGui::CalcTextSize(shortcut).x;
+            draw_list->AddText(ImVec2(shortcut_x, shortcut_y), ImGui::GetColorU32(color), shortcut);
+        }
 
         // A disabled row is inert, so it must not light up under the cursor either.
         if (enabled && ImGui::IsItemHovered()) {
