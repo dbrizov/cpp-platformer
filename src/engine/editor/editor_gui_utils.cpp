@@ -15,9 +15,9 @@
 
 namespace hob::editor {
     namespace {
-        constexpr int DRAW_CHANNEL_COUNT = 2;
-        constexpr int DRAW_CHANNEL_BACKGROUND = 0;
-        constexpr int DRAW_CHANNEL_FOREGROUND = 1;
+        constexpr int32_t DRAW_CHANNEL_COUNT = 2;
+        constexpr int32_t DRAW_CHANNEL_BACKGROUND = 0;
+        constexpr int32_t DRAW_CHANNEL_FOREGROUND = 1;
 
         constexpr const char* EMPTY_LABEL = "##";
         constexpr const char* FLOAT_FORMAT = "%.3f";
@@ -78,7 +78,7 @@ namespace hob::editor {
         bool field_components(const char* label,
                               const ImVec4* colors,
                               float* const* values,
-                              int count,
+                              int32_t count,
                               float drag_speed,
                               float min,
                               float max) {
@@ -87,7 +87,7 @@ namespace hob::editor {
             ImGui::PushMultiItemsWidths(count, ImGui::CalcItemWidth());
 
             bool changed = false;
-            for (int i = 0; i < count; ++i) {
+            for (int32_t i = 0; i < count; ++i) {
                 ImGui::PushID(i);
                 if (i > 0) {
                     ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
@@ -424,7 +424,7 @@ namespace hob::editor {
     bool field_color(const char* label, Color& value) {
         const ImVec4 colors[] = {COLOR_AXIS_X, COLOR_AXIS_Y, COLOR_AXIS_Z, COLOR_AXIS_W};
         float* components[] = {&value.r, &value.g, &value.b, &value.a};
-        constexpr int count = IM_COUNTOF(components);
+        constexpr int32_t count = IM_COUNTOF(components);
 
         const ImGuiStyle& style = ImGui::GetStyle();
         const float swatch_width = ImGui::GetFrameHeight(); // ColorButton is square at its default size.
@@ -436,7 +436,7 @@ namespace hob::editor {
         ImGui::PushMultiItemsWidths(count, ImGui::CalcItemWidth() - swatch_width - style.ItemInnerSpacing.x);
 
         bool changed = false;
-        for (int i = 0; i < count; ++i) {
+        for (int32_t i = 0; i < count; ++i) {
             ImGui::PushID(i);
             if (i > 0) {
                 ImGui::SameLine(0.0f, style.ItemInnerSpacing.x);

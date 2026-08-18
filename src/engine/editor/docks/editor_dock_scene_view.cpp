@@ -36,7 +36,7 @@ namespace hob::editor {
         constexpr float FOCUS_FALLBACK_EXTENT = 0.5f;
 
         constexpr float GRID_CELL_METERS = 1.0f;
-        constexpr int GRID_MAJOR_EVERY = 5;
+        constexpr int32_t GRID_MAJOR_EVERY = 5;
         constexpr float MIN_GRID_SPACING_PX = 24.0f;
 
         float grid_cell_meters(float pixels_per_meter) {
@@ -107,7 +107,7 @@ namespace hob::editor {
 
                 Vector2 world_min = world_corners[0];
                 Vector2 world_max = world_corners[0];
-                for (int i = 1; i < 4; ++i) {
+                for (int32_t i = 1; i < 4; ++i) {
                     world_min =
                         Vector2(std::min(world_min.x, world_corners[i].x), std::min(world_min.y, world_corners[i].y));
                     world_max =
@@ -278,12 +278,12 @@ namespace hob::editor {
 
         struct SpriteHit {
             EntityId entity_id;
-            int z_index;
-            int sprite_index;
+            int32_t z_index;
+            int32_t sprite_index;
         };
 
         std::vector<SpriteHit> sprite_hits;
-        for (int i = 0; i < sprites.size(); ++i) {
+        for (int32_t i = 0; i < sprites.size(); ++i) {
             const SpriteComponent* sprite = sprites[i];
 
             SpriteRect rect;

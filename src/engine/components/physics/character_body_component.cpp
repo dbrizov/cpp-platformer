@@ -82,7 +82,7 @@ namespace hob {
         const b2Vec2 b2_target_pos = b2Add(b2_current_pos, b2_delta_pos);
 
         // Solver iterations
-        for (int i = 0; i < SOLVER_MAX_ITERATIONS; ++i) {
+        for (int32_t i = 0; i < SOLVER_MAX_ITERATIONS; ++i) {
             m_solver_planes_count = 0;
             const b2Capsule mover = make_world_capsule(local_capsule, Physics::b2Vec2_to_vec2(b2_current_pos), radians);
 

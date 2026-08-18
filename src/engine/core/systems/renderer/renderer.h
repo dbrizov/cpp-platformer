@@ -179,7 +179,7 @@ namespace hob {
         const Window* get_game_window() const;
         void set_game_window(const Window* window);
 
-        void on_window_resized(int window_width, int window_height);
+        void on_window_resized(int32_t window_width, int32_t window_height);
 
         static Matrix4x4 ortho_top_left(float w, float h);
         static Matrix4x4 ortho_top_left_y_flipped(float w, float h);
@@ -207,7 +207,7 @@ namespace hob {
 
         void draw_debug_text(const Vector2& screen_pos, std::string_view text, const Color& color, float scale);
 
-        int get_debug_font_line_height() const;
+        int32_t get_debug_font_line_height() const;
 
         void render_world_pass(const Matrix4x4& view_proj);
         void render_world_pass_to(SDL_GPUTexture* target, const Matrix4x4& view_proj);

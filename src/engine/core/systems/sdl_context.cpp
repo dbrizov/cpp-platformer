@@ -7,7 +7,7 @@
 
 namespace hob {
     namespace {
-        void SDLCALL sdl_log_output(void* userdata, int category, SDL_LogPriority priority, const char* message) {
+        void SDLCALL sdl_log_output(void* userdata, int32_t category, SDL_LogPriority priority, const char* message) {
             (void)userdata;
             (void)category;
             if (priority >= SDL_LOG_PRIORITY_ERROR) {

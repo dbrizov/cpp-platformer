@@ -30,7 +30,7 @@ namespace hob {
     SocketsComponent::SocketsComponent(Entity& entity)
         : Component(entity) {}
 
-    int SocketsComponent::get_priority() const {
+    int32_t SocketsComponent::get_priority() const {
         return component_priority::CP_SOCKETS;
     }
 

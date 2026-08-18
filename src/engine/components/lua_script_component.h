@@ -11,7 +11,7 @@ namespace hob {
     class LuaScriptComponent : public Component {
         std::string m_class_name;
         std::unique_ptr<LuaScriptComponentImpl> m_impl;
-        int m_priority;
+        int32_t m_priority;
 
     public:
         LuaScriptComponent(Entity& entity, std::string class_name);
@@ -24,7 +24,7 @@ namespace hob {
 
         void refresh_class_cache();
 
-        int get_priority() const override;
+        int32_t get_priority() const override;
 
         void init() override;
         void enter_play() override;

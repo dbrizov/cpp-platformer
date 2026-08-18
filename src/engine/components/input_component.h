@@ -31,7 +31,7 @@ namespace hob {
     public:
         explicit InputComponent(Entity& entity);
 
-        int get_priority() const override;
+        int32_t get_priority() const override;
 
         void enter_play() override;
         void exit_play() override;

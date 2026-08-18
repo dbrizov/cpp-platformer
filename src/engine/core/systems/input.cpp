@@ -173,8 +173,8 @@ namespace hob {
             float global_y = 0.0f;
             SDL_GetGlobalMouseState(&global_x, &global_y);
 
-            int window_x = 0;
-            int window_y = 0;
+            int32_t window_x = 0;
+            int32_t window_y = 0;
             SDL_GetWindowPosition(sdl_window, &window_x, &window_y);
 
             x = global_x - static_cast<float>(window_x);
@@ -401,7 +401,7 @@ namespace hob {
             return;
         }
 
-        int count = 0;
+        int32_t count = 0;
         SDL_JoystickID* ids = SDL_GetGamepads(&count);
         if (ids == nullptr) {
             return;

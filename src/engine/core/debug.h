@@ -16,7 +16,7 @@ namespace hob {
         constexpr Color DEFAULT_DRAW_COLOR = Color::white();
         constexpr float DEFAULT_DRAW_DURATION = 0.0f;
         constexpr float DEFAULT_LINE_THICKNESS = 1.0f;
-        constexpr int DEFAULT_CIRCLE_SEGMENTS = 16;
+        constexpr int32_t DEFAULT_CIRCLE_SEGMENTS = 16;
 
         constexpr Color DEFAULT_MESSAGE_COLOR = Color::white();
         constexpr float DEFAULT_MESSAGE_DURATION = 0.0f;
@@ -40,7 +40,7 @@ namespace hob {
             Color color = DEFAULT_DRAW_COLOR;
             float duration = DEFAULT_DRAW_DURATION;
             float thickness = DEFAULT_LINE_THICKNESS;
-            int segments = DEFAULT_CIRCLE_SEGMENTS;
+            int32_t segments = DEFAULT_CIRCLE_SEGMENTS;
         };
 
         struct DebugMessage {
@@ -65,7 +65,7 @@ namespace hob {
                          const Color& color = DEFAULT_DRAW_COLOR,
                          float duration = DEFAULT_DRAW_DURATION,
                          float thickness = DEFAULT_LINE_THICKNESS,
-                         int segments = DEFAULT_CIRCLE_SEGMENTS);
+                         int32_t segments = DEFAULT_CIRCLE_SEGMENTS);
 
         // On-screen messages
         namespace detail {

@@ -15,10 +15,10 @@ namespace hob {
         RigidbodyComponent* m_rigidbody = nullptr;
         CapsuleColliderComponent* m_capsule_collider = nullptr;
 
-        static constexpr int SOLVER_MAX_ITERATIONS = 4;
+        static constexpr int32_t SOLVER_MAX_ITERATIONS = 4;
         static constexpr float SOLVER_DISTANCE_TOLERANCE = 0.01f;
-        static constexpr int SOLVER_PLANES_CAPACITY = 8;
-        int m_solver_planes_count = 0;
+        static constexpr int32_t SOLVER_PLANES_CAPACITY = 8;
+        int32_t m_solver_planes_count = 0;
         b2CollisionPlane m_solver_planes[SOLVER_PLANES_CAPACITY] = {};
 
         // - We want the character to receive collision/trigger events from other colliders/triggers,

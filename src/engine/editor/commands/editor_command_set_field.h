@@ -16,7 +16,7 @@ namespace hob::editor {
         EntityId entity_id = INVALID_ENTITY_ID;
         bool is_lua = false;
         std::string component_key; // Schema key, e.g. "sprite" (C++ components)
-        int component_index = 0; // Index into get_lua_components() (Lua components)
+        int32_t component_index = 0; // Index into get_lua_components() (Lua components)
         std::string field;
 
         bool operator==(const EditorFieldTarget& other) const = default;

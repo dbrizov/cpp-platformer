@@ -167,8 +167,8 @@ namespace hob {
 
         // Render state is baked into the pipeline, so each (path, blend, cull) combo is a distinct shader.
         std::string shader_cache_key(const std::string& relative_path, BlendMode blend, CullMode cull) {
-            return relative_path + '|' + std::to_string(static_cast<int>(blend)) + '|' +
-                   std::to_string(static_cast<int>(cull));
+            return relative_path + '|' + std::to_string(static_cast<int32_t>(blend)) + '|' +
+                   std::to_string(static_cast<int32_t>(cull));
         }
 
         SDL_GPUCullMode to_sdl_cull(CullMode mode) {

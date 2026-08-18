@@ -7,7 +7,7 @@ namespace hob {
     InputComponent::InputComponent(Entity& entity)
         : Component(entity) {}
 
-    int InputComponent::get_priority() const {
+    int32_t InputComponent::get_priority() const {
         return component_priority::CP_INPUT;
     }
 

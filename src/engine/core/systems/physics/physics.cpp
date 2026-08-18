@@ -15,7 +15,7 @@
 
 namespace hob {
     namespace {
-        int box2d_assert_handler(const char* condition, const char* file_name, int line_number) {
+        int32_t box2d_assert_handler(const char* condition, const char* file_name, int32_t line_number) {
             log::box2d.error("Box2D assertion: {} ({}:{})", condition, file_name, line_number);
             return 1;
         }
@@ -42,7 +42,7 @@ namespace hob {
     }
 
     void PhysicsWorld::tick(float fixed_delta_time, uint32_t sub_steps) {
-        b2World_Step(m_id, fixed_delta_time, static_cast<int>(sub_steps));
+        b2World_Step(m_id, fixed_delta_time, static_cast<int32_t>(sub_steps));
     }
 
     b2WorldId PhysicsWorld::get_id() const {
@@ -239,7 +239,7 @@ namespace hob {
         const b2ContactEvents contact_events = b2World_GetContactEvents(m_physics_world.get_id());
 
         // Dispatch on_collision_enter
-        for (int i = 0; i < contact_events.beginCount; ++i) {
+        for (int32_t i = 0; i < contact_events.beginCount; ++i) {
             const b2ContactBeginTouchEvent& ev = contact_events.beginEvents[i];
 
             if (!b2Shape_IsValid(ev.shapeIdA) || !b2Shape_IsValid(ev.shapeIdB)) {
@@ -257,7 +257,7 @@ namespace hob {
         }
 
         // Dispatch on_collision_exit
-        for (int i = 0; i < contact_events.endCount; ++i) {
+        for (int32_t i = 0; i < contact_events.endCount; ++i) {
             const b2ContactEndTouchEvent& ev = contact_events.endEvents[i];
 
             if (!b2Shape_IsValid(ev.shapeIdA) || !b2Shape_IsValid(ev.shapeIdB)) {
@@ -279,7 +279,7 @@ namespace hob {
         const b2SensorEvents sensor_events = b2World_GetSensorEvents(m_physics_world.get_id());
 
         // Dispatch on_trigger_enter
-        for (int i = 0; i < sensor_events.beginCount; ++i) {
+        for (int32_t i = 0; i < sensor_events.beginCount; ++i) {
             const b2SensorBeginTouchEvent& ev = sensor_events.beginEvents[i];
 
             if (!b2Shape_IsValid(ev.sensorShapeId) || !b2Shape_IsValid(ev.visitorShapeId)) {
@@ -297,7 +297,7 @@ namespace hob {
         }
 
         // Dispatch on_trigger_exit
-        for (int i = 0; i < sensor_events.endCount; ++i) {
+        for (int32_t i = 0; i < sensor_events.endCount; ++i) {
             const b2SensorEndTouchEvent& ev = sensor_events.endEvents[i];
 
             if (!b2Shape_IsValid(ev.sensorShapeId) || !b2Shape_IsValid(ev.visitorShapeId)) {

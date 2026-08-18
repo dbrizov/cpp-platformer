@@ -18,7 +18,7 @@ namespace hob {
             return std::nullopt;
         }
 
-        return InputSource{InputDevice::Keyboard, static_cast<int>(scancode), false};
+        return InputSource{InputDevice::Keyboard, static_cast<int32_t>(scancode), false};
     }
 
     static std::optional<InputSource> parse_mouse(const std::string& token) {
@@ -42,7 +42,7 @@ namespace hob {
 
         for (const Entry& entry : table) {
             if (token == entry.name) {
-                return InputSource{InputDevice::Mouse, static_cast<int>(entry.code), entry.is_analog};
+                return InputSource{InputDevice::Mouse, static_cast<int32_t>(entry.code), entry.is_analog};
             }
         }
 
@@ -83,14 +83,14 @@ namespace hob {
         if (const auto it = button_names.find(token); it != button_names.end()) {
             const SDL_GamepadButton button = SDL_GetGamepadButtonFromString(it->second);
             if (button != SDL_GAMEPAD_BUTTON_INVALID) {
-                return InputSource{InputDevice::Gamepad, static_cast<int>(button), false};
+                return InputSource{InputDevice::Gamepad, static_cast<int32_t>(button), false};
             }
         }
 
         if (const auto it = axis_names.find(token); it != axis_names.end()) {
             const SDL_GamepadAxis axis = SDL_GetGamepadAxisFromString(it->second);
             if (axis != SDL_GAMEPAD_AXIS_INVALID) {
-                return InputSource{InputDevice::Gamepad, static_cast<int>(axis), true};
+                return InputSource{InputDevice::Gamepad, static_cast<int32_t>(axis), true};
             }
         }
 

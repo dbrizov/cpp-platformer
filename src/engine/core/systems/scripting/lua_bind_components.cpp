@@ -49,7 +49,7 @@ namespace hob {
             const float step = fps > 0.0f ? 1.0f / fps : 0.0f;
 
             if (auto textures = t.get<sol::optional<sol::table>>("textures")) {
-                for (int i = 1; i <= textures->size(); ++i) {
+                for (int32_t i = 1; i <= textures->size(); ++i) {
                     if (TextureRef texture = resolve_texture(renderer, textures->get<sol::object>(i))) {
                         track->keys.emplace_back(static_cast<float>(track->keys.size()) * step, std::move(texture));
                     }
@@ -59,7 +59,7 @@ namespace hob {
             }
 
             if (auto keys = t.get<sol::optional<sol::table>>("keys")) {
-                for (int i = 1; i <= keys->size(); ++i) {
+                for (int32_t i = 1; i <= keys->size(); ++i) {
                     if (auto k = keys->get<sol::optional<sol::table>>(i)) {
                         if (TextureRef texture = resolve_texture(renderer, k->get<sol::object>(2))) {
                             const float time = k->get_or(1, 0.0f);
@@ -81,7 +81,7 @@ namespace hob {
                 auto track = std::make_unique<SocketPositionTrack>();
                 track->socket = t.get<sol::optional<std::string>>("socket").value_or("");
                 if (auto keys = t.get<sol::optional<sol::table>>("keys")) {
-                    for (int i = 1; i <= keys->size(); ++i) {
+                    for (int32_t i = 1; i <= keys->size(); ++i) {
                         if (auto k = keys->get<sol::optional<sol::table>>(i)) {
                             const Vector2 value = k->get<sol::optional<Vector2>>(2).value_or(Vector2());
                             track->keys.emplace_back(k->get_or(1, 0.0f), value);
@@ -95,7 +95,7 @@ namespace hob {
                 auto track = std::make_unique<SocketRotationTrack>();
                 track->socket = t.get<sol::optional<std::string>>("socket").value_or("");
                 if (auto keys = t.get<sol::optional<sol::table>>("keys")) {
-                    for (int i = 1; i <= keys->size(); ++i) {
+                    for (int32_t i = 1; i <= keys->size(); ++i) {
                         if (auto k = keys->get<sol::optional<sol::table>>(i)) {
                             track->keys.emplace_back(k->get_or(1, 0.0f), k->get_or(2, 0.0f) * DEG_TO_RAD);
                         }
@@ -560,7 +560,7 @@ namespace hob {
                     }
 
                     if (auto tracks = animclip_t.get<sol::optional<sol::table>>("tracks")) {
-                        for (int i = 1; i <= tracks->size(); ++i) {
+                        for (int32_t i = 1; i <= tracks->size(); ++i) {
                             if (auto track_t = tracks->get<sol::optional<sol::table>>(i)) {
                                 build_track(*track_t, *clip);
                             }

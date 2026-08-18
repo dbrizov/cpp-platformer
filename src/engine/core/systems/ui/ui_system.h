@@ -108,7 +108,7 @@ namespace hob {
 
         void process_event(const SDL_Event& event);
 
-        void on_window_resized(int window_width, int window_height);
+        void on_window_resized(int32_t window_width, int32_t window_height);
 
         void tick();
 

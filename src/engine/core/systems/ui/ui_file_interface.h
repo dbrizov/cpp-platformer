@@ -8,7 +8,7 @@ namespace hob {
         Rml::FileHandle Open(const Rml::String& relative_path) override;
         void Close(Rml::FileHandle file) override;
         size_t Read(void* buffer, size_t size, Rml::FileHandle file) override;
-        bool Seek(Rml::FileHandle file, long offset, int origin) override;
+        bool Seek(Rml::FileHandle file, long offset, int32_t origin) override;
         size_t Tell(Rml::FileHandle file) override;
     };
 } // namespace hob

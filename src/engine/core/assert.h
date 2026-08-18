@@ -7,7 +7,7 @@
 #include "engine/core/logging.h"
 
 namespace hob::detail {
-    [[noreturn]] inline void report_fatal(std::string_view message, const char* file, int line) {
+    [[noreturn]] inline void report_fatal(std::string_view message, const char* file, int32_t line) {
         log::engine.error("FATAL: {} ({}:{})", message, file, line);
         std::abort();
     }

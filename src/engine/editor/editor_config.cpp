@@ -10,7 +10,7 @@
 
 namespace hob::editor {
     namespace {
-        constexpr int JSON_INDENT = 4;
+        constexpr int32_t JSON_INDENT = 4;
     } // namespace
 
     EditorConfig::EditorConfig(const std::filesystem::path& json_path) {

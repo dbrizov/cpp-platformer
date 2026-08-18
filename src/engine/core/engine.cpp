@@ -20,8 +20,8 @@ namespace hob {
         WindowConfig make_game_window_config(const GraphicsConfig& graphics_config) {
             WindowConfig config;
             config.title = graphics_config.window_title;
-            config.width = static_cast<int>(graphics_config.window_width);
-            config.height = static_cast<int>(graphics_config.window_height);
+            config.width = static_cast<int32_t>(graphics_config.window_width);
+            config.height = static_cast<int32_t>(graphics_config.window_height);
             config.vsync = graphics_config.vsync_enabled;
             return config;
         }
@@ -56,8 +56,8 @@ namespace hob {
         if (config.host_config.main_window_hosts_game) {
             m_renderer.set_game_window(&m_main_window);
 
-            int width_px = 0;
-            int height_px = 0;
+            int32_t width_px = 0;
+            int32_t height_px = 0;
             m_main_window.get_size_px(width_px, height_px);
             m_renderer.on_window_resized(width_px, height_px);
             m_ui_system.on_window_resized(width_px, height_px);
@@ -280,8 +280,8 @@ namespace hob {
         m_game_window = std::make_unique<Window>(m_sdl_context.get_gpu_device(), m_game_window_config);
         m_renderer.set_game_window(m_game_window.get());
 
-        int width_px = 0;
-        int height_px = 0;
+        int32_t width_px = 0;
+        int32_t height_px = 0;
         m_game_window->get_size_px(width_px, height_px);
         m_renderer.on_window_resized(width_px, height_px);
         m_ui_system.on_window_resized(width_px, height_px);

@@ -76,12 +76,12 @@ namespace hob {
             return std::nullopt;
         }
 
-        std::optional<int> parse_int(std::string_view sv) {
+        std::optional<int32_t> parse_int(std::string_view sv) {
             if (sv.empty()) {
                 return std::nullopt;
             }
 
-            int out = 0;
+            int32_t out = 0;
             const char* first = sv.data();
             const char* last = sv.data() + sv.size();
 
@@ -122,8 +122,8 @@ namespace hob {
         return bool_value;
     }
 
-    int ConsoleVariable::int_value() const {
-        const int int_value = parse_int(value).value();
+    int32_t ConsoleVariable::int_value() const {
+        const int32_t int_value = parse_int(value).value();
         return int_value;
     }
 
@@ -304,7 +304,7 @@ namespace hob {
         }
 
         if (cvar.type == ConsoleVariableType::Int) {
-            const std::optional<int> int_value = parse_int(new_value);
+            const std::optional<int32_t> int_value = parse_int(new_value);
             if (!int_value.has_value()) {
                 if (print_error) {
                     print_error(std::format("'{}' is not an integer", new_value));
@@ -642,12 +642,12 @@ namespace hob {
         m_backend.execute_line(command_line);
     }
 
-    int Console::text_edit_callback_stub(ImGuiInputTextCallbackData* data) {
+    int32_t Console::text_edit_callback_stub(ImGuiInputTextCallbackData* data) {
         auto* console = static_cast<Console*>(data->UserData);
         return console->text_edit_callback(data);
     }
 
-    int Console::text_edit_callback(ImGuiInputTextCallbackData* data) {
+    int32_t Console::text_edit_callback(ImGuiInputTextCallbackData* data) {
         switch (data->EventFlag) {
             case ImGuiInputTextFlags_CallbackCompletion: {
                 // Locate beginning of current word
@@ -671,8 +671,8 @@ namespace hob {
                 }
                 else if (candidates.size() == 1) {
                     // Replace with single candidate + space
-                    data->DeleteChars(static_cast<int>(word_start - data->Buf),
-                                      static_cast<int>(word_end - word_start));
+                    data->DeleteChars(static_cast<int32_t>(word_start - data->Buf),
+                                      static_cast<int32_t>(word_end - word_start));
 
                     data->InsertChars(
                         data->CursorPos, candidates[0].data(), candidates[0].data() + candidates[0].size());
@@ -684,14 +684,14 @@ namespace hob {
                     size_t match_len = typed.size();
                     while (true) {
                         bool all_match = true;
-                        int next_ch = -1;
+                        int32_t next_ch = -1;
                         for (size_t i = 0; i < candidates.size() && all_match; ++i) {
                             if (match_len >= candidates[i].size()) {
                                 all_match = false;
                                 break;
                             }
 
-                            const int ch = std::toupper(static_cast<unsigned char>(candidates[i][match_len]));
+                            const int32_t ch = std::toupper(static_cast<unsigned char>(candidates[i][match_len]));
                             if (i == 0) {
                                 next_ch = ch;
                             }
@@ -708,8 +708,8 @@ namespace hob {
                     }
 
                     if (match_len > 0) {
-                        data->DeleteChars(static_cast<int>(word_start - data->Buf),
-                                          static_cast<int>(word_end - word_start));
+                        data->DeleteChars(static_cast<int32_t>(word_start - data->Buf),
+                                          static_cast<int32_t>(word_end - word_start));
 
                         data->InsertChars(data->CursorPos, candidates[0].data(), candidates[0].data() + match_len);
                     }
@@ -724,11 +724,11 @@ namespace hob {
             }
 
             case ImGuiInputTextFlags_CallbackHistory: {
-                const int prev_history_pos = m_history_index;
+                const int32_t prev_history_pos = m_history_index;
 
                 if (data->EventKey == ImGuiKey_UpArrow) {
                     if (m_history_index == -1) {
-                        m_history_index = static_cast<int>(m_history.size() - 1);
+                        m_history_index = static_cast<int32_t>(m_history.size() - 1);
                     }
                     else if (m_history_index > 0) {
                         --m_history_index;
@@ -736,7 +736,7 @@ namespace hob {
                 }
                 else if (data->EventKey == ImGuiKey_DownArrow) {
                     if (m_history_index != -1) {
-                        if (++m_history_index >= static_cast<int>(m_history.size())) {
+                        if (++m_history_index >= static_cast<int32_t>(m_history.size())) {
                             m_history_index = -1;
                         }
                     }

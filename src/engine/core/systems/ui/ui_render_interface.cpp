@@ -155,10 +155,10 @@ namespace hob {
     }
 
     Rml::CompiledGeometryHandle UiRenderInterface::CompileGeometry(Rml::Span<const Rml::Vertex> vertices,
-                                                                   Rml::Span<const int> indices) {
+                                                                   Rml::Span<const int32_t> indices) {
         SDL_GPUDevice* gpu_device = m_renderer.get_gpu_device();
         const uint32_t vbytes = static_cast<uint32_t>(vertices.size() * sizeof(Rml::Vertex));
-        const uint32_t ibytes = static_cast<uint32_t>(indices.size() * sizeof(int));
+        const uint32_t ibytes = static_cast<uint32_t>(indices.size() * sizeof(int32_t));
 
         SDL_GPUBufferCreateInfo vbci{};
         vbci.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
@@ -259,8 +259,8 @@ namespace hob {
             return INVALID_TEXTURE_HANDLE;
         }
 
-        texture_dimensions.x = static_cast<int>(texture->get_width());
-        texture_dimensions.y = static_cast<int>(texture->get_height());
+        texture_dimensions.x = static_cast<int32_t>(texture->get_width());
+        texture_dimensions.y = static_cast<int32_t>(texture->get_height());
 
         const Rml::TextureHandle handle = m_next_texture_handle++;
         m_textures.emplace(handle, std::move(texture));
@@ -292,10 +292,10 @@ namespace hob {
         const float sx = (m_logical_size.x > 0.0f) ? static_cast<float>(m_target_width_px) / m_logical_size.x : 1.0f;
         const float sy = (m_logical_size.y > 0.0f) ? static_cast<float>(m_target_height_px) / m_logical_size.y : 1.0f;
 
-        m_scissor_rect.x = static_cast<int>(static_cast<float>(region.Left()) * sx);
-        m_scissor_rect.y = static_cast<int>(static_cast<float>(region.Top()) * sy);
-        m_scissor_rect.w = static_cast<int>(static_cast<float>(region.Width()) * sx);
-        m_scissor_rect.h = static_cast<int>(static_cast<float>(region.Height()) * sy);
+        m_scissor_rect.x = static_cast<int32_t>(static_cast<float>(region.Left()) * sx);
+        m_scissor_rect.y = static_cast<int32_t>(static_cast<float>(region.Top()) * sy);
+        m_scissor_rect.w = static_cast<int32_t>(static_cast<float>(region.Width()) * sx);
+        m_scissor_rect.h = static_cast<int32_t>(static_cast<float>(region.Height()) * sy);
     }
 
     void UiRenderInterface::SetTransform(const Rml::Matrix4f* transform) {

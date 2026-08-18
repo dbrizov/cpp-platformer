@@ -70,7 +70,7 @@ namespace hob {
             return;
         }
 
-        const sol::optional<int> priority = m_impl->lua_instance["priority"];
+        const sol::optional<int32_t> priority = m_impl->lua_instance["priority"];
         m_priority = priority.value_or(component_priority::CP_DEFAULT);
 
         m_impl->init = resolve_hook(m_impl->lua_instance, "init");
@@ -86,7 +86,7 @@ namespace hob {
         m_impl->on_trigger_exit = resolve_hook(m_impl->lua_instance, "on_trigger_exit");
     }
 
-    int LuaScriptComponent::get_priority() const {
+    int32_t LuaScriptComponent::get_priority() const {
         return m_priority;
     }
 
@@ -113,7 +113,7 @@ namespace hob {
 
         sol::table class_table = class_obj;
 
-        const sol::optional<int> priority = class_table["priority"];
+        const sol::optional<int32_t> priority = class_table["priority"];
         m_priority = priority.value_or(component_priority::CP_DEFAULT);
 
         const sol::object new_fn_obj = class_table["new"];

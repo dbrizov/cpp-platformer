@@ -27,7 +27,7 @@ namespace hob::editor {
         const sol::table rows = result.as<sol::table>();
         entries.reserve(rows.size());
 
-        for (int i = 1; i <= static_cast<int>(rows.size()); ++i) {
+        for (int32_t i = 1; i <= static_cast<int32_t>(rows.size()); ++i) {
             const sol::object row = rows[i];
             if (!row.is<sol::table>()) {
                 continue;

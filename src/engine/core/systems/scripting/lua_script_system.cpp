@@ -20,13 +20,13 @@
 
 namespace hob {
     namespace {
-        int lua_panic_handler(lua_State* L) {
+        int32_t lua_panic_handler(lua_State* L) {
             const char* message = lua_tostring(L, -1);
             log::sol2.error("panic: {}", message ? message : "unknown error");
             return 0;
         }
 
-        void lua_warn_handler(void* ud, const char* message, int tocont) {
+        void lua_warn_handler(void* ud, const char* message, int32_t tocont) {
             (void)ud;
             static std::string buffer;
             buffer += message;

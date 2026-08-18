@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
 #ifdef HOB_EDITOR
     editor_enabled = true;
 #endif
-    for (int i = 0; i < argc; ++i) {
+    for (int32_t i = 0; i < argc; ++i) {
         if (std::strcmp(argv[i], "--editor") == 0) {
             editor_enabled = true;
         }

@@ -10,7 +10,7 @@ namespace hob {
         static std::filesystem::path get_engine_assets_root();
 
         // Active game project (Lua + assets + config).
-        static std::filesystem::path resolve_project_root(int argc, char* argv[]);
+        static std::filesystem::path resolve_project_root(int32_t argc, char* argv[]);
         static void set_project_root(const std::filesystem::path& project_root);
         static std::filesystem::path get_project_root();
         static std::filesystem::path get_project_assets_root();

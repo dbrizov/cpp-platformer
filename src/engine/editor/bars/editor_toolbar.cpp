@@ -11,14 +11,14 @@
 
 namespace hob::editor {
     namespace {
-        constexpr int TOOLBAR_MAX_ITEMS = 3;
+        constexpr int32_t TOOLBAR_MAX_ITEMS = 3;
     } // namespace
 
     void EditorToolbar::draw(Editor& editor) {
         const EditorState state = editor.get_state();
 
         EditorActionId items[TOOLBAR_MAX_ITEMS]{};
-        int item_count = 0;
+        int32_t item_count = 0;
 
         switch (state) {
             case EditorState::Edit: {
@@ -43,7 +43,7 @@ namespace hob::editor {
                                                                  : "Paused";
 
         float toolbar_width = ImGui::CalcTextSize(state_label).x + MENU_BAR_ITEM_SPACING_X;
-        for (int i = 0; i < item_count; ++i) {
+        for (int32_t i = 0; i < item_count; ++i) {
             toolbar_width += action_bar_button_width(editor, items[i]);
         }
 
@@ -51,7 +51,7 @@ namespace hob::editor {
         const float right_edge_x = cursor_x + ImGui::GetContentRegionAvail().x;
         ImGui::SetCursorPosX(std::max(cursor_x, right_edge_x - toolbar_width));
 
-        for (int i = 0; i < item_count; ++i) {
+        for (int32_t i = 0; i < item_count; ++i) {
             action_bar_button(editor, items[i]);
         }
 

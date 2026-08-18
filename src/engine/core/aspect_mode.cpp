@@ -22,7 +22,10 @@ namespace hob {
         return true;
     }
 
-    Vector2 compute_logical_size(int window_width, int window_height, const Vector2& reference_size, AspectMode mode) {
+    Vector2 compute_logical_size(int32_t window_width,
+                                 int32_t window_height,
+                                 const Vector2& reference_size,
+                                 AspectMode mode) {
         if (window_width <= 0 || window_height <= 0) {
             return reference_size;
         }

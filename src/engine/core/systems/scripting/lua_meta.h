@@ -236,7 +236,7 @@ namespace hob {
 
     struct LuaEnumEntry {
         std::string name;
-        int value;
+        int32_t value;
     };
 
     struct LuaEnumInfo {
@@ -730,7 +730,7 @@ namespace hob {
 
         auto& info = reg.add_enum(name);
         for (const auto& v : values) {
-            info.values.emplace_back(v.first, static_cast<int>(v.second));
+            info.values.emplace_back(v.first, static_cast<int32_t>(v.second));
         }
     }
 } // namespace hob

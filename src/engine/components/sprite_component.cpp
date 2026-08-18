@@ -91,11 +91,11 @@ namespace hob {
         m_render_dirty = true;
     }
 
-    int SpriteComponent::get_z_index() const {
+    int32_t SpriteComponent::get_z_index() const {
         return m_z_index;
     }
 
-    void SpriteComponent::set_z_index(int z_index) {
+    void SpriteComponent::set_z_index(int32_t z_index) {
         m_z_index = z_index;
         m_render_dirty = true;
     }

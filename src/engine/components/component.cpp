@@ -14,7 +14,7 @@ namespace hob {
         return m_entity;
     }
 
-    int Component::get_priority() const {
+    int32_t Component::get_priority() const {
         return component_priority::CP_DEFAULT;
     }
 

@@ -30,7 +30,7 @@ namespace hob {
         return static_cast<size_t>(stream->gcount());
     }
 
-    bool UiFileInterface::Seek(Rml::FileHandle file, long offset, int origin) {
+    bool UiFileInterface::Seek(Rml::FileHandle file, long offset, int32_t origin) {
         auto* stream = reinterpret_cast<std::ifstream*>(file);
 
         std::ios_base::seekdir dir = std::ios_base::beg;

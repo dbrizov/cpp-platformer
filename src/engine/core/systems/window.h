@@ -10,10 +10,10 @@
 namespace hob {
     struct WindowConfig {
         std::string title = "Hob2D";
-        int width = 1152;
-        int height = 648;
-        int x = SDL_WINDOWPOS_CENTERED;
-        int y = SDL_WINDOWPOS_CENTERED;
+        int32_t width = 1152;
+        int32_t height = 648;
+        int32_t x = SDL_WINDOWPOS_CENTERED;
+        int32_t y = SDL_WINDOWPOS_CENTERED;
         bool maximized = false;
         bool vsync = true;
     };
@@ -36,7 +36,7 @@ namespace hob {
         SDL_WindowID get_id() const;
 
         Vector2 get_size() const;
-        void get_size_px(int& width, int& height) const;
+        void get_size_px(int32_t& width, int32_t& height) const;
         float get_pixel_density() const;
 
         bool has_focus() const;

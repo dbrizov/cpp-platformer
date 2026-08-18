@@ -221,7 +221,7 @@ namespace hob::editor {
         void draw_component(Editor& editor,
                             EditorDockInspectorPendingEdit& pending,
                             EntityId entity_id,
-                            int index,
+                            int32_t index,
                             const sol::table& component) {
             const std::string name = component.get_or<std::string>(query_key::NAME, "?");
             const std::string label = to_display_label(name);
@@ -240,7 +240,7 @@ namespace hob::editor {
                 const sol::object fields = component[query_key::FIELDS];
                 if (fields.is<sol::table>()) {
                     const sol::table rows = fields.as<sol::table>();
-                    for (int i = 1; i <= rows.size(); ++i) {
+                    for (int32_t i = 1; i <= rows.size(); ++i) {
                         const sol::object row = rows[i];
                         if (row.is<sol::table>()) {
                             draw_field(editor, pending, target, label, row.as<sol::table>());
@@ -266,7 +266,7 @@ namespace hob::editor {
             }
 
             const sol::table sections = components.as<sol::table>();
-            for (int i = 1; i <= sections.size(); ++i) {
+            for (int32_t i = 1; i <= sections.size(); ++i) {
                 const sol::object section = sections[i];
                 if (section.is<sol::table>()) {
                     draw_component(editor, pending, entity_id, i, section.as<sol::table>());

@@ -35,7 +35,7 @@ namespace hob {
     // and is ignored for digital sources.
     struct InputSource {
         InputDevice device = InputDevice::Keyboard;
-        int code = 0;
+        int32_t code = 0;
         bool is_analog = false;
         float scale = 1.0f;
     };

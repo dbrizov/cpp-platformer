@@ -40,7 +40,7 @@ namespace hob {
                 // Paren-depth aware: handles nested fun(...) in arg types.
                 const std::string& sig = m.ret;
                 std::size_t close = std::string::npos;
-                int depth = 0;
+                int32_t depth = 0;
                 for (std::size_t i = 0; i < sig.size(); ++i) {
                     if (sig[i] == '(') {
                         ++depth;
@@ -71,7 +71,7 @@ namespace hob {
                 std::vector<std::string> parts;
                 {
                     std::string cur;
-                    int d = 0;
+                    int32_t d = 0;
                     for (const char c : params) {
                         if (c == '(' || c == '<') {
                             ++d;
@@ -130,7 +130,7 @@ namespace hob {
                     // skipping any ':' nested inside fun(...) or a generic like table<k, v>.
                     std::size_t sep = std::string::npos;
                     {
-                        int d = 0;
+                        int32_t d = 0;
                         for (std::size_t i = 0; i < part.size(); ++i) {
                             if (part[i] == '(' || part[i] == '<') {
                                 ++d;

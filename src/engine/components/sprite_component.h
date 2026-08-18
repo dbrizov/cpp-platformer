@@ -21,7 +21,7 @@ namespace hob {
         MaterialRef m_material;
         Vector2 m_pivot = Vector2(0.5f, 0.5f);
         Vector2 m_scale = Vector2(1.0f, 1.0f);
-        int m_z_index = 0;
+        int32_t m_z_index = 0;
         uint32_t m_pixels_per_meter = 64;
 
         // A handle to the Renderer's sprite draw data.
@@ -61,8 +61,8 @@ namespace hob {
         Vector2 get_scale() const;
         void set_scale(const Vector2& scale);
 
-        int get_z_index() const;
-        void set_z_index(int z_index);
+        int32_t get_z_index() const;
+        void set_z_index(int32_t z_index);
 
         uint32_t get_pixels_per_meter() const;
         float get_pixels_per_meter_f() const;

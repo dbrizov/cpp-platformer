@@ -8,9 +8,9 @@ namespace hob {
     class Entity;
 
     namespace component_priority {
-        constexpr int CP_INPUT = -100;
-        constexpr int CP_SOCKETS = -50;
-        constexpr int CP_DEFAULT = 0;
+        constexpr int32_t CP_INPUT = -100;
+        constexpr int32_t CP_SOCKETS = -50;
+        constexpr int32_t CP_DEFAULT = 0;
     } // namespace component_priority
 
     class Component {
@@ -25,7 +25,7 @@ namespace hob {
         Engine& get_engine() const;
         Entity& get_entity() const;
 
-        virtual int get_priority() const;
+        virtual int32_t get_priority() const;
 
         virtual void init();
         virtual void enter_play();

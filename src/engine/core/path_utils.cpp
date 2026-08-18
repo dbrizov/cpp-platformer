@@ -39,11 +39,11 @@ namespace hob {
         return get_engine_root() / "assets";
     }
 
-    std::filesystem::path PathUtils::resolve_project_root(int argc, char* argv[]) {
+    std::filesystem::path PathUtils::resolve_project_root(int32_t argc, char* argv[]) {
         std::string project;
 
         // 1) --project <path>
-        for (int i = 1; i + 1 < argc; ++i) {
+        for (int32_t i = 1; i + 1 < argc; ++i) {
             if (std::strcmp(argv[i], "--project") == 0) {
                 project = argv[i + 1];
                 break;

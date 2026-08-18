@@ -33,9 +33,9 @@ namespace hob {
             }
         };
 
-        int to_rml_key_modifiers() {
+        int32_t to_rml_key_modifiers() {
             const SDL_Keymod mod = SDL_GetModState();
-            int result = 0;
+            int32_t result = 0;
             if (mod & SDL_KMOD_CTRL) {
                 result |= Rml::Input::KM_CTRL;
             }
@@ -71,7 +71,7 @@ namespace hob {
             }
         }
 
-        int to_rml_mouse_button(uint8_t sdl_button) {
+        int32_t to_rml_mouse_button(uint8_t sdl_button) {
             switch (sdl_button) {
                 case SDL_BUTTON_LEFT:
                     return 0;
@@ -102,7 +102,7 @@ namespace hob {
                 case Rml::Variant::BOOL:
                     return variant.Get<bool>();
                 case Rml::Variant::INT:
-                    return static_cast<int64_t>(variant.Get<int>());
+                    return static_cast<int64_t>(variant.Get<int32_t>());
                 case Rml::Variant::INT64:
                     return variant.Get<int64_t>();
                 case Rml::Variant::FLOAT:
@@ -141,15 +141,16 @@ namespace hob {
             log::ui.error("UiSystem: could not load base stylesheet '{}'", UI_BASE_STYLESHEET);
         }
 
-        const Rml::Vector2i dimensions(static_cast<int>(m_reference_size.x), static_cast<int>(m_reference_size.y));
+        const Rml::Vector2i dimensions(static_cast<int32_t>(m_reference_size.x),
+                                       static_cast<int32_t>(m_reference_size.y));
 
         m_context = Rml::CreateContext(UI_CONTEXT_NAME, dimensions);
         HOB_CHECK(m_context, "UiSystem init failed: Rml::CreateContext() returned null");
 
         log::ui.info("Rml::CreateContext('{}', {}x{})", UI_CONTEXT_NAME, dimensions.x, dimensions.y);
 
-        int window_width = 0;
-        int window_height = 0;
+        int32_t window_width = 0;
+        int32_t window_height = 0;
         m_renderer.get_game_window()->get_size_px(window_width, window_height);
         on_window_resized(window_width, window_height);
     }
@@ -181,20 +182,20 @@ namespace hob {
                 const Vector2 logical_size = m_render_interface.get_logical_size();
                 const float sx = (window_size.x > 0.0f) ? logical_size.x / window_size.x : 1.0f;
                 const float sy = (window_size.y > 0.0f) ? logical_size.y / window_size.y : 1.0f;
-                m_context->ProcessMouseMove(static_cast<int>(event.motion.x * sx),
-                                            static_cast<int>(event.motion.y * sy),
+                m_context->ProcessMouseMove(static_cast<int32_t>(event.motion.x * sx),
+                                            static_cast<int32_t>(event.motion.y * sy),
                                             to_rml_key_modifiers());
                 break;
             }
             case SDL_EVENT_MOUSE_BUTTON_DOWN: {
-                const int button = to_rml_mouse_button(event.button.button);
+                const int32_t button = to_rml_mouse_button(event.button.button);
                 if (button >= 0) {
                     m_context->ProcessMouseButtonDown(button, to_rml_key_modifiers());
                 }
                 break;
             }
             case SDL_EVENT_MOUSE_BUTTON_UP: {
-                const int button = to_rml_mouse_button(event.button.button);
+                const int32_t button = to_rml_mouse_button(event.button.button);
                 if (button >= 0) {
                     m_context->ProcessMouseButtonUp(button, to_rml_key_modifiers());
                 }
@@ -208,14 +209,15 @@ namespace hob {
         }
     }
 
-    void UiSystem::on_window_resized(int window_width, int window_height) {
+    void UiSystem::on_window_resized(int32_t window_width, int32_t window_height) {
         if (m_context == nullptr) {
             return;
         }
 
         const Vector2 logical_size = compute_logical_size(window_width, window_height, m_reference_size, m_aspect_mode);
         m_render_interface.set_logical_size(logical_size);
-        m_context->SetDimensions(Rml::Vector2i(static_cast<int>(logical_size.x), static_cast<int>(logical_size.y)));
+        m_context->SetDimensions(
+            Rml::Vector2i(static_cast<int32_t>(logical_size.x), static_cast<int32_t>(logical_size.y)));
     }
 
     void UiSystem::tick() {

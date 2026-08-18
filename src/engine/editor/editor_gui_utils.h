@@ -16,7 +16,7 @@
 
 namespace hob::editor {
     struct StyleColorStack {
-        int count = 0;
+        int32_t count = 0;
 
         void push(ImGuiCol index, const ImVec4& color) {
             ImGui::PushStyleColor(index, color);
@@ -30,7 +30,7 @@ namespace hob::editor {
     };
 
     struct StyleVarStack {
-        int count = 0;
+        int32_t count = 0;
 
         void push(ImGuiStyleVar index, const ImVec2& value) {
             ImGui::PushStyleVar(index, value);

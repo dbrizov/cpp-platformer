@@ -32,10 +32,10 @@ namespace hob {
         // Column-major matrix product (result = a * b): applies b first, then a.
         static Matrix4x4 multiply(const Matrix4x4& a, const Matrix4x4& b) {
             Matrix4x4 out;
-            for (int col = 0; col < 4; ++col) {
-                for (int row = 0; row < 4; ++row) {
+            for (int32_t col = 0; col < 4; ++col) {
+                for (int32_t row = 0; row < 4; ++row) {
                     float sum = 0.0f;
-                    for (int k = 0; k < 4; ++k) {
+                    for (int32_t k = 0; k < 4; ++k) {
                         sum += a.m[k * 4 + row] * b.m[col * 4 + k];
                     }
                     out.m[col * 4 + row] = sum;

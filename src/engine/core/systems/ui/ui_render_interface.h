@@ -28,8 +28,8 @@ namespace hob {
 
         SDL_GPUCommandBuffer* m_active_cmd = nullptr;
         SDL_GPURenderPass* m_active_pass = nullptr;
-        int m_target_width_px = 0;
-        int m_target_height_px = 0;
+        int32_t m_target_width_px = 0;
+        int32_t m_target_height_px = 0;
 
         bool m_scissor_enabled = false;
         SDL_Rect m_scissor_rect{};
@@ -50,7 +50,7 @@ namespace hob {
         void end_frame();
 
         Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices,
-                                                    Rml::Span<const int> indices) override;
+                                                    Rml::Span<const int32_t> indices) override;
         void RenderGeometry(Rml::CompiledGeometryHandle geometry,
                             Rml::Vector2f translation,
                             Rml::TextureHandle texture) override;

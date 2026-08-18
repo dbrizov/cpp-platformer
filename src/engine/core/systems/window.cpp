@@ -32,8 +32,8 @@ namespace hob {
 
         SDL_SetGPUSwapchainParameters(m_gpu_device, m_window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, present_mode);
 
-        int pixel_width = 0;
-        int pixel_height = 0;
+        int32_t pixel_width = 0;
+        int32_t pixel_height = 0;
         SDL_GetWindowSizeInPixels(m_window, &pixel_width, &pixel_height);
         log::sdl.info("Window created: '{}' ({}x{} pts, {}x{} px, density {})",
                       config.title,
@@ -68,13 +68,13 @@ namespace hob {
     }
 
     Vector2 Window::get_size() const {
-        int width = 0;
-        int height = 0;
+        int32_t width = 0;
+        int32_t height = 0;
         SDL_GetWindowSize(m_window, &width, &height);
         return Vector2(static_cast<float>(width), static_cast<float>(height));
     }
 
-    void Window::get_size_px(int& width, int& height) const {
+    void Window::get_size_px(int32_t& width, int32_t& height) const {
         SDL_GetWindowSizeInPixels(m_window, &width, &height);
     }
 

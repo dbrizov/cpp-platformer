@@ -69,11 +69,11 @@ namespace hob {
 
         if (ImGui::Begin("Audio Clip Refs", nullptr, DEBUG_WINDOW_FLAGS)) {
             size_t live = 0;
-            int total_refs = 0;
+            int32_t total_refs = 0;
             for (const auto& [path, weak] : m_clips) {
                 if (auto clip = weak.lock()) {
                     // Subtract 1 for the strong ref held only for this iteration.
-                    total_refs += static_cast<int>(clip.use_count()) - 1;
+                    total_refs += static_cast<int32_t>(clip.use_count()) - 1;
                     live += 1;
                 }
             }
@@ -93,7 +93,7 @@ namespace hob {
 
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
-                    ImGui::Text("%d", static_cast<int>(clip.use_count()) - 1);
+                    ImGui::Text("%d", static_cast<int32_t>(clip.use_count()) - 1);
                     ImGui::TableSetColumnIndex(1);
                     ImGui::TextUnformatted(clip->get_path().c_str());
                 }

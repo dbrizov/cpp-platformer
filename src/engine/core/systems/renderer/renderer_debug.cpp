@@ -150,20 +150,20 @@ namespace hob {
         if (ImGui::Begin("Texture Refs", nullptr, DEBUG_WINDOW_FLAGS)) {
             // Count per-texture refs held by the renderer's draw data.
             // Sprites hold a persistent TextureRef that inflates use_count() without being a "logical" holder.
-            std::unordered_map<const Texture*, int> pending_refs;
+            std::unordered_map<const Texture*, int32_t> pending_refs;
             for (const auto& draw : m_sprite_draws) {
                 if (draw.texture) {
                     pending_refs[draw.texture.get()] += 1;
                 }
             }
 
-            int total_refs = 0;
+            int32_t total_refs = 0;
             for (const auto& [path, weak] : m_textures) {
                 if (auto tex = weak.lock()) {
                     // Subtract 1 because `tex` itself is a strong ref held only for this iteration.
-                    const int all = static_cast<int>(tex.use_count()) - 1;
+                    const int32_t all = static_cast<int32_t>(tex.use_count()) - 1;
                     const auto pit = pending_refs.find(tex.get());
-                    const int pending = pit != pending_refs.end() ? pit->second : 0;
+                    const int32_t pending = pit != pending_refs.end() ? pit->second : 0;
                     total_refs += all - pending;
                 }
             }
@@ -184,10 +184,10 @@ namespace hob {
                     if (!tex) {
                         continue;
                     }
-                    const int all = static_cast<int>(tex.use_count()) - 1;
+                    const int32_t all = static_cast<int32_t>(tex.use_count()) - 1;
                     const auto pit = pending_refs.find(tex.get());
-                    const int pending = pit != pending_refs.end() ? pit->second : 0;
-                    const int refs = all - pending;
+                    const int32_t pending = pit != pending_refs.end() ? pit->second : 0;
+                    const int32_t refs = all - pending;
 
                     // A texture with no explicit sampler is drawn with the engine default sampler.
                     const SamplerDesc& sampler = tex->get_sampler() ? tex->get_sampler_desc() : m_default_sampler_desc;
@@ -246,7 +246,7 @@ namespace hob {
 
         // Each on-screen sprite's SpriteDrawData co-owns a MaterialRef (transient render-queue
         // bookkeeping, not a logical owner), so exclude those copies from the count.
-        std::unordered_map<const Material*, int> draw_refs;
+        std::unordered_map<const Material*, int32_t> draw_refs;
         for (const auto& draw : m_sprite_draws) {
             if (draw.material) {
                 draw_refs[draw.material.get()] += 1;
@@ -256,13 +256,13 @@ namespace hob {
         // mat is a temporary lock (+1); also subtract the render-queue copies.
         const auto ref_count = [&draw_refs](const MaterialRef& mat) {
             const auto it = draw_refs.find(mat.get());
-            const int pending = it != draw_refs.end() ? it->second : 0;
-            return static_cast<int>(mat.use_count()) - 1 - pending;
+            const int32_t pending = it != draw_refs.end() ? it->second : 0;
+            return static_cast<int32_t>(mat.use_count()) - 1 - pending;
         };
 
         if (ImGui::Begin("Materials", nullptr, DEBUG_WINDOW_FLAGS)) {
             size_t live = 0;
-            int total_refs = 0;
+            int32_t total_refs = 0;
             for (const auto& weak : m_materials) {
                 if (auto mat = weak.lock()) {
                     total_refs += ref_count(mat);
@@ -342,7 +342,7 @@ namespace hob {
 
                 ImGui::Text("Total: %zu draws | %zu groups", m_sprite_draw_order.size(), group_count);
 
-                const int columns = 4;
+                const int32_t columns = 4;
                 const ImGuiTabBarFlags flags =
                     ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
 

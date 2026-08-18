@@ -137,7 +137,7 @@ namespace hob {
         m_game_window = window;
     }
 
-    void Renderer::on_window_resized(int window_width, int window_height) {
+    void Renderer::on_window_resized(int32_t window_width, int32_t window_height) {
         if (m_game_window == nullptr) {
             return;
         }
@@ -399,9 +399,9 @@ namespace hob {
         emit_pass(screen_pos, color);
     }
 
-    int Renderer::get_debug_font_line_height() const {
+    int32_t Renderer::get_debug_font_line_height() const {
         // The atlas is baked scaled by pixel_density for crispness; report the nominal (DEBUG_FONT_SIZE_PX) height.
-        return static_cast<int>(
+        return static_cast<int32_t>(
             std::round(static_cast<float>(m_debug_font.get_line_height()) * m_debug_font_baked_inverse_pixel_density));
     }
 } // namespace hob

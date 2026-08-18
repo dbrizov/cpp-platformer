@@ -156,7 +156,7 @@ namespace hob::editor {
 
     const EditorAction& get_action(EditorActionId id) {
         const EditorAction& action = ACTIONS[static_cast<size_t>(id)];
-        HOB_CHECK(action.id == id, "Editor action table is out of order at index {}", static_cast<int>(id));
+        HOB_CHECK(action.id == id, "Editor action table is out of order at index {}", static_cast<int32_t>(id));
 
         return action;
     }

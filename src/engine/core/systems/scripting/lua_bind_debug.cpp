@@ -49,7 +49,7 @@ namespace hob {
                    sol::optional<Color> color,
                    sol::optional<float> duration,
                    sol::optional<float> thickness,
-                   sol::optional<int> segments) {
+                   sol::optional<int32_t> segments) {
                     debug::draw_circle(center,
                                        radius,
                                        color.value_or(debug::DEFAULT_DRAW_COLOR),

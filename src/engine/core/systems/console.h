@@ -72,7 +72,7 @@ namespace hob {
         std::function<void(const ConsoleVariable&)> on_changed;
 
         bool bool_value() const;
-        int int_value() const;
+        int32_t int_value() const;
         float float_value() const;
 
         std::string to_string_short(uint32_t indent = 0) const;
@@ -131,7 +131,7 @@ namespace hob {
         std::vector<std::string> m_log;
         bool m_scroll_to_bottom = true;
         std::vector<std::string> m_history;
-        int m_history_index = -1; // -1: new line, [0..history-1] browsing history.
+        int32_t m_history_index = -1; // -1: new line, [0..history-1] browsing history.
 
         ConsoleBackend m_backend;
 
@@ -178,7 +178,7 @@ namespace hob {
     private:
         void execute_line(std::string_view line);
 
-        static int text_edit_callback_stub(ImGuiInputTextCallbackData* data);
-        int text_edit_callback(ImGuiInputTextCallbackData* data);
+        static int32_t text_edit_callback_stub(ImGuiInputTextCallbackData* data);
+        int32_t text_edit_callback(ImGuiInputTextCallbackData* data);
     };
 } // namespace hob

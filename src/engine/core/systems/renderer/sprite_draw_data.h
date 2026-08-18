@@ -21,7 +21,7 @@ namespace hob {
         Vector2 size; // quad size, world meters (texture/ppm * scale)
         Vector2 pivot = Vector2(0.5f, 0.5f); // pivot as a 0..1 fraction of the quad
         float rotation = 0.0f; // world rotation, radians (y-up CCW)
-        int z_index = 0;
+        int32_t z_index = 0;
 
         const Shader* get_shader() const {
             return material ? material->get_shader() : nullptr;

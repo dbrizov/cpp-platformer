@@ -14,14 +14,14 @@ namespace hob {
     namespace {
         constexpr uint32_t FIRST_GLYPH = 32;
         constexpr uint32_t LAST_GLYPH = 126;
-        constexpr int GLYPH_PADDING = 1;
+        constexpr int32_t GLYPH_PADDING = 1;
 
         struct BakedGlyph {
             uint32_t codepoint;
             SDL_Surface* surface;
-            int min_x;
-            int max_y;
-            int advance;
+            int32_t min_x;
+            int32_t max_y;
+            int32_t advance;
         };
     } // namespace
 
@@ -51,8 +51,8 @@ namespace hob {
         // Rasterize all glyphs first; we need their sizes before sizing the atlas.
         std::vector<BakedGlyph> baked;
         baked.reserve(LAST_GLYPH - FIRST_GLYPH + 1);
-        int row_h = 0;
-        int total_w = 0;
+        int32_t row_h = 0;
+        int32_t total_w = 0;
 
         const SDL_Color white{255, 255, 255, 255};
         for (uint32_t cp = FIRST_GLYPH; cp <= LAST_GLYPH; ++cp) {
@@ -61,7 +61,7 @@ namespace hob {
                 continue;
             }
 
-            int min_x = 0, max_x = 0, min_y = 0, max_y = 0, advance = 0;
+            int32_t min_x = 0, max_x = 0, min_y = 0, max_y = 0, advance = 0;
             TTF_GetGlyphMetrics(font, cp, &min_x, &max_x, &min_y, &max_y, &advance);
 
             total_w += surf->w + GLYPH_PADDING;
@@ -81,7 +81,7 @@ namespace hob {
 
         std::vector<uint8_t> atlas_pixels(static_cast<size_t>(m_atlas_width) * m_atlas_height * 4, 0);
 
-        int pen_x = 0;
+        int32_t pen_x = 0;
         for (const BakedGlyph& b : baked) {
             SDL_Surface* surf = b.surface;
 
@@ -96,7 +96,7 @@ namespace hob {
 
             if (converted) {
                 const uint8_t* src = static_cast<const uint8_t*>(converted->pixels);
-                for (int y = 0; y < converted->h; ++y) {
+                for (int32_t y = 0; y < converted->h; ++y) {
                     uint8_t* dst_row = atlas_pixels.data() + (static_cast<size_t>(y) * m_atlas_width + pen_x) * 4;
                     const uint8_t* src_row = src + static_cast<size_t>(y) * converted->pitch;
                     std::memcpy(dst_row, src_row, static_cast<size_t>(converted->w) * 4);
@@ -199,7 +199,7 @@ namespace hob {
         return m_atlas_height;
     }
 
-    int Font::get_line_height() const {
+    int32_t Font::get_line_height() const {
         return m_line_height;
     }
 
