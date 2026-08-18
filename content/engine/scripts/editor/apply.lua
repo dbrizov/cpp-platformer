@@ -23,20 +23,20 @@ function Editor.set_live_field(entity_id, component_key, field, value)
         return
     end
 
-    local schema = _G[Schema.COMPONENT_SCHEMAS][component_key]
-    if schema == nil or schema[Schema.MAP_SETTER] then
+    local schema = _G.__component_schemas[component_key]
+    if schema == nil or schema.map_setter then
         Log.error("Editor.set_live_field: '" .. tostring(component_key) .. "' has no per-field setters")
         return
     end
 
-    local setter = schema[Schema.SETTERS][field]
+    local setter = schema.setters[field]
     if setter == nil then
         Log.error("Editor.set_live_field: unknown field '" .. tostring(field) .. "' on '" .. component_key .. "'")
         return
     end
 
     -- The getter, never `add`: editing a field must not bring a component into existence.
-    local component = entity[schema[Schema.GET]](entity)
+    local component = entity[schema.get](entity)
     if component == nil then
         return
     end

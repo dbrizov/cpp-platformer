@@ -13,7 +13,7 @@
 namespace hob {
     namespace {
         bool field_has_metadata(const LuaComponentSchemaField& field) {
-            return !field.type.empty() || !field.enum_name.empty() || field.min != field.max || field.step != 0.0f;
+            return !field.type.empty() || !field.enum_name.empty() || field.min != field.max;
         }
 
         bool fields_have_metadata(const std::vector<LuaComponentSchemaField>& fields) {
@@ -114,12 +114,6 @@ namespace hob {
                             write_number(out, f.min);
                             out << ", " << schema_key::MAX << " = ";
                             write_number(out, f.max);
-                            out << ",";
-                        }
-
-                        if (f.step != 0.0f) {
-                            out << " " << schema_key::STEP << " = ";
-                            write_number(out, f.step);
                             out << ",";
                         }
 

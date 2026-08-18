@@ -4,19 +4,19 @@
 _G.Editor = _G.Editor or {}
 
 -- ---------------------------------------------------------------------------------------------
--- Editor field kinds
+-- Editor field types
 -- ---------------------------------------------------------------------------------------------
 
 -- Factory registries whose built objects are usertypes worth recognizing by identity.
 -- Path registries unwrap to plain path strings, so a field holding one of
 -- their resources can only be identified from declared schema metadata.
-local RESOURCE_REGISTRY_KINDS = {
+local RESOURCE_REGISTRY_TYPES = {
     Materials = FieldType.MATERIAL,
     AnimationClips = FieldType.ANIMATION_CLIP,
 }
 
--- Metatable identity -> field kind
-local usertype_kinds = nil
+-- Metatable identity -> field type
+local usertype_types = nil
 
 local function get_registry_metatable(registry_name)
     local names = _G.__factory_alias_names[registry_name]
@@ -32,25 +32,25 @@ local function get_registry_metatable(registry_name)
     return nil
 end
 
-local function ensure_usertype_kinds()
-    if usertype_kinds ~= nil then
+local function ensure_usertype_types()
+    if usertype_types ~= nil then
         return
     end
 
-    usertype_kinds = {
+    usertype_types = {
         [getmetatable(Vector2())] = FieldType.VECTOR2,
         [getmetatable(Color())] = FieldType.COLOR,
     }
 
-    for registry_name, kind in pairs(RESOURCE_REGISTRY_KINDS) do
+    for registry_name, field_type in pairs(RESOURCE_REGISTRY_TYPES) do
         local mt = get_registry_metatable(registry_name)
         if mt ~= nil then
-            usertype_kinds[mt] = kind
+            usertype_types[mt] = field_type
         end
     end
 end
 
-local function get_usertype_kind_from_value(value)
+local function get_field_type_from_value(value)
     local t = type(value)
     if t == "number" then
         return math.type(value) == "integer" and FieldType.INT or FieldType.FLOAT
@@ -59,10 +59,10 @@ local function get_usertype_kind_from_value(value)
     elseif t == "string" then
         return FieldType.STRING
     elseif t == "userdata" then
-        ensure_usertype_kinds()
-        local kind = usertype_kinds[getmetatable(value)]
-        if kind ~= nil then
-            return kind
+        ensure_usertype_types()
+        local field_type = usertype_types[getmetatable(value)]
+        if field_type ~= nil then
+            return field_type
         end
     end
 
@@ -74,17 +74,17 @@ end
 -- ---------------------------------------------------------------------------------------------
 
 local function get_field_meta(schema, field)
-    local types = schema[Schema.TYPES]
+    local types = schema.types
     return types ~= nil and types[field] or nil
 end
 
 local function get_schema_field_order(schema)
-    if schema[Schema.ORDER] ~= nil then
-        return schema[Schema.ORDER]
+    if schema.__order ~= nil then
+        return schema.__order
     end
 
     local names = {}
-    for field in pairs(schema[Schema.GETTERS]) do
+    for field in pairs(schema.getters) do
         names[#names + 1] = field
     end
     table.sort(names)
@@ -96,8 +96,8 @@ end
 -- A read-only property has nothing for the Inspector to write back to.
 local function append_schema_fields(fields, component, schema)
     for _, field in ipairs(get_schema_field_order(schema)) do
-        local getter = schema[Schema.GETTERS][field]
-        if getter ~= nil and schema[Schema.SETTERS][field] ~= nil then
+        local getter = schema.getters[field]
+        if getter ~= nil and schema.setters[field] ~= nil then
             local ok, value = pcall(function()
                 return component[getter](component)
             end)
@@ -114,7 +114,7 @@ local function append_schema_fields(fields, component, schema)
 
                 row.name = field
                 row.value = value
-                row.kind = (meta ~= nil and meta[Schema.TYPE]) or get_usertype_kind_from_value(value)
+                row.type = (meta ~= nil and meta.type) or get_field_type_from_value(value)
 
                 fields[#fields + 1] = row
             end
@@ -240,7 +240,7 @@ local function get_lua_component_fields(comp_instance)
     local fields = {}
     for _, name in ipairs(ordered) do
         local value = comp_instance[name]
-        fields[#fields + 1] = { name = name, value = value, kind = get_usertype_kind_from_value(value) }
+        fields[#fields + 1] = { name = name, value = value, type = get_field_type_from_value(value) }
     end
 
     return fields
@@ -290,13 +290,13 @@ function Editor.get_components(entity_id)
         return nil
     end
 
-    local schemas = _G[Schema.COMPONENT_SCHEMAS]
+    local schemas = _G.__component_schemas
     local out = {}
 
-    for _, key in ipairs(schemas[Schema.ORDER]) do
+    for _, key in ipairs(schemas.__order) do
         local schema = schemas[key]
-        if not schema[Schema.MAP_SETTER] then
-            local component = entity[schema[Schema.GET]](entity)
+        if not schema.map_setter then
+            local component = entity[schema.get](entity)
             if component ~= nil then
                 local fields = {}
                 append_schema_fields(fields, component, schema)

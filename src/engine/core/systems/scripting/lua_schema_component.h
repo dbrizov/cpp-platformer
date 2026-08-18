@@ -19,11 +19,10 @@ namespace hob {
         std::string name; // Prefab field, e.g. "body_type"
         std::string get_method; // Component method, e.g. "get_body_type"
         std::string set_method; // Component method, e.g. "set_body_type"
-        std::string type; // Editor type, e.g. "angle". Empty means the editor infers one from the Lua value.
+        std::string type; // Value semantics, e.g. "angle" (radians). Empty means it is inferred from the Lua value.
         std::string enum_name; // Lua global holding the entries, e.g. "BodyType". For `enum` and `bitmask`.
-        float min = 0.0f; // min == max means unbounded, matching the editor's field widgets.
+        float min = 0.0f; // Valid range. min == max means unbounded.
         float max = 0.0f; // MAX_FLOAT / MIN_FLOAT mark an open end.
-        float step = 0.0f; // 0 means the widget's default drag speed.
         bool reapply_on_hot_reload = true;
     };
 

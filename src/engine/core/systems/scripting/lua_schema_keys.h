@@ -20,12 +20,7 @@ namespace hob {
         constexpr const char* ENUM = "enum";
         constexpr const char* MIN = "min";
         constexpr const char* MAX = "max";
-        constexpr const char* STEP = "step";
     } // namespace schema_key
-
-    namespace enum_table {
-        constexpr const char* COLLISION = "Collision";
-    } // namespace enum_table
 
     namespace field_type {
         constexpr const char* INT = "int";
@@ -34,7 +29,7 @@ namespace hob {
         constexpr const char* STRING = "string";
         constexpr const char* VECTOR2 = "vector2";
         constexpr const char* COLOR = "color";
-        constexpr const char* ANGLE = "angle"; // Radians on the wire, degrees in the widget
+        constexpr const char* ANGLE = "angle"; // Stored in radians
         constexpr const char* ENUM = "enum";
         constexpr const char* BITMASK = "bitmask";
         constexpr const char* TEXTURE = "texture";

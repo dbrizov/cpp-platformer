@@ -14,6 +14,17 @@ namespace hob {
 } // namespace hob
 
 namespace hob::editor {
+    // Keys on the result tables Editor.get_components() and Editor.get_enum_entries() return.
+    // query.lua writes these literally -- renaming one here does not rename it there.
+    namespace query_key {
+        constexpr const char* NAME = "name";
+        constexpr const char* VALUE = "value";
+        constexpr const char* TYPE = "type";
+        constexpr const char* IS_LUA = "is_lua";
+        constexpr const char* INDEX = "index";
+        constexpr const char* FIELDS = "fields";
+    } // namespace query_key
+
     sol::protected_function get_editor_func(Engine& engine, const char* name);
 
     template<typename... Args>
