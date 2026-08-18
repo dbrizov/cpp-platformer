@@ -45,14 +45,18 @@ namespace hob {
                                                 std::string add_method,
                                                 std::string get_method,
                                                 std::vector<LuaComponentSchemaField> fields) {
-        m_schemas.push_back({std::move(key), std::move(add_method), std::move(get_method), std::move(fields), {}});
+        m_schemas.emplace_back(std::move(key), std::move(add_method), std::move(get_method), std::move(fields));
     }
 
     void LuaComponentSchemaRegistry::add_map_schema(std::string key,
                                                     std::string add_method,
                                                     std::string get_method,
                                                     std::string map_setter) {
-        m_schemas.push_back({std::move(key), std::move(add_method), std::move(get_method), {}, std::move(map_setter)});
+        m_schemas.emplace_back(std::move(key),
+                               std::move(add_method),
+                               std::move(get_method),
+                               std::vector<LuaComponentSchemaField>{},
+                               std::move(map_setter));
     }
 
     bool LuaComponentSchemaRegistry::write_to_file(const std::filesystem::path& full_path) const {

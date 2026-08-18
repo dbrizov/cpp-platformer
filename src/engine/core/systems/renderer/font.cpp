@@ -66,7 +66,7 @@ namespace hob {
 
             total_w += surf->w + GLYPH_PADDING;
             row_h = std::max(row_h, surf->h);
-            baked.push_back({cp, surf, min_x, max_y, advance});
+            baked.emplace_back(cp, surf, min_x, max_y, advance);
         }
 
         if (baked.empty() || row_h == 0 || total_w == 0) {

@@ -290,7 +290,7 @@ namespace hob {
         }
 
         LuaTableInfo& add_table(std::string name) {
-            m_tables.push_back({std::move(name), {}});
+            m_tables.emplace_back(std::move(name));
             return m_tables.back();
         }
 
@@ -366,7 +366,7 @@ namespace hob {
         template<typename M, typename C>
         UsertypeBuilder& field(const char* name, M C::* ptr) {
             m_usertype[name] = ptr;
-            m_info->fields.push_back({name, meta_detail::lua_name<M>()});
+            m_info->fields.emplace_back(name, meta_detail::lua_name<M>());
             return *this;
         }
 
@@ -375,7 +375,7 @@ namespace hob {
         UsertypeBuilder& property(const char* name, G getter) {
             m_usertype[name] = sol::property(getter);
             using traits = meta_detail::func_traits<G>;
-            m_info->fields.push_back({name, meta_detail::lua_name<typename traits::ret>()});
+            m_info->fields.emplace_back(name, meta_detail::lua_name<typename traits::ret>());
             return *this;
         }
 
@@ -385,7 +385,7 @@ namespace hob {
         template<typename G>
         UsertypeBuilder& property_sig(const char* name, G getter, const char* type) {
             m_usertype[name] = sol::property(getter);
-            m_info->fields.push_back({name, type});
+            m_info->fields.emplace_back(name, type);
             return *this;
         }
 
@@ -656,7 +656,7 @@ namespace hob {
         template<typename V>
         TableBuilder& constant(const char* name, V value) {
             m_table[name] = value;
-            m_info->fields.push_back({name, meta_detail::lua_name<V>()});
+            m_info->fields.emplace_back(name, meta_detail::lua_name<V>());
             return *this;
         }
 
@@ -714,7 +714,7 @@ namespace hob {
     template<typename V>
     void bind_global_field(sol::state& lua, LuaMetaRegistry& reg, const char* name, V value) {
         lua[name] = value;
-        reg.global_fields().push_back({name, meta_detail::lua_name<V>(), meta_detail::to_lua_literal(value)});
+        reg.global_fields().emplace_back(name, meta_detail::lua_name<V>(), meta_detail::to_lua_literal(value));
     }
 
     template<typename E>
@@ -730,7 +730,7 @@ namespace hob {
 
         auto& info = reg.add_enum(name);
         for (const auto& v : values) {
-            info.values.push_back({v.first, static_cast<int>(v.second)});
+            info.values.emplace_back(v.first, static_cast<int>(v.second));
         }
     }
 } // namespace hob

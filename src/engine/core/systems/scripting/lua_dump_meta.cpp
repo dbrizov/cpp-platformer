@@ -296,7 +296,7 @@ namespace hob {
                 for (const auto& name : collect_table_string_values(names_obj.as<sol::table>())) {
                     const sol::protected_function_result res = unwrap(shaders[name]);
                     if (res.valid() && res.get<sol::object>().is<Shader>()) {
-                        entries.push_back({name, res.get<ShaderRef>()});
+                        entries.emplace_back(name, res.get<ShaderRef>());
                     }
                 }
             }
@@ -307,7 +307,7 @@ namespace hob {
                 return e.name == "Sprite";
             });
             if (!taken) {
-                entries.push_back({"Sprite", def});
+                entries.emplace_back("Sprite", def);
             }
         }
 

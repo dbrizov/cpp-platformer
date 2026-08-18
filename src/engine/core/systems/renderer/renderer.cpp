@@ -327,12 +327,12 @@ namespace hob {
         const Vector2 p2 = screen_end + offset;
         const Vector2 p3 = screen_end - offset;
 
-        m_pending_debug_line_vertices.push_back({p0, color});
-        m_pending_debug_line_vertices.push_back({p1, color});
-        m_pending_debug_line_vertices.push_back({p2, color});
-        m_pending_debug_line_vertices.push_back({p2, color});
-        m_pending_debug_line_vertices.push_back({p1, color});
-        m_pending_debug_line_vertices.push_back({p3, color});
+        m_pending_debug_line_vertices.emplace_back(p0, color);
+        m_pending_debug_line_vertices.emplace_back(p1, color);
+        m_pending_debug_line_vertices.emplace_back(p2, color);
+        m_pending_debug_line_vertices.emplace_back(p2, color);
+        m_pending_debug_line_vertices.emplace_back(p1, color);
+        m_pending_debug_line_vertices.emplace_back(p3, color);
     }
 
     void Renderer::draw_debug_text(const Vector2& screen_pos, std::string_view text, const Color& color, float scale) {
@@ -368,10 +368,10 @@ namespace hob {
 
                     const uint16_t base = static_cast<uint16_t>(m_pending_debug_text_vertices.size());
 
-                    m_pending_debug_text_vertices.push_back({Vector2(x0, y0), Vector2(g->u0, g->v0), glyph_color});
-                    m_pending_debug_text_vertices.push_back({Vector2(x1, y0), Vector2(g->u1, g->v0), glyph_color});
-                    m_pending_debug_text_vertices.push_back({Vector2(x0, y1), Vector2(g->u0, g->v1), glyph_color});
-                    m_pending_debug_text_vertices.push_back({Vector2(x1, y1), Vector2(g->u1, g->v1), glyph_color});
+                    m_pending_debug_text_vertices.emplace_back(Vector2(x0, y0), Vector2(g->u0, g->v0), glyph_color);
+                    m_pending_debug_text_vertices.emplace_back(Vector2(x1, y0), Vector2(g->u1, g->v0), glyph_color);
+                    m_pending_debug_text_vertices.emplace_back(Vector2(x0, y1), Vector2(g->u0, g->v1), glyph_color);
+                    m_pending_debug_text_vertices.emplace_back(Vector2(x1, y1), Vector2(g->u1, g->v1), glyph_color);
 
                     m_pending_debug_text_indices.push_back(base + 0);
                     m_pending_debug_text_indices.push_back(base + 2);

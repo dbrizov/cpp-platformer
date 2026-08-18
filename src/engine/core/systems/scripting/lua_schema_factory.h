@@ -47,7 +47,7 @@ namespace hob {
         info.lua_type = LuaTypeName<T>::value;
         info.fields.reserve(fields.size());
         for (const auto& f : fields) {
-            info.fields.push_back({f});
+            info.fields.emplace_back(f);
         }
 
         schemas.add_schema(std::move(info));

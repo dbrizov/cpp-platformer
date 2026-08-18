@@ -898,7 +898,7 @@ namespace hob {
                                     MAX_MATERIAL_TEXTURE_SLOTS);
                 continue;
             }
-            textures.push_back(ShaderTexture{tex.name, tex.binding});
+            textures.emplace_back(tex.name, tex.binding);
         }
         std::sort(textures.begin(), textures.end(), [](const ShaderTexture& a, const ShaderTexture& b) {
             return a.slot < b.slot;

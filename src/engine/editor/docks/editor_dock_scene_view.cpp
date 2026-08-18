@@ -291,7 +291,7 @@ namespace hob::editor {
                 continue;
             }
 
-            sprite_hits.push_back(SpriteHit{sprite->get_entity().get_id(), sprite->get_z_index(), i});
+            sprite_hits.emplace_back(sprite->get_entity().get_id(), sprite->get_z_index(), i);
         }
 
         if (!sprite_hits.empty()) {
@@ -323,7 +323,7 @@ namespace hob::editor {
         for (const Entity* entity : entities) {
             const float world_distance = (entity->get_transform()->get_position() - world_pos).length();
             if (world_distance <= pick_radius_world) {
-                origin_hits.push_back(OriginHit{entity->get_id(), world_distance});
+                origin_hits.emplace_back(entity->get_id(), world_distance);
             }
         }
 

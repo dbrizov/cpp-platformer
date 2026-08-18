@@ -34,8 +34,8 @@ namespace hob::editor {
             }
 
             const sol::table entry = row.as<sol::table>();
-            entries.push_back(
-                {entry.get_or<std::string>(query_key::NAME, ""), entry.get_or<int64_t>(query_key::VALUE, 0)});
+            entries.emplace_back(entry.get_or<std::string>(query_key::NAME, ""),
+                                 entry.get_or<int64_t>(query_key::VALUE, 0));
         }
 
         return entries;

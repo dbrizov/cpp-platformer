@@ -51,7 +51,7 @@ namespace hob {
             if (auto textures = t.get<sol::optional<sol::table>>("textures")) {
                 for (int i = 1; i <= textures->size(); ++i) {
                     if (TextureRef texture = resolve_texture(renderer, textures->get<sol::object>(i))) {
-                        track->keys.push_back({static_cast<float>(track->keys.size()) * step, std::move(texture)});
+                        track->keys.emplace_back(static_cast<float>(track->keys.size()) * step, std::move(texture));
                     }
                 }
                 // Every frame (including the last) is shown for one 1/fps slice, so the loop spans all frames.
@@ -63,7 +63,7 @@ namespace hob {
                     if (auto k = keys->get<sol::optional<sol::table>>(i)) {
                         if (TextureRef texture = resolve_texture(renderer, k->get<sol::object>(2))) {
                             const float time = k->get_or(1, 0.0f);
-                            track->keys.push_back({time, std::move(texture)});
+                            track->keys.emplace_back(time, std::move(texture));
                             track->length = std::max(track->length, time);
                         }
                     }
@@ -84,7 +84,7 @@ namespace hob {
                     for (int i = 1; i <= keys->size(); ++i) {
                         if (auto k = keys->get<sol::optional<sol::table>>(i)) {
                             const Vector2 value = k->get<sol::optional<Vector2>>(2).value_or(Vector2());
-                            track->keys.push_back({k->get_or(1, 0.0f), value});
+                            track->keys.emplace_back(k->get_or(1, 0.0f), value);
                         }
                     }
                 }
@@ -97,7 +97,7 @@ namespace hob {
                 if (auto keys = t.get<sol::optional<sol::table>>("keys")) {
                     for (int i = 1; i <= keys->size(); ++i) {
                         if (auto k = keys->get<sol::optional<sol::table>>(i)) {
-                            track->keys.push_back({k->get_or(1, 0.0f), k->get_or(2, 0.0f) * DEG_TO_RAD});
+                            track->keys.emplace_back(k->get_or(1, 0.0f), k->get_or(2, 0.0f) * DEG_TO_RAD);
                         }
                     }
                 }
