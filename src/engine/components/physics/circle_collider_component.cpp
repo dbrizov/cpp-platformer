@@ -8,7 +8,7 @@
 
 #include "engine/components/transform_component.h"
 #include "engine/core/debug.h"
-#include "engine/core/systems/physics.h"
+#include "engine/core/systems/physics/physics.h"
 #include "engine/entity/entity.h"
 
 namespace hob {

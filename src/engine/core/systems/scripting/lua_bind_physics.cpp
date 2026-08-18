@@ -1,7 +1,8 @@
 #include "engine/components/physics/collider_component.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
-#include "engine/core/systems/physics.h"
+#include "engine/core/systems/physics/collision_layer.h"
+#include "engine/core/systems/physics/physics.h"
 #include "engine/entity/entity.h"
 #include "engine/entity/entity_ref.h"
 #include "engine/math/vector2.h"
@@ -15,6 +16,13 @@ namespace hob {
         sol::state& lua = m_impl->lua;
         LuaMetaRegistry& meta = m_impl->meta;
         Physics& physics = m_engine.get_physics();
+
+        bind_enum<CollisionLayer>(lua,
+                                  meta,
+                                  {
+                                      {"None", CollisionLayer::None},
+                                      {"Default", CollisionLayer::Default},
+                                  });
 
         bind_usertype<RaycastHit>(lua, meta)
             .field("collider", &RaycastHit::collider)

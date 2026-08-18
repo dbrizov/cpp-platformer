@@ -322,6 +322,13 @@ InputEventType = {
     Released = 2,
 }
 
+-- CollisionLayer
+---@enum CollisionLayer
+CollisionLayer = {
+    None = 0,
+    Default = 1,
+}
+
 -- Vector2
 ---@class Vector2
 ---@field x number

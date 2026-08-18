@@ -4,13 +4,13 @@
 
 #include <box2d/box2d.h>
 
-#include "console.h"
 #include "engine/components/physics/collider_component.h"
 #include "engine/components/physics/rigidbody_component.h"
 #include "engine/components/transform_component.h"
 #include "engine/core/assert.h"
 #include "engine/core/engine_config.h"
 #include "engine/core/logging.h"
+#include "engine/core/systems/console.h"
 #include "engine/entity/entity.h"
 
 namespace hob {

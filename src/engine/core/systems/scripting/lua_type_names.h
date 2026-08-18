@@ -21,6 +21,7 @@ namespace hob {
     class EntityRef;
     class Component;
     class TransformComponent;
+    enum class CollisionLayer : uint64_t;
     enum class BodyType;
     class RigidbodyComponent;
     class CharacterBodyComponent;
@@ -51,6 +52,7 @@ namespace hob {
     HOB_LUA_TYPE(EntityRef, "Entity")
     HOB_LUA_TYPE(Component, "Component")
     HOB_LUA_TYPE(TransformComponent, "TransformComponent")
+    HOB_LUA_TYPE(CollisionLayer, "CollisionLayer")
     HOB_LUA_TYPE(BodyType, "BodyType")
     HOB_LUA_TYPE(RigidbodyComponent, "RigidbodyComponent")
     HOB_LUA_TYPE(CharacterBodyComponent, "CharacterBodyComponent")

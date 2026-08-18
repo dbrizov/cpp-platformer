@@ -1,8 +1,8 @@
 DefineEntity.StaticBox = {
     rigidbody = {},
     box_collider = {
-        collision_layer = Collision.Static,
-        collision_mask = Collision.Static | Collision.Dynamic | Collision.Kinematic,
+        collision_layer = CollisionLayer.Static,
+        collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Kinematic,
     },
     sprite = {
         texture = Textures.WhiteRect,
@@ -17,8 +17,8 @@ DefineEntity.DynamicBox = {
         body_type = BodyType.Dynamic,
     },
     box_collider = {
-        collision_layer = Collision.Dynamic,
-        collision_mask = Collision.Static | Collision.Dynamic | Collision.Kinematic | Collision.Trigger,
+        collision_layer = CollisionLayer.Dynamic,
+        collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Kinematic | CollisionLayer.Trigger,
     },
     sprite = {
         texture = Textures.WhiteRect,
@@ -32,8 +32,8 @@ DefineEntity.TriggerBox = {
     rigidbody = {},
     box_collider = {
         trigger = true,
-        collision_layer = Collision.Trigger,
-        collision_mask = Collision.Static | Collision.Dynamic | Collision.Kinematic,
+        collision_layer = CollisionLayer.Trigger,
+        collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Kinematic,
     },
     sprite = {
         texture = Textures.WhiteRect,
@@ -46,8 +46,8 @@ DefineEntity.TriggerBox = {
 DefineEntity.StaticCircle = {
     rigidbody = {},
     circle_collider = {
-        collision_layer = Collision.Static,
-        collision_mask = Collision.Static | Collision.Dynamic | Collision.Kinematic,
+        collision_layer = CollisionLayer.Static,
+        collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Kinematic,
     },
 }
 
@@ -56,8 +56,8 @@ DefineEntity.DynamicCircle = {
         body_type = BodyType.Dynamic,
     },
     circle_collider = {
-        collision_layer = Collision.Dynamic,
-        collision_mask = Collision.Static | Collision.Dynamic | Collision.Kinematic | Collision.Trigger,
+        collision_layer = CollisionLayer.Dynamic,
+        collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Kinematic | CollisionLayer.Trigger,
     },
 }
 
@@ -65,7 +65,7 @@ DefineEntity.TriggerCircle = {
     rigidbody = {},
     circle_collider = {
         trigger = true,
-        collision_layer = Collision.Trigger,
-        collision_mask = Collision.Static | Collision.Dynamic | Collision.Kinematic,
+        collision_layer = CollisionLayer.Trigger,
+        collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Kinematic,
     },
 }

@@ -4,6 +4,7 @@
 #include <box2d/types.h>
 
 #include "engine/components/component.h"
+#include "engine/core/systems/physics/collision_layer.h"
 #include "engine/math/vector2.h"
 
 namespace hob {
@@ -14,7 +15,7 @@ namespace hob {
         float m_density = 1.0f; // In kg/m^2. A body's mass = density * area
         float m_friction = 0.6f; // In range [0, 1]
         float m_bounciness = 0.0f; // In range [0, 1]
-        uint64_t m_collision_layer = 1u; // What this collider is
+        uint64_t m_collision_layer = static_cast<uint64_t>(CollisionLayer::Default); // What this collider is
         uint64_t m_collision_mask = ~0ull; // What this collider collides with
         bool m_is_trigger = false;
 

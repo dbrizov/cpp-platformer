@@ -1,9 +1,9 @@
 DefineEntity.Enemy = {
     ticking = true,
     character_body = {
-        collision_layer = Collision.Kinematic,
-        collision_mask = Collision.Static | Collision.Dynamic | Collision.Trigger,
-        solver_ignore_mask = Collision.Trigger,
+        collision_layer = CollisionLayer.Kinematic,
+        collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Trigger,
+        solver_ignore_mask = CollisionLayer.Trigger,
         capsule = Capsule(Vector2.zero(), Vector2.zero(), 1.2),
     },
     sprite = {
