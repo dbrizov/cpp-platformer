@@ -16,6 +16,30 @@ namespace hob::editor {
         return editor_table.as<sol::table>()[name];
     }
 
+    std::vector<EditorEnumEntry> get_enum_entries(Engine& engine, const std::string& name) {
+        std::vector<EditorEnumEntry> entries;
+
+        const sol::object result = editor_call(engine, "get_enum_entries", name);
+        if (!result.is<sol::table>()) {
+            return entries;
+        }
+
+        const sol::table rows = result.as<sol::table>();
+        entries.reserve(rows.size());
+
+        for (int i = 1; i <= static_cast<int>(rows.size()); ++i) {
+            const sol::object row = rows[i];
+            if (!row.is<sol::table>()) {
+                continue;
+            }
+
+            const sol::table entry = row.as<sol::table>();
+            entries.push_back({entry.get_or<std::string>("name", ""), entry.get_or<int64_t>("value", 0)});
+        }
+
+        return entries;
+    }
+
     std::string lua_object_to_display_string(Engine& engine, const sol::object& value) {
         if (!value.valid()) {
             return "none";

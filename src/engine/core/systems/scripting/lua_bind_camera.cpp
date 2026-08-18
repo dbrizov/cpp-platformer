@@ -31,10 +31,10 @@ namespace hob {
             .func("get_pixels_per_meter",
                   [&engine]() {
                       CameraComponent* cam = engine.get_active_camera();
-                      return cam ? cam->get_pixels_per_meter() : 0.0f;
+                      return cam ? cam->get_pixels_per_meter() : 0u;
                   })
             .func("set_pixels_per_meter",
-                  [&engine](float value) {
+                  [&engine](uint32_t value) {
                       CameraComponent* cam = engine.get_active_camera();
                       if (cam != nullptr) {
                           cam->set_pixels_per_meter(value);

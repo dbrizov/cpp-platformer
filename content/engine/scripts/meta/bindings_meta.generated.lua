@@ -8,10 +8,12 @@
 ---@field EPSILON number
 ---@field DEG_TO_RAD number
 ---@field RAD_TO_DEG number
----@field MIN_INTEGER integer
----@field MAX_INTEGER integer
----@field MIN_NUMBER number
----@field MAX_NUMBER number
+---@field MIN_INT64 integer
+---@field MAX_INT64 integer
+---@field MIN_FLOAT number
+---@field MAX_FLOAT number
+---@field MIN_DOUBLE number
+---@field MAX_DOUBLE number
 Math = {}
 
 ---@param angle_deg number
@@ -37,10 +39,10 @@ Camera = {}
 ---@return Entity?
 function Camera.get_active() end
 
----@return number
+---@return integer
 function Camera.get_pixels_per_meter() end
 
----@param value number
+---@param value integer
 function Camera.set_pixels_per_meter(value) end
 
 ---@return number
@@ -948,10 +950,10 @@ _G.SocketsComponent = SocketsComponent
 ---@class CameraComponent : Component
 local CameraComponent = {}
 
----@return number
+---@return integer
 function CameraComponent:get_pixels_per_meter() end
 
----@param value number
+---@param value integer
 function CameraComponent:set_pixels_per_meter(value) end
 
 ---@return number

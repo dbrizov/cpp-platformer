@@ -2,10 +2,15 @@
 
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include <imgui.h>
 
+#include "editor_enum_entry.h"
 #include "editor_style.h"
+#include "engine/math/aabb.h"
+#include "engine/math/capsule.h"
+#include "engine/math/circle.h"
 #include "engine/math/color.h"
 #include "engine/math/vector2.h"
 
@@ -80,4 +85,9 @@ namespace hob::editor {
     void field_text(const char* label, const std::string& value);
     bool field_vector2(const char* label, Vector2& value, float drag_speed = INSPECTOR_DRAG_SPEED_FLOAT);
     bool field_color(const char* label, Color& value);
+    bool field_enum(const char* label, int64_t& value, const std::vector<EditorEnumEntry>& entries);
+    bool field_bitmask(const char* label, int64_t& value, const std::vector<EditorEnumEntry>& entries);
+    bool field_aabb(const char* label, AABB& value);
+    bool field_capsule(const char* label, Capsule& value);
+    bool field_circle(const char* label, Circle& value);
 } // namespace hob::editor

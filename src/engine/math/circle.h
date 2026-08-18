@@ -9,7 +9,9 @@
 namespace hob {
     struct Circle {
         Vector2 center;
-        float radius;
+        float radius = 0.0f;
+
+        constexpr Circle() = default;
 
         constexpr Circle(const Vector2& center_, float radius_)
             : center(center_)

@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <imgui.h>
 #include <sol/sol.hpp>
@@ -15,6 +16,9 @@
 #include "engine/editor/editor_gui_utils.h"
 #include "engine/editor/editor_lua.h"
 #include "engine/entity/entity.h"
+#include "engine/math/aabb.h"
+#include "engine/math/capsule.h"
+#include "engine/math/circle.h"
 #include "engine/math/color.h"
 #include "engine/math/constants.h"
 #include "engine/math/vector2.h"
@@ -30,6 +34,18 @@ namespace hob::editor {
         template<typename T>
         T value_or(const sol::object& value, const T& fallback) {
             return value.is<T>() ? value.as<T>() : fallback;
+        }
+
+        int64_t to_int_bound(float value) {
+            if (value >= MAX_FLOAT) {
+                return MAX_INT64;
+            }
+
+            if (value <= MIN_FLOAT) {
+                return MIN_INT64;
+            }
+
+            return static_cast<int64_t>(value);
         }
 
         void begin_pending_edit(EditorDockInspectorPendingEdit& pending,
@@ -87,28 +103,38 @@ namespace hob::editor {
             const std::string kind = field.get_or<std::string>("kind", "");
             const sol::object value = field["value"];
 
+            // min == max means unbounded;
+            // step == 0 means "keep the widget's own drag speed";
+            const std::string enum_name = field.get_or<std::string>("enum", "");
+            const float min = field.get_or("min", 0.0f);
+            const float max = field.get_or("max", 0.0f);
+            const float step = field.get_or("step", 0.0f);
+
             Engine& engine = editor.get_engine();
             sol::state& lua = engine.get_lua_script_system().get_lua();
             sol::object new_value;
             bool changed = false;
 
             if (kind == "int") {
+                const float drag_speed = step > 0.0f ? step : INSPECTOR_DRAG_SPEED_INT;
                 int64_t number = value_or<int64_t>(value, 0);
-                if (field_int(label.c_str(), number)) {
+                if (field_int(label.c_str(), number, drag_speed, to_int_bound(min), to_int_bound(max))) {
                     new_value = sol::make_object(lua, number);
                     changed = true;
                 }
             }
             else if (kind == "float") {
+                const float drag_speed = step > 0.0f ? step : INSPECTOR_DRAG_SPEED_FLOAT;
                 float number = value_or<float>(value, 0.0f);
-                if (field_float(label.c_str(), number)) {
+                if (field_float(label.c_str(), number, drag_speed, min, max)) {
                     new_value = sol::make_object(lua, number);
                     changed = true;
                 }
             }
             else if (kind == "angle") {
+                const float drag_speed = step > 0.0f ? step : INSPECTOR_DRAG_SPEED_ROTATION_DEG;
                 float degrees = value_or<float>(value, 0.0f) * RAD_TO_DEG;
-                if (field_angle(label.c_str(), degrees)) {
+                if (field_angle(label.c_str(), degrees, drag_speed)) {
                     new_value = sol::make_object(lua, degrees * DEG_TO_RAD);
                     changed = true;
                 }
@@ -140,6 +166,49 @@ namespace hob::editor {
                     new_value = sol::make_object(lua, color);
                     changed = true;
                 }
+            }
+            else if (kind == "aabb") {
+                AABB box = value_or<AABB>(value, AABB());
+                if (field_aabb(label.c_str(), box)) {
+                    new_value = sol::make_object(lua, box);
+                    changed = true;
+                }
+            }
+            else if (kind == "capsule") {
+                Capsule capsule = value_or<Capsule>(value, Capsule());
+                if (field_capsule(label.c_str(), capsule)) {
+                    new_value = sol::make_object(lua, capsule);
+                    changed = true;
+                }
+            }
+            else if (kind == "circle") {
+                Circle circle = value_or<Circle>(value, Circle());
+                if (field_circle(label.c_str(), circle)) {
+                    new_value = sol::make_object(lua, circle);
+                    changed = true;
+                }
+            }
+            else if (kind == "enum" || kind == "bitmask") {
+                // Discrete: a pick or a flag toggle is the whole edit, so it skips the drag
+                // coalescing and pushes its command the frame it happens.
+                const std::vector<EditorEnumEntry> entries = get_enum_entries(engine, enum_name);
+                int64_t flags = value_or<int64_t>(value, 0);
+
+                const bool edited = kind == "enum" ? field_enum(label.c_str(), flags, entries)
+                                                   : field_bitmask(label.c_str(), flags, entries);
+                if (edited) {
+                    EditorFieldTarget discrete_target = component_target;
+                    discrete_target.field = name;
+
+                    editor.get_commands().push(
+                        engine,
+                        std::make_unique<EditorCommandSetField>("Set " + component_label + " " + label,
+                                                                discrete_target,
+                                                                value,
+                                                                sol::make_object(lua, flags)));
+                }
+
+                return;
             }
             else {
                 field_text(label.c_str(), lua_object_to_display_string(engine, value));

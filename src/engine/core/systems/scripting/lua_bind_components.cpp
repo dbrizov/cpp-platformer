@@ -190,17 +190,20 @@ namespace hob {
             .method("get_rotation", &RigidbodyComponent::get_rotation)
             .method("set_rotation", &RigidbodyComponent::set_rotation, {"radians"});
 
-        bind_component_schema<RigidbodyComponent>(
-            lua,
-            meta,
-            schemas,
-            "rigidbody",
-            "add_rigidbody",
-            "get_rigidbody",
-            {
-                {.name = "body_type", .get_method = "get_body_type", .set_method = "set_body_type", .type = "enum"},
-                {"fixed_rotation", "has_fixed_rotation", "set_fixed_rotation"},
-            });
+        bind_component_schema<RigidbodyComponent>(lua,
+                                                  meta,
+                                                  schemas,
+                                                  "rigidbody",
+                                                  "add_rigidbody",
+                                                  "get_rigidbody",
+                                                  {
+                                                      {.name = "body_type",
+                                                       .get_method = "get_body_type",
+                                                       .set_method = "set_body_type",
+                                                       .type = "enum",
+                                                       .enum_name = "BodyType"},
+                                                      {"fixed_rotation", "has_fixed_rotation", "set_fixed_rotation"},
+                                                  });
 
         // CharacterBodyComponent
         bind_usertype<CharacterBodyComponent>(lua, meta, Bases<Component>{})
@@ -251,10 +254,22 @@ namespace hob {
             "add_character_body",
             "get_character_body",
             {
-                {"collision_layer", "get_collision_layer", "set_collision_layer"},
-                {"collision_mask", "get_collision_mask", "set_collision_mask"},
-                {"solver_ignore_mask", "get_solver_ignore_mask", "set_solver_ignore_mask"},
-                {"capsule", "get_capsule", "set_capsule"},
+                {.name = "collision_layer",
+                 .get_method = "get_collision_layer",
+                 .set_method = "set_collision_layer",
+                 .type = "bitmask",
+                 .enum_name = "Collision"},
+                {.name = "collision_mask",
+                 .get_method = "get_collision_mask",
+                 .set_method = "set_collision_mask",
+                 .type = "bitmask",
+                 .enum_name = "Collision"},
+                {.name = "solver_ignore_mask",
+                 .get_method = "get_solver_ignore_mask",
+                 .set_method = "set_solver_ignore_mask",
+                 .type = "bitmask",
+                 .enum_name = "Collision"},
+                {.name = "capsule", .get_method = "get_capsule", .set_method = "set_capsule", .type = "capsule"},
             });
 
         // ColliderComponent
@@ -302,12 +317,32 @@ namespace hob {
             "add_box_collider",
             "get_box_collider",
             {
-                {"aabb", "get_aabb", "set_aabb"},
-                {"density", "get_density", "set_density"},
-                {"friction", "get_friction", "set_friction"},
-                {"bounciness", "get_bounciness", "set_bounciness"},
-                {"collision_layer", "get_collision_layer", "set_collision_layer"},
-                {"collision_mask", "get_collision_mask", "set_collision_mask"},
+                {.name = "aabb", .get_method = "get_aabb", .set_method = "set_aabb", .type = "aabb"},
+                {.name = "density",
+                 .get_method = "get_density",
+                 .set_method = "set_density",
+                 .min = 0.0f,
+                 .max = MAX_FLOAT},
+                {.name = "friction",
+                 .get_method = "get_friction",
+                 .set_method = "set_friction",
+                 .min = 0.0f,
+                 .max = 1.0f},
+                {.name = "bounciness",
+                 .get_method = "get_bounciness",
+                 .set_method = "set_bounciness",
+                 .min = 0.0f,
+                 .max = 1.0f},
+                {.name = "collision_layer",
+                 .get_method = "get_collision_layer",
+                 .set_method = "set_collision_layer",
+                 .type = "bitmask",
+                 .enum_name = "Collision"},
+                {.name = "collision_mask",
+                 .get_method = "get_collision_mask",
+                 .set_method = "set_collision_mask",
+                 .type = "bitmask",
+                 .enum_name = "Collision"},
                 {"trigger", "is_trigger", "set_trigger"},
             });
 
@@ -325,12 +360,32 @@ namespace hob {
             "add_capsule_collider",
             "get_capsule_collider",
             {
-                {"capsule", "get_capsule", "set_capsule"},
-                {"density", "get_density", "set_density"},
-                {"friction", "get_friction", "set_friction"},
-                {"bounciness", "get_bounciness", "set_bounciness"},
-                {"collision_layer", "get_collision_layer", "set_collision_layer"},
-                {"collision_mask", "get_collision_mask", "set_collision_mask"},
+                {.name = "capsule", .get_method = "get_capsule", .set_method = "set_capsule", .type = "capsule"},
+                {.name = "density",
+                 .get_method = "get_density",
+                 .set_method = "set_density",
+                 .min = 0.0f,
+                 .max = MAX_FLOAT},
+                {.name = "friction",
+                 .get_method = "get_friction",
+                 .set_method = "set_friction",
+                 .min = 0.0f,
+                 .max = 1.0f},
+                {.name = "bounciness",
+                 .get_method = "get_bounciness",
+                 .set_method = "set_bounciness",
+                 .min = 0.0f,
+                 .max = 1.0f},
+                {.name = "collision_layer",
+                 .get_method = "get_collision_layer",
+                 .set_method = "set_collision_layer",
+                 .type = "bitmask",
+                 .enum_name = "Collision"},
+                {.name = "collision_mask",
+                 .get_method = "get_collision_mask",
+                 .set_method = "set_collision_mask",
+                 .type = "bitmask",
+                 .enum_name = "Collision"},
                 {"trigger", "is_trigger", "set_trigger"},
             });
 
@@ -348,12 +403,32 @@ namespace hob {
             "add_circle_collider",
             "get_circle_collider",
             {
-                {"circle", "get_circle", "set_circle"},
-                {"density", "get_density", "set_density"},
-                {"friction", "get_friction", "set_friction"},
-                {"bounciness", "get_bounciness", "set_bounciness"},
-                {"collision_layer", "get_collision_layer", "set_collision_layer"},
-                {"collision_mask", "get_collision_mask", "set_collision_mask"},
+                {.name = "circle", .get_method = "get_circle", .set_method = "set_circle", .type = "circle"},
+                {.name = "density",
+                 .get_method = "get_density",
+                 .set_method = "set_density",
+                 .min = 0.0f,
+                 .max = MAX_FLOAT},
+                {.name = "friction",
+                 .get_method = "get_friction",
+                 .set_method = "set_friction",
+                 .min = 0.0f,
+                 .max = 1.0f},
+                {.name = "bounciness",
+                 .get_method = "get_bounciness",
+                 .set_method = "set_bounciness",
+                 .min = 0.0f,
+                 .max = 1.0f},
+                {.name = "collision_layer",
+                 .get_method = "get_collision_layer",
+                 .set_method = "set_collision_layer",
+                 .type = "bitmask",
+                 .enum_name = "Collision"},
+                {.name = "collision_mask",
+                 .get_method = "get_collision_mask",
+                 .set_method = "set_collision_mask",
+                 .type = "bitmask",
+                 .enum_name = "Collision"},
                 {"trigger", "is_trigger", "set_trigger"},
             });
 
@@ -442,20 +517,25 @@ namespace hob {
             .method("get_pixels_per_meter", &SpriteComponent::get_pixels_per_meter)
             .method("set_pixels_per_meter", &SpriteComponent::set_pixels_per_meter, {"value"});
 
-        bind_component_schema<SpriteComponent>(lua,
-                                               meta,
-                                               schemas,
-                                               "sprite",
-                                               "add_sprite",
-                                               "get_sprite",
-                                               {
-                                                   {"texture", "get_texture", "set_texture"},
-                                                   {"material", "get_material", "set_material"},
-                                                   {"pivot", "get_pivot", "set_pivot"},
-                                                   {"scale", "get_scale", "set_scale"},
-                                                   {"z_index", "get_z_index", "set_z_index"},
-                                                   {"pixels_per_meter", "get_pixels_per_meter", "set_pixels_per_meter"},
-                                               });
+        bind_component_schema<SpriteComponent>(
+            lua,
+            meta,
+            schemas,
+            "sprite",
+            "add_sprite",
+            "get_sprite",
+            {
+                {.name = "texture", .get_method = "get_texture", .set_method = "set_texture", .type = "texture"},
+                {.name = "material", .get_method = "get_material", .set_method = "set_material", .type = "material"},
+                {"pivot", "get_pivot", "set_pivot"},
+                {"scale", "get_scale", "set_scale"},
+                {"z_index", "get_z_index", "set_z_index"},
+                {.name = "pixels_per_meter",
+                 .get_method = "get_pixels_per_meter",
+                 .set_method = "set_pixels_per_meter",
+                 .min = 1.0f,
+                 .max = MAX_FLOAT},
+            });
 
         // SpriteAnimatorComponent
         Renderer& renderer = m_engine.get_renderer();
@@ -602,7 +682,11 @@ namespace hob {
                                                "add_camera",
                                                "get_camera",
                                                {
-                                                   {"pixels_per_meter", "get_pixels_per_meter", "set_pixels_per_meter"},
+                                                   {.name = "pixels_per_meter",
+                                                    .get_method = "get_pixels_per_meter",
+                                                    .set_method = "set_pixels_per_meter",
+                                                    .min = 1.0f,
+                                                    .max = MAX_FLOAT},
                                                });
 
         // AudioComponent
@@ -623,19 +707,24 @@ namespace hob {
             .method("get_autoplay", &AudioComponent::get_autoplay)
             .method("set_autoplay", &AudioComponent::set_autoplay, {"autoplay"});
 
-        bind_component_schema<AudioComponent>(lua,
-                                              meta,
-                                              schemas,
-                                              "audio",
-                                              "add_audio",
-                                              "get_audio",
-                                              {
-                                                  {"clip", "get_clip", "set_clip"},
-                                                  {"volume", "get_volume", "set_volume"},
-                                                  {"looping", "is_looping", "set_looping"},
-                                                  {"spatial", "is_spatial", "set_spatial"},
-                                                  {"max_distance", "get_max_distance", "set_max_distance"},
-                                                  {"autoplay", "get_autoplay", "set_autoplay"},
-                                              });
+        bind_component_schema<AudioComponent>(
+            lua,
+            meta,
+            schemas,
+            "audio",
+            "add_audio",
+            "get_audio",
+            {
+                {.name = "clip", .get_method = "get_clip", .set_method = "set_clip", .type = "audio_clip"},
+                {.name = "volume", .get_method = "get_volume", .set_method = "set_volume", .min = 0.0f, .max = 1.0f},
+                {"looping", "is_looping", "set_looping"},
+                {"spatial", "is_spatial", "set_spatial"},
+                {.name = "max_distance",
+                 .get_method = "get_max_distance",
+                 .set_method = "set_max_distance",
+                 .min = 0.0f,
+                 .max = MAX_FLOAT},
+                {"autoplay", "get_autoplay", "set_autoplay"},
+            });
     }
 } // namespace hob

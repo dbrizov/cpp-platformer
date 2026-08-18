@@ -24,7 +24,7 @@ local schemas = {
             "interpolate_physics",
         },
         types = {
-            rotation = { type = "angle" },
+            rotation = { type = "angle", },
         },
         reapply_on_hot_reload = {
             position = false,
@@ -48,7 +48,7 @@ local schemas = {
             "fixed_rotation",
         },
         types = {
-            body_type = { type = "enum" },
+            body_type = { type = "enum", enum = "BodyType", },
         },
     },
     character_body = {
@@ -71,6 +71,12 @@ local schemas = {
             "collision_mask",
             "solver_ignore_mask",
             "capsule",
+        },
+        types = {
+            collision_layer = { type = "bitmask", enum = "Collision", },
+            collision_mask = { type = "bitmask", enum = "Collision", },
+            solver_ignore_mask = { type = "bitmask", enum = "Collision", },
+            capsule = { type = "capsule", },
         },
     },
     box_collider = {
@@ -103,6 +109,14 @@ local schemas = {
             "collision_mask",
             "trigger",
         },
+        types = {
+            aabb = { type = "aabb", },
+            density = { min = 0, max = Math.MAX_FLOAT, },
+            friction = { min = 0, max = 1, },
+            bounciness = { min = 0, max = 1, },
+            collision_layer = { type = "bitmask", enum = "Collision", },
+            collision_mask = { type = "bitmask", enum = "Collision", },
+        },
     },
     capsule_collider = {
         add = "add_capsule_collider",
@@ -134,6 +148,14 @@ local schemas = {
             "collision_mask",
             "trigger",
         },
+        types = {
+            capsule = { type = "capsule", },
+            density = { min = 0, max = Math.MAX_FLOAT, },
+            friction = { min = 0, max = 1, },
+            bounciness = { min = 0, max = 1, },
+            collision_layer = { type = "bitmask", enum = "Collision", },
+            collision_mask = { type = "bitmask", enum = "Collision", },
+        },
     },
     circle_collider = {
         add = "add_circle_collider",
@@ -164,6 +186,14 @@ local schemas = {
             "collision_layer",
             "collision_mask",
             "trigger",
+        },
+        types = {
+            circle = { type = "circle", },
+            density = { min = 0, max = Math.MAX_FLOAT, },
+            friction = { min = 0, max = 1, },
+            bounciness = { min = 0, max = 1, },
+            collision_layer = { type = "bitmask", enum = "Collision", },
+            collision_mask = { type = "bitmask", enum = "Collision", },
         },
     },
     input = {
@@ -200,6 +230,11 @@ local schemas = {
             "z_index",
             "pixels_per_meter",
         },
+        types = {
+            texture = { type = "texture", },
+            material = { type = "material", },
+            pixels_per_meter = { min = 1, max = Math.MAX_FLOAT, },
+        },
     },
     sprite_animator = {
         add = "add_sprite_animator",
@@ -234,6 +269,9 @@ local schemas = {
         __order = {
             "pixels_per_meter",
         },
+        types = {
+            pixels_per_meter = { min = 1, max = Math.MAX_FLOAT, },
+        },
     },
     audio = {
         add = "add_audio",
@@ -261,6 +299,11 @@ local schemas = {
             "spatial",
             "max_distance",
             "autoplay",
+        },
+        types = {
+            clip = { type = "audio_clip", },
+            volume = { min = 0, max = 1, },
+            max_distance = { min = 0, max = Math.MAX_FLOAT, },
         },
     },
 }

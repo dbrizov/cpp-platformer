@@ -10,7 +10,9 @@ namespace hob {
     struct Capsule {
         Vector2 center_a;
         Vector2 center_b;
-        float radius;
+        float radius = 0.0f;
+
+        constexpr Capsule() = default;
 
         constexpr Capsule(const Vector2& center_a_, const Vector2& center_b_, float radius_)
             : center_a(center_a_)

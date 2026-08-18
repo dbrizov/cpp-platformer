@@ -73,10 +73,11 @@ end
 -- C++ components
 -- ---------------------------------------------------------------------------------------------
 
-local function get_declared_kind(schema, field)
+local FIELD_META_KEYS = { "enum", "min", "max", "step" }
+
+local function get_field_meta(schema, field)
     local types = schema.types
-    local declared = types ~= nil and types[field] or nil
-    return declared ~= nil and declared.type or nil
+    return types ~= nil and types[field] or nil
 end
 
 local function get_schema_field_order(schema)
@@ -104,8 +105,17 @@ local function append_schema_fields(fields, component, schema)
             end)
 
             if ok then
-                local kind = get_declared_kind(schema, field) or get_usertype_kind_from_value(value)
-                fields[#fields + 1] = { name = field, value = value, kind = kind }
+                local meta = get_field_meta(schema, field)
+                local kind = (meta ~= nil and meta.type) or get_usertype_kind_from_value(value)
+                local row = { name = field, value = value, kind = kind }
+
+                if meta ~= nil then
+                    for _, key in ipairs(FIELD_META_KEYS) do
+                        row[key] = meta[key]
+                    end
+                end
+
+                fields[#fields + 1] = row
             end
         end
     end
@@ -233,6 +243,38 @@ local function get_lua_component_fields(comp_instance)
     end
 
     return fields
+end
+
+-- ---------------------------------------------------------------------------------------------
+-- Enums
+-- ---------------------------------------------------------------------------------------------
+
+-- Serves both `enum` and `bitmask`.
+---@param name string
+---@return table|nil
+function Editor.get_enum_entries(name)
+    local source = _G[name]
+    if type(source) ~= "table" then
+        return nil
+    end
+
+    local entries = {}
+    for key, value in pairs(source) do
+        if type(key) == "string" and math.type(value) == "integer" then
+            entries[#entries + 1] = { name = key, value = value }
+        end
+    end
+
+    -- Sorting by value recovers declaration order for a C++ enum and bit order for a flag table.
+    table.sort(entries, function(a, b)
+        if a.value ~= b.value then
+            return a.value < b.value
+        end
+
+        return a.name < b.name
+    end)
+
+    return entries
 end
 
 -- ---------------------------------------------------------------------------------------------

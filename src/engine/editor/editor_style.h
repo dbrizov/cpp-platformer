@@ -123,6 +123,7 @@ namespace hob::editor {
     constexpr float INSPECTOR_DRAG_SPEED_ROTATION_DEG = 0.5f;
     constexpr float INSPECTOR_DRAG_SPEED_SCALE = 0.01f;
     constexpr float INSPECTOR_DRAG_SPEED_COLOR = 0.005f;
+    constexpr float INSPECTOR_NESTED_INDENT = 12.0f;
 
     constexpr ImVec4 COLOR_INSPECTOR_HEADER{0.220f, 0.220f, 0.220f, 1.0f};
     constexpr ImVec4 COLOR_INSPECTOR_HEADER_HOVER{0.259f, 0.259f, 0.259f, 1.0f};

@@ -2,9 +2,11 @@
 
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <sol/sol.hpp>
 
+#include "editor_enum_entry.h"
 #include "engine/core/logging.h"
 
 namespace hob {
@@ -31,6 +33,8 @@ namespace hob::editor {
 
         return result;
     }
+
+    std::vector<EditorEnumEntry> get_enum_entries(Engine& engine, const std::string& name);
 
     std::string lua_object_to_display_string(Engine& engine, const sol::object& value);
 } // namespace hob::editor

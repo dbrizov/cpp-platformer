@@ -12,7 +12,9 @@ namespace hob::editor {
 
     struct EditorCamera {
         Vector2 position; // In world space
-        float pixels_per_meter = 64.0f;
+        uint32_t pixels_per_meter = 64;
+
+        float get_pixels_per_meter_f() const;
 
         Matrix4x4 build_view_projection(const Vector2& target_size) const;
 

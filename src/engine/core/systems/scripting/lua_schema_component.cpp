@@ -1,23 +1,42 @@
 #include "lua_schema_component.h"
 
 #include <algorithm>
+#include <format>
 #include <fstream>
+#include <ostream>
 #include <sstream>
 
 #include "engine/core/logging.h"
+#include "engine/math/constants.h"
 
 namespace hob {
     namespace {
-        bool has_declared_types(const std::vector<LuaComponentSchemaField>& fields) {
-            return std::any_of(fields.begin(), fields.end(), [](const LuaComponentSchemaField& f) {
-                return !f.type.empty();
-            });
+        bool field_has_metadata(const LuaComponentSchemaField& field) {
+            return !field.type.empty() || !field.enum_name.empty() || field.min != field.max || field.step != 0.0f;
         }
 
-        bool has_reapply_exclusions(const std::vector<LuaComponentSchemaField>& fields) {
+        bool fields_have_metadata(const std::vector<LuaComponentSchemaField>& fields) {
+            return std::any_of(fields.begin(), fields.end(), field_has_metadata);
+        }
+
+        bool fields_have_reapply_exclusions(const std::vector<LuaComponentSchemaField>& fields) {
             return std::any_of(fields.begin(), fields.end(), [](const LuaComponentSchemaField& f) {
                 return !f.reapply_on_hot_reload;
             });
+        }
+
+        void write_number(std::ostream& out, float value) {
+            if (value == MAX_FLOAT) {
+                out << "Math.MAX_FLOAT";
+                return;
+            }
+
+            if (value == MIN_FLOAT) {
+                out << "Math.MIN_FLOAT";
+                return;
+            }
+
+            out << std::format("{}", value);
         }
     } // namespace
 
@@ -73,17 +92,42 @@ namespace hob {
                 }
                 out << "        },\n";
 
-                if (has_declared_types(s.fields)) {
+                if (fields_have_metadata(s.fields)) {
                     out << "        types = {\n";
                     for (const auto& f : s.fields) {
-                        if (!f.type.empty()) {
-                            out << "            " << f.name << " = { type = \"" << f.type << "\" },\n";
+                        if (!field_has_metadata(f)) {
+                            continue;
                         }
+
+                        out << "            " << f.name << " = {";
+                        if (!f.type.empty()) {
+                            out << " type = \"" << f.type << "\",";
+                        }
+
+                        if (!f.enum_name.empty()) {
+                            out << " enum = \"" << f.enum_name << "\",";
+                        }
+
+                        if (f.min != f.max) {
+                            out << " min = ";
+                            write_number(out, f.min);
+                            out << ", max = ";
+                            write_number(out, f.max);
+                            out << ",";
+                        }
+
+                        if (f.step != 0.0f) {
+                            out << " step = ";
+                            write_number(out, f.step);
+                            out << ",";
+                        }
+
+                        out << " },\n";
                     }
                     out << "        },\n";
                 }
 
-                if (has_reapply_exclusions(s.fields)) {
+                if (fields_have_reapply_exclusions(s.fields)) {
                     out << "        reapply_on_hot_reload = {\n";
                     for (const auto& f : s.fields) {
                         if (!f.reapply_on_hot_reload) {

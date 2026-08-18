@@ -22,7 +22,7 @@ namespace hob {
         Vector2 m_pivot = Vector2(0.5f, 0.5f);
         Vector2 m_scale = Vector2(1.0f, 1.0f);
         int m_z_index = 0;
-        int m_pixels_per_meter = 64;
+        uint32_t m_pixels_per_meter = 64;
 
         // A handle to the Renderer's sprite draw data.
         SpriteDrawId m_sprite_draw_id = INVALID_SPRITE_DRAW_ID;
@@ -64,9 +64,9 @@ namespace hob {
         int get_z_index() const;
         void set_z_index(int z_index);
 
-        int get_pixels_per_meter() const;
+        uint32_t get_pixels_per_meter() const;
         float get_pixels_per_meter_f() const;
-        void set_pixels_per_meter(int value);
+        void set_pixels_per_meter(uint32_t value);
 
         Vector2 get_world_size() const;
     };

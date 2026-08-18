@@ -5,6 +5,7 @@
 #include <concepts>
 #include <cstdarg>
 #include <cstdio>
+#include <format>
 
 #include <imgui_internal.h>
 
@@ -23,6 +24,10 @@ namespace hob::editor {
         constexpr const char* INT_FORMAT = "%lld";
         constexpr uint32_t FIELD_STRING_CAPACITY = 256;
         constexpr const char* COLOR_PICKER_POPUP = "picker";
+        constexpr const char* BITMASK_POPUP = "flags";
+        constexpr const char* BITMASK_BUTTON_ID = "###flags";
+        constexpr const char* BITMASK_SEPARATOR = " | ";
+        constexpr const char* BITMASK_NONE = "None";
         constexpr ImGuiColorEditFlags COLOR_EDIT_FLAGS = ImGuiColorEditFlags_Float;
 
         // Words that read wrong title-cased. Matched whole, against a lowercase snake_case word.
@@ -331,7 +336,14 @@ namespace hob::editor {
         ImGui::PushID(label);
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(label);
-        ImGui::SameLine(std::max(INSPECTOR_LABEL_WIDTH, ImGui::GetItemRectSize().x + ITEM_SPACING.x));
+
+        // The label may be indented (nested rows), so measure to its right edge, not its width.
+        const float label_end_x = ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x;
+        const float column_x = std::max(INSPECTOR_LABEL_WIDTH, label_end_x + ITEM_SPACING.x);
+
+        // SameLine adds the enclosing group's offset, which would push the rows nested inside a
+        // composite field out of the column every other row sits in. Cancel it.
+        ImGui::SameLine(column_x - ImGui::GetCurrentWindow()->DC.GroupOffset.x);
         ImGui::SetNextItemWidth(-EPSILON);
     }
 
@@ -461,6 +473,150 @@ namespace hob::editor {
 
         ImGui::EndGroup();
         end_field();
+
+        return changed;
+    }
+
+    bool field_enum(const char* label, int64_t& value, const std::vector<EditorEnumEntry>& entries) {
+        std::string name = std::to_string(value);
+        for (const EditorEnumEntry& entry : entries) {
+            if (entry.value == value) {
+                name = entry.name;
+                break;
+            }
+        }
+
+        begin_field(label);
+
+        bool changed = false;
+        if (ImGui::BeginCombo(EMPTY_LABEL, name.c_str())) {
+            for (const EditorEnumEntry& entry : entries) {
+                if (ImGui::Selectable(entry.name.c_str(), entry.value == value) && entry.value != value) {
+                    value = entry.value;
+                    changed = true;
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+
+        end_field();
+
+        return changed;
+    }
+
+    bool field_bitmask(const char* label, int64_t& value, const std::vector<EditorEnumEntry>& entries) {
+        int64_t named_mask = 0;
+        std::string named_summary;
+
+        for (const EditorEnumEntry& entry : entries) {
+            if (entry.value == 0) {
+                continue;
+            }
+
+            named_mask |= entry.value;
+            if ((value & entry.value) == entry.value) {
+                if (!named_summary.empty()) {
+                    named_summary += BITMASK_SEPARATOR;
+                }
+
+                named_summary += entry.name;
+            }
+        }
+
+        const int64_t rest = value & ~named_mask;
+        if (rest != 0) {
+            if (!named_summary.empty()) {
+                named_summary += BITMASK_SEPARATOR;
+            }
+
+            named_summary += std::format("0x{:x}", static_cast<uint64_t>(rest));
+        }
+
+        if (named_summary.empty()) {
+            named_summary = BITMASK_NONE;
+        }
+
+        begin_field(label);
+
+        if (ImGui::Button((named_summary + BITMASK_BUTTON_ID).c_str(), ImVec2(ImGui::CalcItemWidth(), 0.0f))) {
+            ImGui::OpenPopup(BITMASK_POPUP);
+        }
+
+        bool changed = false;
+
+        if (ImGui::BeginPopup(BITMASK_POPUP)) {
+            for (const EditorEnumEntry& entry : entries) {
+                if (entry.value == 0) {
+                    continue;
+                }
+
+                bool set = (value & entry.value) == entry.value;
+                if (ImGui::Checkbox(entry.name.c_str(), &set)) {
+                    value ^= entry.value;
+                    changed = true;
+                }
+            }
+
+            ImGui::EndPopup();
+        }
+
+        end_field();
+
+        return changed;
+    }
+
+    bool field_aabb(const char* label, AABB& value) {
+        ImGui::PushID(label);
+        ImGui::BeginGroup();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(label);
+
+        ImGui::Indent(INSPECTOR_NESTED_INDENT);
+        bool changed = field_vector2("Center", value.center);
+        changed |= field_vector2("Extents", value.extents);
+        ImGui::Unindent(INSPECTOR_NESTED_INDENT);
+
+        ImGui::EndGroup();
+        ImGui::PopID();
+
+        return changed;
+    }
+
+    bool field_capsule(const char* label, Capsule& value) {
+        ImGui::PushID(label);
+        ImGui::BeginGroup();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(label);
+
+        ImGui::Indent(INSPECTOR_NESTED_INDENT);
+        bool changed = field_vector2("Center A", value.center_a);
+        changed |= field_vector2("Center B", value.center_b);
+        changed |= field_float("Radius", value.radius, INSPECTOR_DRAG_SPEED_FLOAT, 0.0f, MAX_FLOAT);
+        ImGui::Unindent(INSPECTOR_NESTED_INDENT);
+
+        ImGui::EndGroup();
+        ImGui::PopID();
+
+        return changed;
+    }
+
+    bool field_circle(const char* label, Circle& value) {
+        ImGui::PushID(label);
+        ImGui::BeginGroup();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(label);
+
+        ImGui::Indent(INSPECTOR_NESTED_INDENT);
+        bool changed = field_vector2("Center", value.center);
+        changed |= field_float("Radius", value.radius, INSPECTOR_DRAG_SPEED_FLOAT, 0.0f, MAX_FLOAT);
+        ImGui::Unindent(INSPECTOR_NESTED_INDENT);
+
+        ImGui::EndGroup();
+        ImGui::PopID();
 
         return changed;
     }

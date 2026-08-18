@@ -10,6 +10,8 @@ namespace hob {
         Vector2 center;
         Vector2 extents;
 
+        constexpr AABB() = default;
+
         constexpr AABB(const Vector2& center_, const Vector2& extents_)
             : center(center_)
             , extents(extents_) {}

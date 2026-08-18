@@ -309,7 +309,7 @@ namespace hob::editor {
 
         // Sprite-less entities:
         // a fixed screen radius around the origin, so the grab area stays the same size on screen at any zoom.
-        const float pick_radius_world = PICK_RADIUS_PX / m_camera.pixels_per_meter;
+        const float pick_radius_world = PICK_RADIUS_PX / m_camera.get_pixels_per_meter_f();
 
         struct OriginHit {
             EntityId entity_id;
@@ -360,7 +360,7 @@ namespace hob::editor {
     }
 
     void EditorDockSceneView::draw_grid(ImDrawList* draw_list, const SceneRect& scene_rect) const {
-        const float cell_meters = grid_cell_meters(m_camera.pixels_per_meter);
+        const float cell_meters = grid_cell_meters(m_camera.get_pixels_per_meter_f());
 
         const Vector2 top_left = scene_rect.top_left;
         const Vector2 bottom_right = scene_rect.top_left + scene_rect.size;
@@ -424,7 +424,7 @@ namespace hob::editor {
         const Vector2 view_size_px =
             (engine.get_game_window() != nullptr) ? renderer.get_logical_size() : renderer.get_reference_size();
 
-        const float camera_ppm = camera->get_pixels_per_meter();
+        const float camera_ppm = camera->get_effective_pixels_per_meter();
         if (view_size_px.x <= EPSILON || view_size_px.y <= EPSILON || camera_ppm <= EPSILON) {
             return;
         }

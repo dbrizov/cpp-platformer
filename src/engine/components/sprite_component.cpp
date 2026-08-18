@@ -100,7 +100,7 @@ namespace hob {
         m_render_dirty = true;
     }
 
-    int SpriteComponent::get_pixels_per_meter() const {
+    uint32_t SpriteComponent::get_pixels_per_meter() const {
         return m_pixels_per_meter;
     }
 
@@ -108,7 +108,7 @@ namespace hob {
         return static_cast<float>(m_pixels_per_meter);
     }
 
-    void SpriteComponent::set_pixels_per_meter(int value) {
+    void SpriteComponent::set_pixels_per_meter(uint32_t value) {
         m_pixels_per_meter = value;
         m_render_dirty = true;
     }
