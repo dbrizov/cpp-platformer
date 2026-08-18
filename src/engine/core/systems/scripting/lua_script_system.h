@@ -60,6 +60,7 @@ namespace hob {
 
         void register_bindings();
 
+        void bind_schema();
         void bind_math();
         void bind_entity();
         void bind_components();

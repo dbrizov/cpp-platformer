@@ -35,7 +35,7 @@ end
 local call_setter = _G.__call_component_setter
 
 local function should_reapply_field(schema, field)
-    local flags = schema.reapply_on_hot_reload
+    local flags = schema[Schema.REAPPLY_ON_HOT_RELOAD]
     return flags == nil or flags[field] ~= false
 end
 
@@ -47,8 +47,8 @@ local function resolve_ticking(prefab)
 end
 
 local function for_each_section(entity, prefab, accessor, fn)
-    local schemas = _G.__component_schemas
-    for _, key in ipairs(schemas.__order) do
+    local schemas = _G[Schema.COMPONENT_SCHEMAS]
+    for _, key in ipairs(schemas[Schema.ORDER]) do
         local section = prefab[key]
         if section ~= nil then
             local schema = schemas[key]
@@ -78,11 +78,11 @@ local function apply_prefab(entity, prefab)
         entity:set_name(prefab.name)
     end
 
-    for_each_section(entity, prefab, "add", function(_, schema, section, component)
-        if schema.map_setter then
-            call_setter(component, schema.map_setter, unwrap_def(section))
+    for_each_section(entity, prefab, Schema.ADD, function(_, schema, section, component)
+        if schema[Schema.MAP_SETTER] then
+            call_setter(component, schema[Schema.MAP_SETTER], unwrap_def(section))
         else
-            apply_setters(component, section, schema.setters)
+            apply_setters(component, section, schema[Schema.SETTERS])
         end
     end)
 
@@ -112,12 +112,12 @@ end
 local function reapply_prefab(entity, prefab, get_defaults)
     entity:set_ticking(resolve_ticking(prefab))
 
-    for_each_section(entity, prefab, "get", function(key, schema, section, component)
-        if schema.map_setter then
-            call_setter(component, schema.map_setter, unwrap_def(section))
+    for_each_section(entity, prefab, Schema.GET, function(key, schema, section, component)
+        if schema[Schema.MAP_SETTER] then
+            call_setter(component, schema[Schema.MAP_SETTER], unwrap_def(section))
         else
             local defaults = get_defaults(key)
-            for field, setter in pairs(schema.setters) do
+            for field, setter in pairs(schema[Schema.SETTERS]) do
                 if should_reapply_field(schema, field) then
                     call_setter(component, setter, resolve_field_value(section, field, defaults))
                 end
@@ -127,7 +127,7 @@ local function reapply_prefab(entity, prefab, get_defaults)
 end
 
 function _G.__reapply_prefabs_to_spawned_entities()
-    local schemas = _G.__component_schemas
+    local schemas = _G[Schema.COMPONENT_SCHEMAS]
     local defaults_cache = {}
     local probes = {}
 
@@ -141,10 +141,10 @@ function _G.__reapply_prefabs_to_spawned_entities()
         local probe = EntitySpawner.spawn_entity_c()
         probes[#probes + 1] = probe
 
-        local component = probe[schema.add](probe)
+        local component = probe[schema[Schema.ADD]](probe)
         local defaults = {}
         if component ~= nil then
-            for field, getter in pairs(schema.getters) do
+            for field, getter in pairs(schema[Schema.GETTERS]) do
                 local v = component[getter](component)
                 if v == nil then
                     v = NIL_DEFAULT

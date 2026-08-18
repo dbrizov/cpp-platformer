@@ -8,6 +8,7 @@
 
 #include "engine/core/logging.h"
 #include "engine/math/constants.h"
+#include "lua_schema_keys.h"
 
 namespace hob {
     namespace {
@@ -62,38 +63,38 @@ namespace hob {
         out << "local schemas = {\n";
         for (const auto& s : m_schemas) {
             out << "    " << s.key << " = {\n";
-            out << "        add = \"" << s.add_method << "\",\n";
-            out << "        get = \"" << s.get_method << "\",\n";
+            out << "        " << schema_key::ADD << " = \"" << s.add_method << "\",\n";
+            out << "        " << schema_key::GET << " = \"" << s.get_method << "\",\n";
 
             if (!s.map_setter.empty()) {
-                out << "        map_setter = \"" << s.map_setter << "\",\n";
+                out << "        " << schema_key::MAP_SETTER << " = \"" << s.map_setter << "\",\n";
             }
             else if (s.fields.empty()) {
-                out << "        getters = {},\n";
-                out << "        setters = {},\n";
-                out << "        __order = {},\n";
+                out << "        " << schema_key::GETTERS << " = {},\n";
+                out << "        " << schema_key::SETTERS << " = {},\n";
+                out << "        " << schema_key::ORDER << " = {},\n";
             }
             else {
-                out << "        getters = {\n";
+                out << "        " << schema_key::GETTERS << " = {\n";
                 for (const auto& f : s.fields) {
                     out << "            " << f.name << " = \"" << f.get_method << "\",\n";
                 }
                 out << "        },\n";
 
-                out << "        setters = {\n";
+                out << "        " << schema_key::SETTERS << " = {\n";
                 for (const auto& f : s.fields) {
                     out << "            " << f.name << " = \"" << f.set_method << "\",\n";
                 }
                 out << "        },\n";
 
-                out << "        __order = {\n";
+                out << "        " << schema_key::ORDER << " = {\n";
                 for (const auto& f : s.fields) {
                     out << "            \"" << f.name << "\",\n";
                 }
                 out << "        },\n";
 
                 if (fields_have_metadata(s.fields)) {
-                    out << "        types = {\n";
+                    out << "        " << schema_key::TYPES << " = {\n";
                     for (const auto& f : s.fields) {
                         if (!field_has_metadata(f)) {
                             continue;
@@ -101,23 +102,23 @@ namespace hob {
 
                         out << "            " << f.name << " = {";
                         if (!f.type.empty()) {
-                            out << " type = \"" << f.type << "\",";
+                            out << " " << schema_key::TYPE << " = \"" << f.type << "\",";
                         }
 
                         if (!f.enum_name.empty()) {
-                            out << " enum = \"" << f.enum_name << "\",";
+                            out << " " << schema_key::ENUM << " = \"" << f.enum_name << "\",";
                         }
 
                         if (f.min != f.max) {
-                            out << " min = ";
+                            out << " " << schema_key::MIN << " = ";
                             write_number(out, f.min);
-                            out << ", max = ";
+                            out << ", " << schema_key::MAX << " = ";
                             write_number(out, f.max);
                             out << ",";
                         }
 
                         if (f.step != 0.0f) {
-                            out << " step = ";
+                            out << " " << schema_key::STEP << " = ";
                             write_number(out, f.step);
                             out << ",";
                         }
@@ -128,7 +129,7 @@ namespace hob {
                 }
 
                 if (fields_have_reapply_exclusions(s.fields)) {
-                    out << "        reapply_on_hot_reload = {\n";
+                    out << "        " << schema_key::REAPPLY_ON_HOT_RELOAD << " = {\n";
                     for (const auto& f : s.fields) {
                         if (!f.reapply_on_hot_reload) {
                             out << "            " << f.name << " = false,\n";
@@ -142,13 +143,13 @@ namespace hob {
         }
         out << "}\n\n";
 
-        out << "schemas.__order = {\n";
+        out << "schemas." << schema_key::ORDER << " = {\n";
         for (const auto& s : m_schemas) {
             out << "    \"" << s.key << "\",\n";
         }
         out << "}\n\n";
 
-        out << "_G.__component_schemas = schemas\n";
+        out << "_G." << schema_key::COMPONENT_SCHEMAS << " = schemas\n";
 
         std::error_code ec;
         std::filesystem::create_directories(full_path.parent_path(), ec);

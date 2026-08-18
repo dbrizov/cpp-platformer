@@ -11,8 +11,8 @@ _G.Editor = _G.Editor or {}
 -- Path registries unwrap to plain path strings, so a field holding one of
 -- their resources can only be identified from declared schema metadata.
 local RESOURCE_REGISTRY_KINDS = {
-    Materials = "material",
-    AnimationClips = "animation_clip",
+    Materials = FieldType.MATERIAL,
+    AnimationClips = FieldType.ANIMATION_CLIP,
 }
 
 -- Metatable identity -> field kind
@@ -38,8 +38,8 @@ local function ensure_usertype_kinds()
     end
 
     usertype_kinds = {
-        [getmetatable(Vector2())] = "vector2",
-        [getmetatable(Color())] = "color",
+        [getmetatable(Vector2())] = FieldType.VECTOR2,
+        [getmetatable(Color())] = FieldType.COLOR,
     }
 
     for registry_name, kind in pairs(RESOURCE_REGISTRY_KINDS) do
@@ -53,11 +53,11 @@ end
 local function get_usertype_kind_from_value(value)
     local t = type(value)
     if t == "number" then
-        return math.type(value) == "integer" and "int" or "float"
+        return math.type(value) == "integer" and FieldType.INT or FieldType.FLOAT
     elseif t == "boolean" then
-        return "bool"
+        return FieldType.BOOL
     elseif t == "string" then
-        return "string"
+        return FieldType.STRING
     elseif t == "userdata" then
         ensure_usertype_kinds()
         local kind = usertype_kinds[getmetatable(value)]
@@ -66,27 +66,25 @@ local function get_usertype_kind_from_value(value)
         end
     end
 
-    return "other"
+    return FieldType.OTHER
 end
 
 -- ---------------------------------------------------------------------------------------------
 -- C++ components
 -- ---------------------------------------------------------------------------------------------
 
-local FIELD_META_KEYS = { "enum", "min", "max", "step" }
-
 local function get_field_meta(schema, field)
-    local types = schema.types
+    local types = schema[Schema.TYPES]
     return types ~= nil and types[field] or nil
 end
 
 local function get_schema_field_order(schema)
-    if schema.__order ~= nil then
-        return schema.__order
+    if schema[Schema.ORDER] ~= nil then
+        return schema[Schema.ORDER]
     end
 
     local names = {}
-    for field in pairs(schema.getters) do
+    for field in pairs(schema[Schema.GETTERS]) do
         names[#names + 1] = field
     end
     table.sort(names)
@@ -98,22 +96,25 @@ end
 -- A read-only property has nothing for the Inspector to write back to.
 local function append_schema_fields(fields, component, schema)
     for _, field in ipairs(get_schema_field_order(schema)) do
-        local getter = schema.getters[field]
-        if getter ~= nil and schema.setters[field] ~= nil then
+        local getter = schema[Schema.GETTERS][field]
+        if getter ~= nil and schema[Schema.SETTERS][field] ~= nil then
             local ok, value = pcall(function()
                 return component[getter](component)
             end)
 
             if ok then
                 local meta = get_field_meta(schema, field)
-                local kind = (meta ~= nil and meta.type) or get_usertype_kind_from_value(value)
-                local row = { name = field, value = value, kind = kind }
+                local row = {}
 
                 if meta ~= nil then
-                    for _, key in ipairs(FIELD_META_KEYS) do
-                        row[key] = meta[key]
+                    for key, meta_value in pairs(meta) do
+                        row[key] = meta_value
                     end
                 end
+
+                row.name = field
+                row.value = value
+                row.kind = (meta ~= nil and meta[Schema.TYPE]) or get_usertype_kind_from_value(value)
 
                 fields[#fields + 1] = row
             end
@@ -289,13 +290,13 @@ function Editor.get_components(entity_id)
         return nil
     end
 
-    local schemas = _G.__component_schemas
+    local schemas = _G[Schema.COMPONENT_SCHEMAS]
     local out = {}
 
-    for _, key in ipairs(schemas.__order) do
+    for _, key in ipairs(schemas[Schema.ORDER]) do
         local schema = schemas[key]
-        if not schema.map_setter then
-            local component = entity[schema.get](entity)
+        if not schema[Schema.MAP_SETTER] then
+            local component = entity[schema[Schema.GET]](entity)
             if component ~= nil then
                 local fields = {}
                 append_schema_fields(fields, component, schema)

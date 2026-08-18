@@ -29,6 +29,7 @@
 #include "lua_meta.h"
 #include "lua_schema_component.h"
 #include "lua_schema_factory.h"
+#include "lua_schema_keys.h"
 #include "lua_script_system.h"
 #include "lua_script_system_impl.h"
 #include "lua_type_names.h" // IWYU pragma: keep
@@ -160,7 +161,7 @@ namespace hob {
                 {.name = "rotation",
                  .get_method = "get_local_rotation",
                  .set_method = "set_local_rotation",
-                 .type = "angle",
+                 .type = field_type::ANGLE,
                  .reapply_on_hot_reload = false},
                 {.name = "scale",
                  .get_method = "get_local_scale",
@@ -200,8 +201,8 @@ namespace hob {
                                                       {.name = "body_type",
                                                        .get_method = "get_body_type",
                                                        .set_method = "set_body_type",
-                                                       .type = "enum",
-                                                       .enum_name = "BodyType"},
+                                                       .type = field_type::ENUM,
+                                                       .enum_name = LuaTypeName<BodyType>::value},
                                                       {"fixed_rotation", "has_fixed_rotation", "set_fixed_rotation"},
                                                   });
 
@@ -246,31 +247,33 @@ namespace hob {
             .method("get_rotation", &CharacterBodyComponent::get_rotation)
             .method("set_rotation", &CharacterBodyComponent::set_rotation, {"radians"});
 
-        bind_component_schema<CharacterBodyComponent>(
-            lua,
-            meta,
-            schemas,
-            "character_body",
-            "add_character_body",
-            "get_character_body",
-            {
-                {.name = "collision_layer",
-                 .get_method = "get_collision_layer",
-                 .set_method = "set_collision_layer",
-                 .type = "bitmask",
-                 .enum_name = "Collision"},
-                {.name = "collision_mask",
-                 .get_method = "get_collision_mask",
-                 .set_method = "set_collision_mask",
-                 .type = "bitmask",
-                 .enum_name = "Collision"},
-                {.name = "solver_ignore_mask",
-                 .get_method = "get_solver_ignore_mask",
-                 .set_method = "set_solver_ignore_mask",
-                 .type = "bitmask",
-                 .enum_name = "Collision"},
-                {.name = "capsule", .get_method = "get_capsule", .set_method = "set_capsule", .type = "capsule"},
-            });
+        bind_component_schema<CharacterBodyComponent>(lua,
+                                                      meta,
+                                                      schemas,
+                                                      "character_body",
+                                                      "add_character_body",
+                                                      "get_character_body",
+                                                      {
+                                                          {.name = "collision_layer",
+                                                           .get_method = "get_collision_layer",
+                                                           .set_method = "set_collision_layer",
+                                                           .type = field_type::BITMASK,
+                                                           .enum_name = enum_table::COLLISION},
+                                                          {.name = "collision_mask",
+                                                           .get_method = "get_collision_mask",
+                                                           .set_method = "set_collision_mask",
+                                                           .type = field_type::BITMASK,
+                                                           .enum_name = enum_table::COLLISION},
+                                                          {.name = "solver_ignore_mask",
+                                                           .get_method = "get_solver_ignore_mask",
+                                                           .set_method = "set_solver_ignore_mask",
+                                                           .type = field_type::BITMASK,
+                                                           .enum_name = enum_table::COLLISION},
+                                                          {.name = "capsule",
+                                                           .get_method = "get_capsule",
+                                                           .set_method = "set_capsule",
+                                                           .type = field_type::CAPSULE},
+                                                      });
 
         // ColliderComponent
         bind_usertype<ColliderComponent>(lua, meta, Bases<Component>{})
@@ -317,7 +320,7 @@ namespace hob {
             "add_box_collider",
             "get_box_collider",
             {
-                {.name = "aabb", .get_method = "get_aabb", .set_method = "set_aabb", .type = "aabb"},
+                {.name = "aabb", .get_method = "get_aabb", .set_method = "set_aabb", .type = field_type::AABB},
                 {.name = "density",
                  .get_method = "get_density",
                  .set_method = "set_density",
@@ -336,13 +339,13 @@ namespace hob {
                 {.name = "collision_layer",
                  .get_method = "get_collision_layer",
                  .set_method = "set_collision_layer",
-                 .type = "bitmask",
-                 .enum_name = "Collision"},
+                 .type = field_type::BITMASK,
+                 .enum_name = enum_table::COLLISION},
                 {.name = "collision_mask",
                  .get_method = "get_collision_mask",
                  .set_method = "set_collision_mask",
-                 .type = "bitmask",
-                 .enum_name = "Collision"},
+                 .type = field_type::BITMASK,
+                 .enum_name = enum_table::COLLISION},
                 {"trigger", "is_trigger", "set_trigger"},
             });
 
@@ -352,42 +355,44 @@ namespace hob {
             .method("set_capsule", &CapsuleColliderComponent::set_capsule, {"capsule"})
             .method("get_scaled_capsule", &CapsuleColliderComponent::get_scaled_capsule);
 
-        bind_component_schema<CapsuleColliderComponent>(
-            lua,
-            meta,
-            schemas,
-            "capsule_collider",
-            "add_capsule_collider",
-            "get_capsule_collider",
-            {
-                {.name = "capsule", .get_method = "get_capsule", .set_method = "set_capsule", .type = "capsule"},
-                {.name = "density",
-                 .get_method = "get_density",
-                 .set_method = "set_density",
-                 .min = 0.0f,
-                 .max = MAX_FLOAT},
-                {.name = "friction",
-                 .get_method = "get_friction",
-                 .set_method = "set_friction",
-                 .min = 0.0f,
-                 .max = 1.0f},
-                {.name = "bounciness",
-                 .get_method = "get_bounciness",
-                 .set_method = "set_bounciness",
-                 .min = 0.0f,
-                 .max = 1.0f},
-                {.name = "collision_layer",
-                 .get_method = "get_collision_layer",
-                 .set_method = "set_collision_layer",
-                 .type = "bitmask",
-                 .enum_name = "Collision"},
-                {.name = "collision_mask",
-                 .get_method = "get_collision_mask",
-                 .set_method = "set_collision_mask",
-                 .type = "bitmask",
-                 .enum_name = "Collision"},
-                {"trigger", "is_trigger", "set_trigger"},
-            });
+        bind_component_schema<CapsuleColliderComponent>(lua,
+                                                        meta,
+                                                        schemas,
+                                                        "capsule_collider",
+                                                        "add_capsule_collider",
+                                                        "get_capsule_collider",
+                                                        {
+                                                            {.name = "capsule",
+                                                             .get_method = "get_capsule",
+                                                             .set_method = "set_capsule",
+                                                             .type = field_type::CAPSULE},
+                                                            {.name = "density",
+                                                             .get_method = "get_density",
+                                                             .set_method = "set_density",
+                                                             .min = 0.0f,
+                                                             .max = MAX_FLOAT},
+                                                            {.name = "friction",
+                                                             .get_method = "get_friction",
+                                                             .set_method = "set_friction",
+                                                             .min = 0.0f,
+                                                             .max = 1.0f},
+                                                            {.name = "bounciness",
+                                                             .get_method = "get_bounciness",
+                                                             .set_method = "set_bounciness",
+                                                             .min = 0.0f,
+                                                             .max = 1.0f},
+                                                            {.name = "collision_layer",
+                                                             .get_method = "get_collision_layer",
+                                                             .set_method = "set_collision_layer",
+                                                             .type = field_type::BITMASK,
+                                                             .enum_name = enum_table::COLLISION},
+                                                            {.name = "collision_mask",
+                                                             .get_method = "get_collision_mask",
+                                                             .set_method = "set_collision_mask",
+                                                             .type = field_type::BITMASK,
+                                                             .enum_name = enum_table::COLLISION},
+                                                            {"trigger", "is_trigger", "set_trigger"},
+                                                        });
 
         // CircleColliderComponent
         bind_usertype<CircleColliderComponent>(lua, meta, Bases<ColliderComponent, Component>{})
@@ -403,7 +408,7 @@ namespace hob {
             "add_circle_collider",
             "get_circle_collider",
             {
-                {.name = "circle", .get_method = "get_circle", .set_method = "set_circle", .type = "circle"},
+                {.name = "circle", .get_method = "get_circle", .set_method = "set_circle", .type = field_type::CIRCLE},
                 {.name = "density",
                  .get_method = "get_density",
                  .set_method = "set_density",
@@ -422,13 +427,13 @@ namespace hob {
                 {.name = "collision_layer",
                  .get_method = "get_collision_layer",
                  .set_method = "set_collision_layer",
-                 .type = "bitmask",
-                 .enum_name = "Collision"},
+                 .type = field_type::BITMASK,
+                 .enum_name = enum_table::COLLISION},
                 {.name = "collision_mask",
                  .get_method = "get_collision_mask",
                  .set_method = "set_collision_mask",
-                 .type = "bitmask",
-                 .enum_name = "Collision"},
+                 .type = field_type::BITMASK,
+                 .enum_name = enum_table::COLLISION},
                 {"trigger", "is_trigger", "set_trigger"},
             });
 
@@ -517,25 +522,30 @@ namespace hob {
             .method("get_pixels_per_meter", &SpriteComponent::get_pixels_per_meter)
             .method("set_pixels_per_meter", &SpriteComponent::set_pixels_per_meter, {"value"});
 
-        bind_component_schema<SpriteComponent>(
-            lua,
-            meta,
-            schemas,
-            "sprite",
-            "add_sprite",
-            "get_sprite",
-            {
-                {.name = "texture", .get_method = "get_texture", .set_method = "set_texture", .type = "texture"},
-                {.name = "material", .get_method = "get_material", .set_method = "set_material", .type = "material"},
-                {"pivot", "get_pivot", "set_pivot"},
-                {"scale", "get_scale", "set_scale"},
-                {"z_index", "get_z_index", "set_z_index"},
-                {.name = "pixels_per_meter",
-                 .get_method = "get_pixels_per_meter",
-                 .set_method = "set_pixels_per_meter",
-                 .min = 1.0f,
-                 .max = MAX_FLOAT},
-            });
+        bind_component_schema<SpriteComponent>(lua,
+                                               meta,
+                                               schemas,
+                                               "sprite",
+                                               "add_sprite",
+                                               "get_sprite",
+                                               {
+                                                   {.name = "texture",
+                                                    .get_method = "get_texture",
+                                                    .set_method = "set_texture",
+                                                    .type = field_type::TEXTURE},
+                                                   {.name = "material",
+                                                    .get_method = "get_material",
+                                                    .set_method = "set_material",
+                                                    .type = field_type::MATERIAL},
+                                                   {"pivot", "get_pivot", "set_pivot"},
+                                                   {"scale", "get_scale", "set_scale"},
+                                                   {"z_index", "get_z_index", "set_z_index"},
+                                                   {.name = "pixels_per_meter",
+                                                    .get_method = "get_pixels_per_meter",
+                                                    .set_method = "set_pixels_per_meter",
+                                                    .min = 1.0f,
+                                                    .max = MAX_FLOAT},
+                                               });
 
         // SpriteAnimatorComponent
         Renderer& renderer = m_engine.get_renderer();
@@ -715,7 +725,7 @@ namespace hob {
             "add_audio",
             "get_audio",
             {
-                {.name = "clip", .get_method = "get_clip", .set_method = "set_clip", .type = "audio_clip"},
+                {.name = "clip", .get_method = "get_clip", .set_method = "set_clip", .type = field_type::AUDIO_CLIP},
                 {.name = "volume", .get_method = "get_volume", .set_method = "set_volume", .min = 0.0f, .max = 1.0f},
                 {"looping", "is_looping", "set_looping"},
                 {"spatial", "is_spatial", "set_spatial"},
