@@ -56,7 +56,7 @@ namespace hob::editor {
             return ImRect(min.x + inset.x, min.y + inset.y, max.x - inset.x, max.y - inset.y);
         }
 
-        // The row highlight spans the whole panel, not just the indented item rect.
+        // The row highlight spans the whole window, not just the indented item rect.
         ImRect row_rect(const ImVec2& inset) {
             const float window_min_x = ImGui::GetWindowPos().x;
             const float window_max_x = window_min_x + ImGui::GetWindowWidth();
@@ -133,8 +133,8 @@ namespace hob::editor {
         const ImGuiStyle& style = ImGui::GetStyle();
 
         StyleVarStack vars;
-        vars.push(ImGuiStyleVar_ItemInnerSpacing, ImVec2(PANEL_TAB_SPACING_X, style.ItemInnerSpacing.y));
-        vars.push(ImGuiStyleVar_FramePadding, ImVec2(PANEL_TAB_PADDING_X, style.FramePadding.y));
+        vars.push(ImGuiStyleVar_ItemInnerSpacing, ImVec2(DOCK_TAB_SPACING_X, style.ItemInnerSpacing.y));
+        vars.push(ImGuiStyleVar_FramePadding, ImVec2(DOCK_TAB_PADDING_X, style.FramePadding.y));
 
         const ImGuiID dock_space_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), flags);
         vars.pop();
@@ -142,7 +142,7 @@ namespace hob::editor {
         return dock_space_id;
     }
 
-    bool begin_panel(const char* name, ImGuiWindowFlags flags) {
+    bool begin_dock(const char* name, ImGuiWindowFlags flags) {
         const ImGuiWindow* window = ImGui::FindWindowByName(name);
         const bool is_selected_tab = window && window->DockTabIsVisible;
 
@@ -153,7 +153,7 @@ namespace hob::editor {
         return visible;
     }
 
-    void end_panel() {
+    void end_dock() {
         ImGui::End();
     }
 

@@ -218,10 +218,10 @@ namespace hob::editor {
     void Editor::update_input() {
         m_active_contexts = 0;
 
-        // Panel records are from the previous frame, which is the only point a panel rect exists.
         if (m_engine.get_main_window().has_focus() && !ImGui::GetIO().WantTextInput) {
             m_active_contexts |= context_bit(EditorActionContext::Global);
 
+            // Last frame's, since draw() writes them after this runs and a dock rect only exists mid-draw.
             for (const EditorDock* dock : get_docks()) {
                 if (dock->is_hovered() || dock->is_focused()) {
                     m_active_contexts |= context_bit(dock->get_context());

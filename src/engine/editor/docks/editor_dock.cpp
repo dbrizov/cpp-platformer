@@ -11,7 +11,7 @@ namespace hob::editor {
         m_hovered = false;
         m_focused = false;
 
-        const bool visible = begin_panel(m_name, flags);
+        const bool visible = begin_dock(m_name, flags);
         if (visible) {
             m_hovered = ImGui::IsWindowHovered();
             m_focused = ImGui::IsWindowFocused();
@@ -21,7 +21,7 @@ namespace hob::editor {
     }
 
     void EditorDock::end() {
-        end_panel();
+        end_dock();
     }
 
     const char* EditorDock::get_name() const {

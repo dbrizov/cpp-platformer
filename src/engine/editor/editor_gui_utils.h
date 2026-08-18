@@ -46,8 +46,8 @@ namespace hob::editor {
 
     ImGuiID dock_space_over_viewport(ImGuiDockNodeFlags flags);
 
-    bool begin_panel(const char* name, ImGuiWindowFlags flags = 0);
-    void end_panel();
+    bool begin_dock(const char* name, ImGuiWindowFlags flags = 0);
+    void end_dock();
 
     bool begin_menu(const char* label);
     void end_menu();

@@ -92,9 +92,9 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_NAV_WINDOWING_DIM_BG{0.0f, 0.0f, 0.0f, 0.45f};
     constexpr ImVec4 COLOR_MODAL_DIM_BG{0.0f, 0.0f, 0.0f, 0.55f};
 
-    // Panel
-    constexpr float PANEL_TAB_PADDING_X = 0.0f;
-    constexpr float PANEL_TAB_SPACING_X = 0.0f;
+    // Dock
+    constexpr float DOCK_TAB_PADDING_X = 0.0f;
+    constexpr float DOCK_TAB_SPACING_X = 0.0f;
 
     // Menu Bar
     constexpr float MENU_BAR_ITEM_PADDING_X = 7.0f;
