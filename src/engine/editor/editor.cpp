@@ -193,7 +193,8 @@ namespace hob::editor {
     }
 
     bool Editor::on_quit_requested() {
-        if (m_engine.get_game_window() == nullptr) {
+        const Window* game_window = m_engine.get_game_window();
+        if (game_window == nullptr || !game_window->has_focus()) {
             return false;
         }
 
