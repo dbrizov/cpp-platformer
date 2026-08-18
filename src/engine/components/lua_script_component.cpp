@@ -9,6 +9,7 @@
 #include "engine/components/physics/collider_component.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
+#include "engine/core/systems/scripting/lua_bind_helpers.h"
 #include "engine/core/systems/scripting/lua_script_system.h"
 #include "engine/entity/entity.h"
 #include "engine/entity/entity_ref.h"
@@ -70,8 +71,8 @@ namespace hob {
             return;
         }
 
-        const sol::optional<int32_t> priority = m_impl->lua_instance["priority"];
-        m_priority = priority.value_or(component_priority::CP_DEFAULT);
+        const sol::optional<int64_t> priority = m_impl->lua_instance["priority"];
+        m_priority = priority ? lua_narrow<int32_t>(*priority, "component 'priority'") : component_priority::CP_DEFAULT;
 
         m_impl->init = resolve_hook(m_impl->lua_instance, "init");
         m_impl->enter_play = resolve_hook(m_impl->lua_instance, "enter_play");
@@ -113,8 +114,8 @@ namespace hob {
 
         sol::table class_table = class_obj;
 
-        const sol::optional<int32_t> priority = class_table["priority"];
-        m_priority = priority.value_or(component_priority::CP_DEFAULT);
+        const sol::optional<int64_t> priority = class_table["priority"];
+        m_priority = priority ? lua_narrow<int32_t>(*priority, "component 'priority'") : component_priority::CP_DEFAULT;
 
         const sol::object new_fn_obj = class_table["new"];
         if (!new_fn_obj.is<sol::protected_function>()) {

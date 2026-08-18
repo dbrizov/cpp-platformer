@@ -2,6 +2,7 @@
 
 #include "engine/core/debug.h"
 #include "engine/math/vector2.h"
+#include "lua_bind_helpers.h"
 #include "lua_meta.h"
 #include "lua_script_system.h"
 #include "lua_script_system_impl.h"
@@ -49,13 +50,14 @@ namespace hob {
                    sol::optional<Color> color,
                    sol::optional<float> duration,
                    sol::optional<float> thickness,
-                   sol::optional<int32_t> segments) {
+                   sol::optional<int64_t> segments) {
                     debug::draw_circle(center,
                                        radius,
                                        color.value_or(debug::DEFAULT_DRAW_COLOR),
                                        duration.value_or(debug::DEFAULT_DRAW_DURATION),
                                        thickness.value_or(debug::DEFAULT_LINE_THICKNESS),
-                                       segments.value_or(debug::DEFAULT_CIRCLE_SEGMENTS));
+                                       segments ? lua_narrow<int32_t>(*segments, "Debug.draw_circle segments")
+                                                : debug::DEFAULT_CIRCLE_SEGMENTS);
                 },
                 "(center: Vector2, radius: number, color: Color?, duration: number?, thickness: number?, segments: integer?)");
     }

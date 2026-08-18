@@ -5,6 +5,7 @@
 #include "engine/entity/entity.h"
 #include "engine/entity/entity_ref.h"
 #include "engine/math/vector2.h"
+#include "lua_bind_helpers.h"
 #include "lua_meta.h"
 #include "lua_script_system.h"
 #include "lua_script_system_impl.h"
@@ -34,10 +35,10 @@ namespace hob {
                       return cam ? cam->get_pixels_per_meter() : 0u;
                   })
             .func("set_pixels_per_meter",
-                  [&engine](uint32_t value) {
+                  [&engine](int64_t value) {
                       CameraComponent* cam = engine.get_active_camera();
                       if (cam != nullptr) {
-                          cam->set_pixels_per_meter(value);
+                          cam->set_pixels_per_meter(lua_narrow<uint32_t>(value, "Camera.set_pixels_per_meter"));
                       }
                   },
                   {"value"})

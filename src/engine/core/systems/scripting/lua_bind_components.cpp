@@ -518,9 +518,17 @@ namespace hob {
             .method("get_scale", &SpriteComponent::get_scale)
             .method("set_scale", &SpriteComponent::set_scale, {"scale"})
             .method("get_z_index", &SpriteComponent::get_z_index)
-            .method("set_z_index", &SpriteComponent::set_z_index, {"z_index"})
+            .method("set_z_index",
+                    [](SpriteComponent& self, int64_t z_index) {
+                        self.set_z_index(lua_narrow<int32_t>(z_index, "SpriteComponent:set_z_index"));
+                    },
+                    {"z_index"})
             .method("get_pixels_per_meter", &SpriteComponent::get_pixels_per_meter)
-            .method("set_pixels_per_meter", &SpriteComponent::set_pixels_per_meter, {"value"});
+            .method("set_pixels_per_meter",
+                    [](SpriteComponent& self, int64_t value) {
+                        self.set_pixels_per_meter(lua_narrow<uint32_t>(value, "SpriteComponent:set_pixels_per_meter"));
+                    },
+                    {"value"});
 
         bind_component_schema<SpriteComponent>(lua,
                                                meta,
@@ -675,7 +683,11 @@ namespace hob {
         // CameraComponent
         bind_usertype<CameraComponent>(lua, meta, Bases<Component>{})
             .method("get_pixels_per_meter", &CameraComponent::get_pixels_per_meter)
-            .method("set_pixels_per_meter", &CameraComponent::set_pixels_per_meter, {"value"})
+            .method("set_pixels_per_meter",
+                    [](CameraComponent& self, int64_t value) {
+                        self.set_pixels_per_meter(lua_narrow<uint32_t>(value, "CameraComponent:set_pixels_per_meter"));
+                    },
+                    {"value"})
             .method("get_zoom", &CameraComponent::get_zoom)
             .method("set_zoom", &CameraComponent::set_zoom, {"multiplier"})
             .method("world_to_screen",

@@ -1,5 +1,6 @@
 #include "engine/core/engine.h"
 #include "engine/core/systems/timer.h"
+#include "lua_bind_helpers.h"
 #include "lua_meta.h"
 #include "lua_script_system.h"
 #include "lua_script_system_impl.h"
@@ -17,8 +18,8 @@ namespace hob {
                       return timer.get_fps();
                   })
             .func("set_fps",
-                  [&timer](uint32_t v) {
-                      timer.set_fps(v);
+                  [&timer](int64_t v) {
+                      timer.set_fps(lua_narrow<uint32_t>(v, "Timer.set_fps"));
                   },
                   {"fps"})
             .func("get_time_scale",

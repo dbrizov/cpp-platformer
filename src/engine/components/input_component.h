@@ -4,7 +4,7 @@
 #include "engine/core/systems/input.h"
 
 namespace hob {
-    using BindingId = int32_t;
+    using BindingId = int64_t;
     using AxisBindingFunc = std::function<void(float)>;
     using ActionBindingFunc = std::function<void()>;
 
