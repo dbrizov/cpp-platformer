@@ -96,7 +96,7 @@ namespace hob {
         const bool bootstrap_succeeded = run_bootstrap();
         HOB_CHECK(bootstrap_succeeded, "Lua bootstrap failed");
 
-#ifndef NDEBUG
+#if defined(HOB_EDITOR) || !defined(NDEBUG)
         // Meta files are LuaCATS-only (no runtime effect),
         // so they're written after bootstrap which runs all user-defined scripts.
         dump_bindings_meta();
