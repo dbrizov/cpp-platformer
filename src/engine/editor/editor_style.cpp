@@ -59,7 +59,7 @@ namespace hob::editor {
 
         colors[ImGuiCol_FrameBg] = COLOR_BG_FRAME;
         colors[ImGuiCol_FrameBgHovered] = COLOR_BG_HOVER;
-        colors[ImGuiCol_FrameBgActive] = COLOR_BG_BASE;
+        colors[ImGuiCol_FrameBgActive] = COLOR_BG_PRESSED;
 
         colors[ImGuiCol_TitleBg] = COLOR_BG_DARK;
         colors[ImGuiCol_TitleBgActive] = COLOR_BG_DARK;

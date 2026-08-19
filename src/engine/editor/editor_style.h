@@ -19,6 +19,7 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_BG_FRAME{0.106f, 0.106f, 0.106f, 1.0f};
     constexpr ImVec4 COLOR_BG_POPUP{0.106f, 0.106f, 0.106f, 1.0f};
     constexpr ImVec4 COLOR_BG_HOVER{0.129f, 0.129f, 0.129f, 1.0f};
+    constexpr ImVec4 COLOR_BG_PRESSED{0.192f, 0.192f, 0.192f, 1.0f};
     constexpr ImVec4 COLOR_BG_ACTIVE{0.286f, 0.286f, 0.286f, 1.0f};
     constexpr ImVec4 COLOR_BORDER{0.078f, 0.078f, 0.078f, 1.0f};
 
