@@ -181,7 +181,6 @@ namespace hob::editor {
             dock->draw(*this);
         }
 
-        // Every Begin/End has closed, so an action is free to spawn, destroy or open a window.
         m_actions.flush(*this);
     }
 

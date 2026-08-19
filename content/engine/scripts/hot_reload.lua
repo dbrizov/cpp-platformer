@@ -34,6 +34,7 @@ end
 
 -- 4. Push changed prefab data onto already-spawned entities.
 __reapply_prefabs_to_spawned_entities()
+__reapply_scene_overrides_to_spawned_entities()
 
 -- 5. Force a full GC so the previous generation of asset factory objects (materials, etc.) — now only
 --    held by unreachable Lua userdata — releases its C++ refs immediately instead of lingering.

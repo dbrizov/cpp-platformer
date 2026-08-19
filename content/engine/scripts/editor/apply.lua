@@ -35,7 +35,6 @@ function Editor.set_live_field(entity_id, component_key, field, value)
         return
     end
 
-    -- The getter, never `add`: editing a field must not bring a component into existence.
     local component = entity[schema.get](entity)
     if component == nil then
         return

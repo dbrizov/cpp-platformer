@@ -38,3 +38,10 @@ DefineMaterial.BlueOutline = {
     outline_color = Color.blue(),
     outline_width = 2.0,
 }
+
+---@type MaterialParams.Outline
+DefineMaterial.CyanOutline = {
+    shader = Shaders.Outline,
+    outline_color = Color.cyan(),
+    outline_width = 2.0,
+}

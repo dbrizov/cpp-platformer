@@ -82,8 +82,9 @@ namespace hob {
         void dump_bindings_meta();
         void dump_asset_factory_schemas_meta();
         void dump_asset_names_meta();
+        void dump_shader_params_meta();
         void dump_entity_registry_meta();
         void dump_component_registry_meta();
-        void dump_shader_params_meta();
+        void dump_scene_registry_meta();
     };
 } // namespace hob

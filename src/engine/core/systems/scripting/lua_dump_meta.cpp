@@ -159,60 +159,6 @@ namespace hob {
         }
     }
 
-    void LuaScriptSystem::dump_entity_registry_meta() {
-        const std::filesystem::path out_path =
-            PathUtils::get_project_root() / "scripts" / "meta" / "entity_registry_meta.generated.lua";
-
-        const sol::object reg = m_impl->lua["__entity_prefab_registry"];
-        const sol::table reg_table = reg.is<sol::table>() ? reg.as<sol::table>() : sol::table{};
-        const auto names = collect_table_keys(reg_table);
-
-        const bool ok = write_name_registry_meta(out_path,
-                                                 "Entities",
-                                                 "dump_entity_registry_meta",
-                                                 "`DefineEntity.Foo = { ... }` assignments throughout scripts/.",
-                                                 names);
-
-        if (!ok) {
-            log::lua.error("LuaScriptSystem::dump_entity_registry_meta: failed to write '{}'", out_path.string());
-        }
-    }
-
-    void LuaScriptSystem::dump_component_registry_meta() {
-        const std::filesystem::path out_path =
-            PathUtils::get_project_root() / "scripts" / "meta" / "component_registry_meta.generated.lua";
-
-        // Components defined via DefineComponent end up in __component_registry after
-        // __finalize_components() runs; any still-pending ones live in __component_pending.
-        std::vector<std::string> names;
-        {
-            const sol::object reg = m_impl->lua["__component_registry"];
-            if (reg.is<sol::table>()) {
-                const auto ks = collect_table_keys(reg.as<sol::table>());
-                names.insert(names.end(), ks.begin(), ks.end());
-            }
-
-            const sol::object pending = m_impl->lua["__component_pending"];
-            if (pending.is<sol::table>()) {
-                const auto ks = collect_table_keys(pending.as<sol::table>());
-                names.insert(names.end(), ks.begin(), ks.end());
-            }
-
-            std::sort(names.begin(), names.end());
-            names.erase(std::unique(names.begin(), names.end()), names.end());
-        }
-
-        const bool ok = write_name_registry_meta(out_path,
-                                                 "Components",
-                                                 "dump_component_registry_meta",
-                                                 "`DefineComponent.Foo = { ... }` assignments throughout scripts/.",
-                                                 names);
-
-        if (!ok) {
-            log::lua.error("LuaScriptSystem::dump_component_registry_meta: failed to write '{}'", out_path.string());
-        }
-    }
-
     void LuaScriptSystem::dump_shader_params_meta() {
         const std::filesystem::path out_path =
             PathUtils::get_project_root() / "scripts" / "meta" / "shader_params_meta.generated.lua";
@@ -308,6 +254,79 @@ namespace hob {
 
         if (!f.good()) {
             log::lua.error("LuaScriptSystem::dump_shader_params_meta: write failed for '{}'", out_path.string());
+        }
+    }
+
+    void LuaScriptSystem::dump_entity_registry_meta() {
+        const std::filesystem::path out_path =
+            PathUtils::get_project_root() / "scripts" / "meta" / "entity_registry_meta.generated.lua";
+
+        const sol::object reg = m_impl->lua["__entity_prefab_registry"];
+        const sol::table reg_table = reg.is<sol::table>() ? reg.as<sol::table>() : sol::table{};
+        const auto names = collect_table_keys(reg_table);
+
+        const bool ok = write_name_registry_meta(out_path,
+                                                 "Entities",
+                                                 "dump_entity_registry_meta",
+                                                 "`DefineEntity.Foo = { ... }` assignments throughout scripts/.",
+                                                 names);
+
+        if (!ok) {
+            log::lua.error("LuaScriptSystem::dump_entity_registry_meta: failed to write '{}'", out_path.string());
+        }
+    }
+
+    void LuaScriptSystem::dump_component_registry_meta() {
+        const std::filesystem::path out_path =
+            PathUtils::get_project_root() / "scripts" / "meta" / "component_registry_meta.generated.lua";
+
+        // Components defined via DefineComponent end up in __component_registry after
+        // __finalize_components() runs; any still-pending ones live in __component_pending.
+        std::vector<std::string> names;
+        {
+            const sol::object reg = m_impl->lua["__component_registry"];
+            if (reg.is<sol::table>()) {
+                const auto ks = collect_table_keys(reg.as<sol::table>());
+                names.insert(names.end(), ks.begin(), ks.end());
+            }
+
+            const sol::object pending = m_impl->lua["__component_pending"];
+            if (pending.is<sol::table>()) {
+                const auto ks = collect_table_keys(pending.as<sol::table>());
+                names.insert(names.end(), ks.begin(), ks.end());
+            }
+
+            std::sort(names.begin(), names.end());
+            names.erase(std::unique(names.begin(), names.end()), names.end());
+        }
+
+        const bool ok = write_name_registry_meta(out_path,
+                                                 "Components",
+                                                 "dump_component_registry_meta",
+                                                 "`DefineComponent.Foo = { ... }` assignments throughout scripts/.",
+                                                 names);
+
+        if (!ok) {
+            log::lua.error("LuaScriptSystem::dump_component_registry_meta: failed to write '{}'", out_path.string());
+        }
+    }
+
+    void LuaScriptSystem::dump_scene_registry_meta() {
+        const std::filesystem::path out_path =
+            PathUtils::get_project_root() / "scripts" / "meta" / "scene_registry_meta.generated.lua";
+
+        const sol::object reg = m_impl->lua["__scene_registry"];
+        const sol::table reg_table = reg.is<sol::table>() ? reg.as<sol::table>() : sol::table{};
+        const auto names = collect_table_keys(reg_table);
+
+        const bool ok = write_name_registry_meta(out_path,
+                                                 "Scenes",
+                                                 "dump_scene_registry_meta",
+                                                 "`DefineScene.Foo = { ... }` assignments throughout scripts/.",
+                                                 names);
+
+        if (!ok) {
+            log::lua.error("LuaScriptSystem::dump_scene_registry_meta: failed to write '{}'", out_path.string());
         }
     }
 } // namespace hob

@@ -101,9 +101,10 @@ namespace hob {
         dump_bindings_meta();
         dump_asset_factory_schemas_meta();
         dump_asset_names_meta();
+        dump_shader_params_meta();
         dump_entity_registry_meta();
         dump_component_registry_meta();
-        dump_shader_params_meta();
+        dump_scene_registry_meta();
 #endif
 
         log::lua.info("LuaScriptSystem::Initialise");

@@ -34,6 +34,7 @@
 
 ---@class Materials
 ---@field BlueOutline Material
+---@field CyanOutline Material
 ---@field Distort Material
 ---@field GreenOutline Material
 ---@field Psychedelic Material
