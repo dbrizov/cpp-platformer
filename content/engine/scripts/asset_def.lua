@@ -5,15 +5,15 @@
 --   DefineShader.MyShader       = "shaders/my_shader"
 --   DefineAsset.SomeFont        = "fonts/arial.ttf"
 
--- Declared alias names per registry; read by C++ after bootstrap to emit path_aliases_meta.generated.lua.
-_G.__path_alias_names = _G.__path_alias_names or {}
+-- Declared aliases per registry; read by C++ after bootstrap to emit path_aliases_meta.generated.lua.
+_G.__path_aliases = _G.__path_aliases or {}
 
 local function install_path_registry(define_name, registry_name, type_label)
     local store = {}
 
-    local names = {}
+    local aliases = {}
     local seen = {}
-    _G.__path_alias_names[registry_name] = names
+    _G.__path_aliases[registry_name] = aliases
 
     local ref_mt = {
         __tostring = function(self)
@@ -47,7 +47,7 @@ local function install_path_registry(define_name, registry_name, type_label)
 
             if not seen[name] then
                 seen[name] = true
-                names[#names + 1] = name
+                aliases[#aliases + 1] = name
             end
         end,
     })

@@ -11,6 +11,7 @@
 #include "actions/editor_action.h"
 #include "editor_config.h"
 #include "editor_gui_utils.h"
+#include "editor_lua.h"
 #include "editor_style.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
@@ -190,6 +191,7 @@ namespace hob::editor {
 
     void Editor::on_lua_hot_reloaded() {
         m_engine.get_lua_script_system().run_engine_folder(EDITOR_SCRIPTS_FOLDER);
+        clear_asset_entry_cache();
     }
 
     bool Editor::on_quit_requested() {

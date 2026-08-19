@@ -7,24 +7,23 @@ _G.Editor = _G.Editor or {}
 -- Editor field types
 -- ---------------------------------------------------------------------------------------------
 
--- Factory registries whose built objects are usertypes worth recognizing by identity.
--- Path registries unwrap to plain path strings, so a field holding one of
--- their resources can only be identified from declared schema metadata.
 local RESOURCE_REGISTRY_TYPES = {
+    Textures = FieldType.TEXTURE,
     Materials = FieldType.MATERIAL,
     AnimationClips = FieldType.ANIMATION_CLIP,
+    AudioClips = FieldType.AUDIO_CLIP,
 }
 
 -- Metatable identity -> field type
 local usertype_types = nil
 
 local function get_registry_metatable(registry_name)
-    local names = _G.__factory_alias_names[registry_name]
-    if names == nil or names[1] == nil then
+    local aliases = _G.__factory_aliases[registry_name]
+    if aliases == nil or aliases[1] == nil then
         return nil
     end
 
-    local ok, object = pcall(unwrap_def, _G[registry_name][names[1]])
+    local ok, object = pcall(unwrap_def, _G[registry_name][aliases[1]])
     if ok and type(object) == "userdata" then
         return getmetatable(object)
     end
@@ -276,6 +275,98 @@ function Editor.get_enum_entries(name)
     end)
 
     return entries
+end
+
+-- ---------------------------------------------------------------------------------------------
+-- Assets
+-- ---------------------------------------------------------------------------------------------
+
+local function object_path(object)
+    return object.get_path and object:get_path() or nil
+end
+
+local function object_name(object)
+    return object.get_name and object:get_name() or nil
+end
+
+local function def_path(_, def)
+    return def.path
+end
+
+local function def_alias(alias, _)
+    return alias
+end
+
+local ASSET_IDENTITY = {
+    Textures = { of_object = object_path, of_def = def_path },
+    AudioClips = { of_object = object_path, of_def = def_path },
+    Materials = { of_object = object_name, of_def = def_alias },
+    AnimationClips = { of_object = object_name, of_def = def_alias },
+}
+
+---@param registry string
+---@return table|nil
+function Editor.get_asset_entries(registry)
+    local aliases = _G.__factory_aliases[registry]
+    local defs = _G.__factory_defs[registry]
+    if aliases == nil or defs == nil then
+        return nil
+    end
+
+    local identity = ASSET_IDENTITY[registry]
+
+    local entries = {}
+    for _, alias in ipairs(aliases) do
+        local def = defs[alias]
+        if def ~= nil then
+            local display_name = identity ~= nil and identity.of_def(alias, def) or nil
+            entries[#entries + 1] = { display_name = display_name or alias, registry_alias = alias }
+        end
+    end
+
+    return entries
+end
+
+---@param registry string
+---@param object any
+---@return string|nil
+function Editor.get_asset_alias(registry, object)
+    if type(object) ~= "userdata" then
+        return nil
+    end
+
+    local identity = ASSET_IDENTITY[registry]
+    local aliases = _G.__factory_aliases[registry]
+    local defs = _G.__factory_defs[registry]
+    if identity == nil or aliases == nil or defs == nil then
+        return nil
+    end
+
+    local key = identity.of_object(object)
+    if key == nil then
+        return nil
+    end
+
+    for _, alias in ipairs(aliases) do
+        local def = defs[alias]
+        if def ~= nil and identity.of_def(alias, def) == key then
+            return alias
+        end
+    end
+
+    return nil
+end
+
+---@param registry string
+---@param alias string
+---@return any
+function Editor.get_asset_ref(registry, alias)
+    local registry_table = _G[registry]
+    if registry_table == nil then
+        return nil
+    end
+
+    return registry_table[alias]
 end
 
 -- ---------------------------------------------------------------------------------------------

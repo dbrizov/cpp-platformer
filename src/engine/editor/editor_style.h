@@ -126,6 +126,12 @@ namespace hob::editor {
     constexpr float INSPECTOR_DRAG_SPEED_COLOR = 0.005f;
     constexpr float INSPECTOR_NESTED_INDENT = 12.0f;
 
+    constexpr const char* INSPECTOR_NONE_LABEL = "None";
+    constexpr const char* INSPECTOR_EMPTY_LABEL = "##"; // ImGui expects this (don't modify)
+    constexpr const char* INSPECTOR_INT_FORMAT = "%lld"; // This is driven by int64_t (don't modify)
+    constexpr const char* INSPECTOR_FLOAT_FORMAT = "%.3f";
+    constexpr ImGuiColorEditFlags INSPECTOR_COLOR_EDIT_FLAGS = ImGuiColorEditFlags_Float;
+
     constexpr ImVec4 COLOR_INSPECTOR_HEADER{0.220f, 0.220f, 0.220f, 1.0f};
     constexpr ImVec4 COLOR_INSPECTOR_HEADER_HOVER{0.259f, 0.259f, 0.259f, 1.0f};
 

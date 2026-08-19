@@ -19,16 +19,11 @@ namespace hob::editor {
         constexpr int32_t DRAW_CHANNEL_BACKGROUND = 0;
         constexpr int32_t DRAW_CHANNEL_FOREGROUND = 1;
 
-        constexpr const char* EMPTY_LABEL = "##";
-        constexpr const char* FLOAT_FORMAT = "%.3f";
-        constexpr const char* INT_FORMAT = "%lld";
-        constexpr uint32_t FIELD_STRING_CAPACITY = 256;
         constexpr const char* COLOR_PICKER_POPUP = "picker";
         constexpr const char* BITMASK_POPUP = "flags";
         constexpr const char* BITMASK_BUTTON_ID = "###flags";
         constexpr const char* BITMASK_SEPARATOR = " | ";
-        constexpr const char* BITMASK_NONE = "None";
-        constexpr ImGuiColorEditFlags COLOR_EDIT_FLAGS = ImGuiColorEditFlags_Float;
+        constexpr uint32_t FIELD_STRING_CAPACITY = 256;
 
         // Words that read wrong title-cased. Matched whole, against a lowercase snake_case word.
         constexpr std::string_view LABEL_ACRONYMS[] = {"aabb"};
@@ -94,8 +89,13 @@ namespace hob::editor {
                 }
 
                 ImGui::SetNextItemColorMarker(ImGui::GetColorU32(colors[i]));
-                changed |=
-                    ImGui::DragFloat(EMPTY_LABEL, values[i], drag_speed, min, max, FLOAT_FORMAT, clamp_flags(min, max));
+                changed |= ImGui::DragFloat(INSPECTOR_EMPTY_LABEL,
+                                            values[i],
+                                            drag_speed,
+                                            min,
+                                            max,
+                                            INSPECTOR_FLOAT_FORMAT,
+                                            clamp_flags(min, max));
 
                 ImGui::PopID();
                 ImGui::PopItemWidth();
@@ -105,6 +105,20 @@ namespace hob::editor {
             end_field();
 
             return changed;
+        }
+
+        bool combo_item(const char* label, bool selected) {
+            StyleColorStack colors;
+            if (selected) {
+                const ImVec4 header = ImGui::GetStyleColorVec4(ImGuiCol_Header);
+                colors.push(ImGuiCol_HeaderHovered, header);
+                colors.push(ImGuiCol_HeaderActive, header);
+            }
+
+            const bool clicked = ImGui::Selectable(label, selected);
+            colors.pop();
+
+            return clicked;
         }
     } // namespace
 
@@ -366,8 +380,8 @@ namespace hob::editor {
 
     bool field_float(const char* label, float& value, float drag_speed, float min, float max) {
         begin_field(label);
-        const bool changed =
-            ImGui::DragFloat(EMPTY_LABEL, &value, drag_speed, min, max, FLOAT_FORMAT, clamp_flags(min, max));
+        const bool changed = ImGui::DragFloat(
+            INSPECTOR_EMPTY_LABEL, &value, drag_speed, min, max, INSPECTOR_FLOAT_FORMAT, clamp_flags(min, max));
         end_field();
 
         return changed;
@@ -375,8 +389,14 @@ namespace hob::editor {
 
     bool field_int(const char* label, int64_t& value, float drag_speed, int64_t min, int64_t max) {
         begin_field(label);
-        const bool changed = ImGui::DragScalar(
-            EMPTY_LABEL, ImGuiDataType_S64, &value, drag_speed, &min, &max, INT_FORMAT, clamp_flags(min, max));
+        const bool changed = ImGui::DragScalar(INSPECTOR_EMPTY_LABEL,
+                                               ImGuiDataType_S64,
+                                               &value,
+                                               drag_speed,
+                                               &min,
+                                               &max,
+                                               INSPECTOR_INT_FORMAT,
+                                               clamp_flags(min, max));
         end_field();
 
         return changed;
@@ -384,7 +404,7 @@ namespace hob::editor {
 
     bool field_bool(const char* label, bool& value) {
         begin_field(label);
-        const bool changed = ImGui::Checkbox(EMPTY_LABEL, &value);
+        const bool changed = ImGui::Checkbox(INSPECTOR_EMPTY_LABEL, &value);
         end_field();
 
         return changed;
@@ -395,7 +415,7 @@ namespace hob::editor {
         std::snprintf(buffer, sizeof(buffer), "%s", value.c_str());
 
         begin_field(label);
-        const bool changed = ImGui::InputText(EMPTY_LABEL, buffer, sizeof(buffer));
+        const bool changed = ImGui::InputText(INSPECTOR_EMPTY_LABEL, buffer, sizeof(buffer));
         end_field();
 
         if (changed) {
@@ -410,7 +430,7 @@ namespace hob::editor {
         std::snprintf(buffer, sizeof(buffer), "%s", value.c_str());
 
         begin_field(label);
-        ImGui::InputText(EMPTY_LABEL, buffer, sizeof(buffer), ImGuiInputTextFlags_ReadOnly);
+        ImGui::InputText(INSPECTOR_EMPTY_LABEL, buffer, sizeof(buffer), ImGuiInputTextFlags_ReadOnly);
         end_field();
     }
 
@@ -443,12 +463,12 @@ namespace hob::editor {
             }
 
             ImGui::SetNextItemColorMarker(ImGui::GetColorU32(colors[i]));
-            changed |= ImGui::DragFloat(EMPTY_LABEL,
+            changed |= ImGui::DragFloat(INSPECTOR_EMPTY_LABEL,
                                         components[i],
                                         INSPECTOR_DRAG_SPEED_COLOR,
                                         0.0f,
                                         1.0f,
-                                        FLOAT_FORMAT,
+                                        INSPECTOR_FLOAT_FORMAT,
                                         ImGuiSliderFlags_AlwaysClamp);
 
             ImGui::PopID();
@@ -458,13 +478,14 @@ namespace hob::editor {
         ImGui::SameLine(0.0f, style.ItemInnerSpacing.x);
 
         float rgba[4] = {value.r, value.g, value.b, value.a};
-        if (ImGui::ColorButton(EMPTY_LABEL, ImVec4(rgba[0], rgba[1], rgba[2], rgba[3]), COLOR_EDIT_FLAGS)) {
+        if (ImGui::ColorButton(
+                INSPECTOR_EMPTY_LABEL, ImVec4(rgba[0], rgba[1], rgba[2], rgba[3]), INSPECTOR_COLOR_EDIT_FLAGS)) {
             ImGui::OpenPopup(COLOR_PICKER_POPUP);
         }
 
         // Scoped by begin_field's PushID, so every color field gets its own popup.
         if (ImGui::BeginPopup(COLOR_PICKER_POPUP)) {
-            if (ImGui::ColorPicker4(EMPTY_LABEL, rgba, COLOR_EDIT_FLAGS)) {
+            if (ImGui::ColorPicker4(INSPECTOR_EMPTY_LABEL, rgba, INSPECTOR_COLOR_EDIT_FLAGS)) {
                 value = Color(rgba[0], rgba[1], rgba[2], rgba[3]);
                 changed = true;
             }
@@ -477,9 +498,9 @@ namespace hob::editor {
         return changed;
     }
 
-    bool field_enum(const char* label, int64_t& value, const std::vector<EditorEnumEntry>& entries) {
+    bool field_enum(const char* label, int64_t& value, const std::vector<EditorInspectorEntryEnum>& entries) {
         std::string name = std::to_string(value);
-        for (const EditorEnumEntry& entry : entries) {
+        for (const EditorInspectorEntryEnum& entry : entries) {
             if (entry.value == value) {
                 name = entry.name;
                 break;
@@ -489,9 +510,9 @@ namespace hob::editor {
         begin_field(label);
 
         bool changed = false;
-        if (ImGui::BeginCombo(EMPTY_LABEL, name.c_str())) {
-            for (const EditorEnumEntry& entry : entries) {
-                if (ImGui::Selectable(entry.name.c_str(), entry.value == value) && entry.value != value) {
+        if (ImGui::BeginCombo(INSPECTOR_EMPTY_LABEL, name.c_str())) {
+            for (const EditorInspectorEntryEnum& entry : entries) {
+                if (combo_item(entry.name.c_str(), entry.value == value) && entry.value != value) {
                     value = entry.value;
                     changed = true;
                 }
@@ -505,11 +526,11 @@ namespace hob::editor {
         return changed;
     }
 
-    bool field_bitmask(const char* label, int64_t& value, const std::vector<EditorEnumEntry>& entries) {
+    bool field_bitmask(const char* label, int64_t& value, const std::vector<EditorInspectorEntryEnum>& entries) {
         int64_t named_mask = 0;
         std::string named_summary;
 
-        for (const EditorEnumEntry& entry : entries) {
+        for (const EditorInspectorEntryEnum& entry : entries) {
             if (entry.value == 0) {
                 continue;
             }
@@ -534,7 +555,7 @@ namespace hob::editor {
         }
 
         if (named_summary.empty()) {
-            named_summary = BITMASK_NONE;
+            named_summary = INSPECTOR_NONE_LABEL;
         }
 
         begin_field(label);
@@ -546,7 +567,7 @@ namespace hob::editor {
         bool changed = false;
 
         if (ImGui::BeginPopup(BITMASK_POPUP)) {
-            for (const EditorEnumEntry& entry : entries) {
+            for (const EditorInspectorEntryEnum& entry : entries) {
                 if (entry.value == 0) {
                     continue;
                 }
@@ -617,6 +638,41 @@ namespace hob::editor {
 
         ImGui::EndGroup();
         ImGui::PopID();
+
+        return changed;
+    }
+
+    bool field_asset(const char* label,
+                     const std::string& display_name,
+                     const std::string& registry_alias,
+                     bool is_set,
+                     const std::vector<EditorInspectorEntryAsset>& entries,
+                     std::string& picked_registry_alias) {
+        begin_field(label);
+
+        bool changed = false;
+        if (ImGui::BeginCombo(INSPECTOR_EMPTY_LABEL, display_name.c_str())) {
+            if (combo_item(INSPECTOR_NONE_LABEL, !is_set) && is_set) {
+                picked_registry_alias.clear();
+                changed = true;
+            }
+
+            for (int32_t i = 0; i < static_cast<int32_t>(entries.size()); ++i) {
+                const EditorInspectorEntryAsset& entry = entries[i];
+                const bool is_current = entry.registry_alias == registry_alias;
+
+                ImGui::PushID(i);
+                if (combo_item(entry.display_name.c_str(), is_current) && !is_current) {
+                    picked_registry_alias = entry.registry_alias;
+                    changed = true;
+                }
+                ImGui::PopID();
+            }
+
+            ImGui::EndCombo();
+        }
+
+        end_field();
 
         return changed;
     }

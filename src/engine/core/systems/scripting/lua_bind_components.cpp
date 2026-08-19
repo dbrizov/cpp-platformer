@@ -512,7 +512,20 @@ namespace hob {
                 "(path_or_texture: string|Texture|nil)")
             .method("clear_texture", &SpriteComponent::clear_texture)
             .method("get_material", sol::resolve<MaterialRef()>(&SpriteComponent::get_material))
-            .method("set_material", &SpriteComponent::set_material, {"material"})
+            .method_sig(
+                "set_material",
+                [](SpriteComponent& self, const sol::object& value) {
+                    if (!value.valid()) {
+                        self.set_material(nullptr);
+                    }
+                    else if (value.is<Material>()) {
+                        self.set_material(value.as<MaterialRef>());
+                    }
+                    else {
+                        log::lua.error("SpriteComponent:set_material expects a Material or nil");
+                    }
+                },
+                "(material: Material|nil)")
             .method("get_pivot", &SpriteComponent::get_pivot)
             .method("set_pivot", &SpriteComponent::set_pivot, {"pivot"})
             .method("get_scale", &SpriteComponent::get_scale)
@@ -583,6 +596,15 @@ namespace hob {
                     return clip;
                 },
                 {"config"})
+            .method("get_name",
+                    [](const AnimationClip& self) {
+                        return self.name;
+                    })
+            .method("set_name",
+                    [](AnimationClip& self, std::string name) {
+                        self.name = std::move(name);
+                    },
+                    {"name"})
             .method("get_duration",
                     [](const AnimationClip& self) {
                         return self.duration;
@@ -718,7 +740,20 @@ namespace hob {
             .method("stop", &AudioComponent::stop)
             .method("is_playing", &AudioComponent::is_playing)
             .method("get_clip", &AudioComponent::get_clip)
-            .method("set_clip", &AudioComponent::set_clip, {"clip"})
+            .method_sig(
+                "set_clip",
+                [](AudioComponent& self, const sol::object& value) {
+                    if (!value.valid()) {
+                        self.set_clip(nullptr);
+                    }
+                    else if (value.is<AudioClip>()) {
+                        self.set_clip(value.as<AudioClipRef>());
+                    }
+                    else {
+                        log::lua.error("AudioComponent:set_clip expects an AudioClip or nil");
+                    }
+                },
+                "(clip: AudioClip|nil)")
             .method("get_volume", &AudioComponent::get_volume)
             .method("set_volume", &AudioComponent::set_volume, {"volume"})
             .method("is_looping", &AudioComponent::is_looping)

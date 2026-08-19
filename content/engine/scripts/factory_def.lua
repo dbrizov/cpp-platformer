@@ -1,7 +1,9 @@
 -- Generic factory-type registry.
 
--- Declared alias names per registry; read by C++ after bootstrap to emit factory_aliases_meta.generated.lua.
-_G.__factory_alias_names = _G.__factory_alias_names or {}
+-- Declared aliases per registry; read by C++ after bootstrap to emit factory_aliases_meta.generated.lua.
+_G.__factory_aliases = _G.__factory_aliases or {}
+_G.__factory_defs = _G.__factory_defs or {}
+
 _G.__factory_cache_clearers = {}
 
 local function install_factory_registry(registry_name, schema)
@@ -14,9 +16,10 @@ local function install_factory_registry(registry_name, schema)
         end
     end
 
-    local names = {}
+    local aliases = {}
     local seen = {}
-    _G.__factory_alias_names[registry_name] = names
+    _G.__factory_aliases[registry_name] = aliases
+    _G.__factory_defs[registry_name] = defs
 
     local function build(name)
         local def = defs[name]
@@ -66,7 +69,7 @@ local function install_factory_registry(registry_name, schema)
 
             if not seen[name] then
                 seen[name] = true
-                names[#names + 1] = name
+                aliases[#aliases + 1] = name
             end
         end,
     })
@@ -89,10 +92,10 @@ end
 -- Eagerly build every declared shader so its GPU pipeline compiles at load, not on the gameplay hot path.
 -- Only shaders are warmed: materials are a cheap CPU param buffer (no compile).
 function _G.__warmup_shaders()
-    local names = _G.__factory_alias_names["Shaders"]
-    if names and Shaders then
-        for _, name in ipairs(names) do
-            unwrap_def(Shaders[name])
+    local aliases = _G.__factory_aliases["Shaders"]
+    if aliases and Shaders then
+        for _, alias in ipairs(aliases) do
+            unwrap_def(Shaders[alias])
         end
     end
 end

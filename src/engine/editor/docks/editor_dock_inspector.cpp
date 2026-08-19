@@ -187,7 +187,7 @@ namespace hob::editor {
             else if (type == field_type::ENUM || type == field_type::BITMASK) {
                 // Discrete: a pick or a flag toggle is the whole edit, so it skips the drag
                 // coalescing and pushes its command the frame it happens.
-                const std::vector<EditorEnumEntry> entries = get_enum_entries(engine, enum_name);
+                const std::vector<EditorInspectorEntryEnum> entries = get_enum_entries(engine, enum_name);
                 int64_t flags = value_or<int64_t>(value, 0);
 
                 const bool edited = type == field_type::ENUM ? field_enum(label.c_str(), flags, entries)
@@ -202,6 +202,34 @@ namespace hob::editor {
                                                                 discrete_target,
                                                                 value,
                                                                 sol::make_object(lua, flags)));
+                }
+
+                return;
+            }
+            else if (const char* registry = get_asset_registry_for_field_type(type); registry != nullptr) {
+                const std::vector<EditorInspectorEntryAsset>& entries = get_asset_entries(engine, registry);
+                const std::string registry_alias = get_asset_alias(engine, registry, value);
+                const std::string display_name = lua_object_to_display_string(engine, value);
+
+                std::string picked_registry_alias;
+                if (field_asset(label.c_str(),
+                                display_name,
+                                registry_alias,
+                                is_resource_set(value),
+                                entries,
+                                picked_registry_alias)) {
+                    EditorFieldTarget asset_target = component_target;
+                    asset_target.field = name;
+
+                    const sol::object new_ref =
+                        picked_registry_alias.empty()
+                            ? sol::make_object(lua, sol::lua_nil)
+                            : editor_call(engine, "get_asset_ref", registry, picked_registry_alias);
+
+                    editor.get_commands().push(
+                        engine,
+                        std::make_unique<EditorCommandSetField>(
+                            "Set " + component_label + " " + label, asset_target, value, new_ref));
                 }
 
                 return;

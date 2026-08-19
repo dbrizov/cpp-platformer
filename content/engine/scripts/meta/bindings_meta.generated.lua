@@ -876,7 +876,7 @@ function SpriteComponent:clear_texture() end
 ---@return Material?
 function SpriteComponent:get_material() end
 
----@param material Material?
+---@param material Material|nil
 function SpriteComponent:set_material(material) end
 
 ---@return Vector2
@@ -915,6 +915,12 @@ function AnimationClip:get_duration() end
 
 ---@return boolean
 function AnimationClip:get_looping() end
+
+---@return string
+function AnimationClip:get_name() end
+
+---@param name string
+function AnimationClip:set_name(name) end
 
 _G.AnimationClip = AnimationClip
 
@@ -1014,7 +1020,7 @@ function AudioComponent:is_playing() end
 ---@return AudioClip?
 function AudioComponent:get_clip() end
 
----@param clip AudioClip?
+---@param clip AudioClip|nil
 function AudioComponent:set_clip(clip) end
 
 ---@return number

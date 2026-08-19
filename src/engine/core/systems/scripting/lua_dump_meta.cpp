@@ -114,7 +114,7 @@ namespace hob {
         const std::filesystem::path out_path =
             PathUtils::get_project_root() / "scripts" / "meta" / "path_aliases_meta.generated.lua";
 
-        const sol::object names_obj = m_impl->lua["__path_alias_names"];
+        const sol::object names_obj = m_impl->lua["__path_aliases"];
         sol::table names_by_registry = names_obj.is<sol::table>() ? names_obj.as<sol::table>() : sol::table{};
 
         std::ostringstream out;
@@ -173,7 +173,7 @@ namespace hob {
         const std::filesystem::path out_path =
             PathUtils::get_project_root() / "scripts" / "meta" / "factory_aliases_meta.generated.lua";
 
-        const sol::object names_obj = m_impl->lua["__factory_alias_names"];
+        const sol::object names_obj = m_impl->lua["__factory_aliases"];
         sol::table names_by_registry = names_obj.is<sol::table>() ? names_obj.as<sol::table>() : sol::table{};
 
         std::ostringstream out;
@@ -288,7 +288,7 @@ namespace hob {
 
         sol::protected_function unwrap = lua["unwrap_def"];
         const sol::object shaders_obj = lua["Shaders"];
-        const sol::object alias_obj = lua["__factory_alias_names"];
+        const sol::object alias_obj = lua["__factory_aliases"];
         if (unwrap.valid() && shaders_obj.is<sol::table>() && alias_obj.is<sol::table>()) {
             const sol::object names_obj = alias_obj.as<sol::table>()["Shaders"];
             if (names_obj.is<sol::table>()) {
