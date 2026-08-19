@@ -19,9 +19,10 @@ namespace hob::editor {
         constexpr int32_t DRAW_CHANNEL_BACKGROUND = 0;
         constexpr int32_t DRAW_CHANNEL_FOREGROUND = 1;
 
-        constexpr const char* COLOR_PICKER_POPUP = "picker";
-        constexpr const char* BITMASK_POPUP = "flags";
-        constexpr const char* BITMASK_BUTTON_ID = "###flags";
+        constexpr const char* COLOR_PICKER_POPUP_ID = "ColorPickerPopup";
+        constexpr const char* COMBO_POPUP_ID = "##ComboPopup"; // The id ImGui hashes internally for a combo's popup.
+        constexpr const char* BITMASK_POPUP_ID = "BitmaskPopup";
+        constexpr const char* BITMASK_BUTTON_ID = "###BitmaskButton";
         constexpr const char* BITMASK_SEPARATOR = " | ";
         constexpr uint32_t FIELD_STRING_CAPACITY = 256;
 
@@ -107,19 +108,6 @@ namespace hob::editor {
             return changed;
         }
 
-        bool combo_item(const char* label, bool selected) {
-            StyleColorStack colors;
-            if (selected) {
-                const ImVec4 header = ImGui::GetStyleColorVec4(ImGuiCol_Header);
-                colors.push(ImGuiCol_HeaderHovered, header);
-                colors.push(ImGuiCol_HeaderActive, header);
-            }
-
-            const bool clicked = ImGui::Selectable(label, selected);
-            colors.pop();
-
-            return clicked;
-        }
     } // namespace
 
     std::string to_display_label(std::string_view name) {
@@ -220,43 +208,6 @@ namespace hob::editor {
         ImGui::EndMenu();
     }
 
-    float bar_button_width(const char* label) {
-        return ImGui::CalcTextSize(label).x + MENU_BAR_ITEM_PADDING_X * 2.0f + MENU_BAR_ITEM_SPACING_X;
-    }
-
-    bool bar_button(const char* label) {
-        const ImGuiStyle& style = ImGui::GetStyle();
-
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        ImDrawListSplitter splitter;
-        splitter.Split(draw_list, DRAW_CHANNEL_COUNT);
-        splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_FOREGROUND);
-
-        StyleColorStack colors;
-        colors.push(ImGuiCol_Header, COLOR_TRANSPARENT);
-        colors.push(ImGuiCol_HeaderHovered, COLOR_TRANSPARENT);
-        colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
-
-        StyleVarStack vars;
-        vars.push(ImGuiStyleVar_ItemSpacing, ImVec2(MENU_BAR_ITEM_PADDING_X * 2.0f, style.ItemSpacing.y));
-
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + MENU_BAR_ITEM_SPACING_X);
-        const bool pressed = ImGui::Selectable(label, false, ImGuiSelectableFlags_None, ImGui::CalcTextSize(label));
-        vars.pop();
-        colors.pop();
-
-        const ImVec4& color = ImGui::IsItemActive()    ? COLOR_BUTTON_ACTIVE
-                              : ImGui::IsItemHovered() ? COLOR_BUTTON_HOVER
-                                                       : COLOR_BUTTON;
-
-        splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
-        draw_highlight(
-            draw_list, ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()), color, MENU_BAR_ITEM_ROUNDING);
-        splitter.Merge(draw_list);
-
-        return pressed;
-    }
-
     bool menu_item(const char* label, const char* shortcut, bool enabled) {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         ImDrawListSplitter splitter;
@@ -297,6 +248,78 @@ namespace hob::editor {
         splitter.Merge(draw_list);
 
         return pressed;
+    }
+
+    bool begin_combo(const char* preview) {
+        const ImGuiID id = ImGui::GetID(INSPECTOR_EMPTY_LABEL);
+        const bool open = ImGui::IsPopupOpen(ImHashStr(COMBO_POPUP_ID, 0, id), ImGuiPopupFlags_None);
+        const bool held = ImGui::GetCurrentContext()->ActiveId == id;
+
+        StyleColorStack colors;
+        if (open || held) {
+            colors.push(ImGuiCol_FrameBg, COLOR_BG_PRESSED);
+            colors.push(ImGuiCol_FrameBgHovered, COLOR_BG_PRESSED);
+        }
+
+        const bool opened = ImGui::BeginCombo(INSPECTOR_EMPTY_LABEL, preview);
+        colors.pop();
+
+        return opened;
+    }
+
+    void end_combo() {
+        ImGui::EndCombo();
+    }
+
+    bool combo_item(const char* label, bool selected) {
+        StyleColorStack colors;
+        if (selected) {
+            const ImVec4 header = ImGui::GetStyleColorVec4(ImGuiCol_Header);
+            colors.push(ImGuiCol_HeaderHovered, header);
+            colors.push(ImGuiCol_HeaderActive, header);
+        }
+
+        const bool clicked = ImGui::Selectable(label, selected);
+        colors.pop();
+
+        return clicked;
+    }
+
+    bool bar_button(const char* label) {
+        const ImGuiStyle& style = ImGui::GetStyle();
+
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        ImDrawListSplitter splitter;
+        splitter.Split(draw_list, DRAW_CHANNEL_COUNT);
+        splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_FOREGROUND);
+
+        StyleColorStack colors;
+        colors.push(ImGuiCol_Header, COLOR_TRANSPARENT);
+        colors.push(ImGuiCol_HeaderHovered, COLOR_TRANSPARENT);
+        colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
+
+        StyleVarStack vars;
+        vars.push(ImGuiStyleVar_ItemSpacing, ImVec2(MENU_BAR_ITEM_PADDING_X * 2.0f, style.ItemSpacing.y));
+
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + MENU_BAR_ITEM_SPACING_X);
+        const bool pressed = ImGui::Selectable(label, false, ImGuiSelectableFlags_None, ImGui::CalcTextSize(label));
+        vars.pop();
+        colors.pop();
+
+        const ImVec4& color = ImGui::IsItemActive()    ? COLOR_BUTTON_ACTIVE
+                              : ImGui::IsItemHovered() ? COLOR_BUTTON_HOVER
+                                                       : COLOR_BUTTON;
+
+        splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
+        draw_highlight(
+            draw_list, ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()), color, MENU_BAR_ITEM_ROUNDING);
+        splitter.Merge(draw_list);
+
+        return pressed;
+    }
+
+    float bar_button_width(const char* label) {
+        return ImGui::CalcTextSize(label).x + MENU_BAR_ITEM_PADDING_X * 2.0f + MENU_BAR_ITEM_SPACING_X;
     }
 
     bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) {
@@ -480,11 +503,11 @@ namespace hob::editor {
         float rgba[4] = {value.r, value.g, value.b, value.a};
         if (ImGui::ColorButton(
                 INSPECTOR_EMPTY_LABEL, ImVec4(rgba[0], rgba[1], rgba[2], rgba[3]), INSPECTOR_COLOR_EDIT_FLAGS)) {
-            ImGui::OpenPopup(COLOR_PICKER_POPUP);
+            ImGui::OpenPopup(COLOR_PICKER_POPUP_ID);
         }
 
         // Scoped by begin_field's PushID, so every color field gets its own popup.
-        if (ImGui::BeginPopup(COLOR_PICKER_POPUP)) {
+        if (ImGui::BeginPopup(COLOR_PICKER_POPUP_ID)) {
             if (ImGui::ColorPicker4(INSPECTOR_EMPTY_LABEL, rgba, INSPECTOR_COLOR_EDIT_FLAGS)) {
                 value = Color(rgba[0], rgba[1], rgba[2], rgba[3]);
                 changed = true;
@@ -510,7 +533,7 @@ namespace hob::editor {
         begin_field(label);
 
         bool changed = false;
-        if (ImGui::BeginCombo(INSPECTOR_EMPTY_LABEL, name.c_str())) {
+        if (begin_combo(name.c_str())) {
             for (const EditorInspectorEntryEnum& entry : entries) {
                 if (combo_item(entry.name.c_str(), entry.value == value) && entry.value != value) {
                     value = entry.value;
@@ -518,7 +541,7 @@ namespace hob::editor {
                 }
             }
 
-            ImGui::EndCombo();
+            end_combo();
         }
 
         end_field();
@@ -560,13 +583,23 @@ namespace hob::editor {
 
         begin_field(label);
 
-        if (ImGui::Button((named_summary + BITMASK_BUTTON_ID).c_str(), ImVec2(ImGui::CalcItemWidth(), 0.0f))) {
-            ImGui::OpenPopup(BITMASK_POPUP);
+        StyleColorStack button_colors;
+        if (ImGui::IsPopupOpen(BITMASK_POPUP_ID)) {
+            button_colors.push(ImGuiCol_Button, COLOR_BUTTON_ACTIVE);
+            button_colors.push(ImGuiCol_ButtonHovered, COLOR_BUTTON_ACTIVE);
+        }
+
+        const bool pressed =
+            ImGui::Button((named_summary + BITMASK_BUTTON_ID).c_str(), ImVec2(ImGui::CalcItemWidth(), 0.0f));
+        button_colors.pop();
+
+        if (pressed) {
+            ImGui::OpenPopup(BITMASK_POPUP_ID);
         }
 
         bool changed = false;
 
-        if (ImGui::BeginPopup(BITMASK_POPUP)) {
+        if (ImGui::BeginPopup(BITMASK_POPUP_ID)) {
             for (const EditorInspectorEntryEnum& entry : entries) {
                 if (entry.value == 0) {
                     continue;
@@ -651,7 +684,7 @@ namespace hob::editor {
         begin_field(label);
 
         bool changed = false;
-        if (ImGui::BeginCombo(INSPECTOR_EMPTY_LABEL, display_name.c_str())) {
+        if (begin_combo(display_name.c_str())) {
             if (combo_item(INSPECTOR_NONE_LABEL, !is_set) && is_set) {
                 picked_asset_name.clear();
                 changed = true;
@@ -669,7 +702,7 @@ namespace hob::editor {
                 ImGui::PopID();
             }
 
-            ImGui::EndCombo();
+            end_combo();
         }
 
         end_field();

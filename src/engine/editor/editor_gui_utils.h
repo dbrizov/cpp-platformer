@@ -56,8 +56,11 @@ namespace hob::editor {
 
     bool begin_menu(const char* label);
     void end_menu();
-
     bool menu_item(const char* label, const char* shortcut = nullptr, bool enabled = true);
+
+    bool begin_combo(const char* preview);
+    void end_combo();
+    bool combo_item(const char* label, bool selected);
 
     bool bar_button(const char* label);
     float bar_button_width(const char* label);
@@ -68,7 +71,6 @@ namespace hob::editor {
 
     void begin_field(const char* label);
     void end_field();
-
     bool field_angle(const char* label, float& degrees, float drag_speed = INSPECTOR_DRAG_SPEED_ROTATION_DEG);
     bool field_float(const char* label,
                      float& value,
