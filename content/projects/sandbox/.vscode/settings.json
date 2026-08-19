@@ -17,6 +17,7 @@
         "lowercase-global",
         "undefined-global",
         "undefined-field",
+        "inject-field",
         "duplicate-set-field",
         "duplicate-doc-field",
         "duplicate-doc-param",

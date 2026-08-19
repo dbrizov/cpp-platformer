@@ -251,6 +251,9 @@ local schemas = {
             "clips",
             "default_clip",
         },
+        types = {
+            clips = { hidden = true, },
+        },
     },
     sockets = {
         add = "add_sockets",

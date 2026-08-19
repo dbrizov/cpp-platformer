@@ -24,6 +24,7 @@ namespace hob {
         float min = 0.0f; // Valid range. min == max means unbounded.
         float max = 0.0f; // MAX_FLOAT / MIN_FLOAT mark an open end.
         bool reapply_on_hot_reload = true;
+        bool hide_in_inspector = false;
     };
 
     struct LuaComponentSchemaInfo {

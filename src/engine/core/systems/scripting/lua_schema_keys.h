@@ -20,6 +20,7 @@ namespace hob {
         constexpr const char* ENUM = "enum";
         constexpr const char* MIN = "min";
         constexpr const char* MAX = "max";
+        constexpr const char* HIDDEN = "hidden";
     } // namespace schema_key
 
     namespace field_type {

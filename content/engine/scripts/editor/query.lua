@@ -92,29 +92,29 @@ local function get_schema_field_order(schema)
     return names
 end
 
--- Only fields with both a getter and a setter are inspectable;
--- A read-only property has nothing for the Inspector to write back to.
 local function append_schema_fields(fields, component, schema)
     for _, field in ipairs(get_schema_field_order(schema)) do
         local getter = schema.getters[field]
-        if getter ~= nil and schema.setters[field] ~= nil then
+        local setter = schema.setters[field]
+        local field_meta = get_field_meta(schema, field)
+        local is_hidden = field_meta ~= nil and field_meta.hidden == true
+        if getter ~= nil and setter ~= nil and not is_hidden then
             local ok, value = pcall(function()
                 return component[getter](component)
             end)
 
             if ok then
-                local meta = get_field_meta(schema, field)
                 local row = {}
 
-                if meta ~= nil then
-                    for key, meta_value in pairs(meta) do
+                if field_meta ~= nil then
+                    for key, meta_value in pairs(field_meta) do
                         row[key] = meta_value
                     end
                 end
 
                 row.name = field
                 row.value = value
-                row.type = (meta ~= nil and meta.type) or get_field_type_from_value(value)
+                row.type = (field_meta ~= nil and field_meta.type) or get_field_type_from_value(value)
 
                 fields[#fields + 1] = row
             end

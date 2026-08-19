@@ -636,16 +636,17 @@ namespace hob {
                 },
                 "(clips: table<string, AnimationClip>)");
 
-        bind_component_schema<SpriteAnimatorComponent>(lua,
-                                                       meta,
-                                                       schemas,
-                                                       "sprite_animator",
-                                                       "add_sprite_animator",
-                                                       "get_sprite_animator",
-                                                       {
-                                                           {"clips", "get_clips", "set_clips"},
-                                                           {"default_clip", "get_default_clip", "set_default_clip"},
-                                                       });
+        bind_component_schema<SpriteAnimatorComponent>(
+            lua,
+            meta,
+            schemas,
+            "sprite_animator",
+            "add_sprite_animator",
+            "get_sprite_animator",
+            {
+                {.name = "clips", .get_method = "get_clips", .set_method = "set_clips", .hide_in_inspector = true},
+                {"default_clip", "get_default_clip", "set_default_clip"},
+            });
 
         // SocketsComponent
         bind_usertype<SocketsComponent>(lua, meta, Bases<Component>{})
