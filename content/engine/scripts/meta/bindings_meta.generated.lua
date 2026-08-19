@@ -910,17 +910,17 @@ _G.SpriteComponent = SpriteComponent
 ---@overload fun(config: table): AnimationClip
 local AnimationClip = {}
 
----@return number
-function AnimationClip:get_duration() end
-
----@return boolean
-function AnimationClip:get_looping() end
-
 ---@return string
 function AnimationClip:get_name() end
 
 ---@param name string
 function AnimationClip:set_name(name) end
+
+---@return number
+function AnimationClip:get_duration() end
+
+---@return boolean
+function AnimationClip:get_looping() end
 
 _G.AnimationClip = AnimationClip
 

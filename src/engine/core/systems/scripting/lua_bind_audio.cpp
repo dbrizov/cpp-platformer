@@ -2,7 +2,8 @@
 #include "engine/core/logging.h"
 #include "engine/core/systems/audio/audio.h"
 #include "lua_meta.h"
-#include "lua_schema_factory.h"
+#include "lua_schema_asset_factory.h"
+#include "lua_schema_keys.h"
 #include "lua_script_system.h"
 #include "lua_script_system_impl.h"
 #include "lua_type_names.h" // IWYU pragma: keep
@@ -23,7 +24,7 @@ namespace hob {
     void LuaScriptSystem::bind_audio() {
         sol::state& lua = m_impl->lua;
         LuaMetaRegistry& meta = m_impl->meta;
-        LuaFactorySchemaRegistry& factory_schemas = m_impl->factory_schemas;
+        LuaAssetFactorySchemaRegistry& asset_factory_schemas = m_impl->asset_factory_schemas;
         Audio& audio = m_engine.get_audio();
 
         bind_usertype<AudioClip>(lua, meta)
@@ -39,7 +40,8 @@ namespace hob {
                 {"config"})
             .method("get_path", &AudioClip::get_path);
 
-        bind_factory_schema<AudioClip>(factory_schemas, "DefineAudioClip", "AudioClips", {"path"});
+        bind_asset_factory_schema<AudioClip>(
+            asset_factory_schemas, "DefineAudioClip", asset_factory::AUDIO_CLIPS, {"path"});
 
         bind_table(lua, meta, "Audio")
             .func_sig(

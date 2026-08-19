@@ -91,9 +91,9 @@ namespace hob::editor {
     bool field_capsule(const char* label, Capsule& value);
     bool field_circle(const char* label, Circle& value);
     bool field_asset(const char* label,
+                     const std::string& asset_name,
                      const std::string& display_name,
-                     const std::string& registry_alias,
                      bool is_set,
                      const std::vector<EditorInspectorEntryAsset>& entries,
-                     std::string& picked_registry_alias);
+                     std::string& picked_asset_name);
 } // namespace hob::editor

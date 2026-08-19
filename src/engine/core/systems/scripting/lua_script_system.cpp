@@ -86,8 +86,7 @@ namespace hob {
 
         // Schema files are consumed by the Lua bootstrap, so they must be written first.
         dump_component_schemas();
-        dump_path_schemas();
-        dump_factory_schemas();
+        dump_asset_factory_schemas();
 
         if (!run_project_main_on_boot) {
             lua["__defer_project_main"] = true;
@@ -100,10 +99,8 @@ namespace hob {
         // Meta files are LuaCATS-only (no runtime effect),
         // so they're written after bootstrap which runs all user-defined scripts.
         dump_bindings_meta();
-        dump_path_schemas_meta();
-        dump_path_aliases_meta();
-        dump_factory_schemas_meta();
-        dump_factory_aliases_meta();
+        dump_asset_factory_schemas_meta();
+        dump_asset_names_meta();
         dump_entity_registry_meta();
         dump_component_registry_meta();
         dump_shader_params_meta();
@@ -309,7 +306,6 @@ namespace hob {
         bind_audio();
         bind_entity_spawner();
         bind_scripts();
-        bind_assets();
         bind_debug();
         bind_logging();
     }

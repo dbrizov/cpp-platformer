@@ -26,7 +26,7 @@ namespace hob::editor {
         return editor_table.as<sol::table>()[name];
     }
 
-    bool is_resource_set(const sol::object& value) {
+    bool is_asset_set(const sol::object& value) {
         if (!value.valid()) {
             return false;
         }
@@ -50,30 +50,30 @@ namespace hob::editor {
         return true;
     }
 
-    std::string get_asset_alias(Engine& engine, const std::string& registry, const sol::object& object) {
-        if (!is_resource_set(object)) {
+    std::string get_asset_name(Engine& engine, const std::string& factory_name, const sol::object& object) {
+        if (!is_asset_set(object)) {
             return {};
         }
 
-        const sol::object result = editor_call(engine, "get_asset_alias", registry, object);
+        const sol::object result = editor_call(engine, "get_asset_name", factory_name, object);
         return result.is<std::string>() ? result.as<std::string>() : std::string();
     }
 
-    const char* get_asset_registry_for_field_type(std::string_view type) {
+    const char* get_asset_factory_name_for_field_type(std::string_view type) {
         if (type == field_type::TEXTURE) {
-            return "Textures";
+            return asset_factory::TEXTURES;
         }
 
         if (type == field_type::MATERIAL) {
-            return "Materials";
+            return asset_factory::MATERIALS;
         }
 
         if (type == field_type::ANIMATION_CLIP) {
-            return "AnimationClips";
+            return asset_factory::ANIMATION_CLIPS;
         }
 
         if (type == field_type::AUDIO_CLIP) {
-            return "AudioClips";
+            return asset_factory::AUDIO_CLIPS;
         }
 
         return nullptr;
@@ -83,13 +83,13 @@ namespace hob::editor {
         g_asset_entries.clear();
     }
 
-    const std::vector<EditorInspectorEntryAsset>& get_asset_entries(Engine& engine, const std::string& registry) {
-        const auto cached = g_asset_entries.find(registry);
+    const std::vector<EditorInspectorEntryAsset>& get_asset_entries(Engine& engine, const std::string& factory_name) {
+        const auto cached = g_asset_entries.find(factory_name);
         if (cached != g_asset_entries.end()) {
             return cached->second;
         }
 
-        const sol::object result = editor_call(engine, "get_asset_entries", registry);
+        const sol::object result = editor_call(engine, "get_asset_entries", factory_name);
         if (!result.is<sol::table>()) {
             static const std::vector<EditorInspectorEntryAsset> empty;
             return empty;
@@ -107,11 +107,11 @@ namespace hob::editor {
             }
 
             const sol::table entry = row.as<sol::table>();
-            entries.push_back({.display_name = entry.get_or<std::string>(query_key::DISPLAY_NAME, ""),
-                               .registry_alias = entry.get_or<std::string>(query_key::REGISTRY_ALIAS, "")});
+            entries.push_back({.name = entry.get_or<std::string>(query_key::NAME, ""),
+                               .display_name = entry.get_or<std::string>(query_key::DISPLAY_NAME, "")});
         }
 
-        return g_asset_entries.emplace(registry, std::move(entries)).first->second;
+        return g_asset_entries.emplace(factory_name, std::move(entries)).first->second;
     }
 
     std::vector<EditorInspectorEntryEnum> get_enum_entries(Engine& engine, const std::string& name) {

@@ -13,9 +13,9 @@ _G.__component_pending = {}
 -- 2a. Re-run the same definition files bootstrap uses, then re-finalize.
 __load_project_definitions()
 
--- 2b. Drop cached factory objects (materials, animation clips, ...) so redefined defs
+-- 2b. Drop cached asset factory objects (materials, animation clips, ...) so redefined defs
 --     rebuild from their updated config on next unwrap.
-__clear_factory_caches()
+__clear_asset_factory_caches()
 
 -- 2c. Re-warm shaders so pipelines stay built (rebuilds hit the strong shader cache) instead of
 --     lazily recompiling the first time a reloaded material references them.
@@ -35,6 +35,6 @@ end
 -- 4. Push changed prefab data onto already-spawned entities.
 __reapply_prefabs_to_spawned_entities()
 
--- 5. Force a full GC so the previous generation of factory objects (materials, etc.) — now only
+-- 5. Force a full GC so the previous generation of asset factory objects (materials, etc.) — now only
 --    held by unreachable Lua userdata — releases its C++ refs immediately instead of lingering.
 collectgarbage("collect")

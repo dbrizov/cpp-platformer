@@ -643,27 +643,27 @@ namespace hob::editor {
     }
 
     bool field_asset(const char* label,
+                     const std::string& asset_name,
                      const std::string& display_name,
-                     const std::string& registry_alias,
                      bool is_set,
                      const std::vector<EditorInspectorEntryAsset>& entries,
-                     std::string& picked_registry_alias) {
+                     std::string& picked_asset_name) {
         begin_field(label);
 
         bool changed = false;
         if (ImGui::BeginCombo(INSPECTOR_EMPTY_LABEL, display_name.c_str())) {
             if (combo_item(INSPECTOR_NONE_LABEL, !is_set) && is_set) {
-                picked_registry_alias.clear();
+                picked_asset_name.clear();
                 changed = true;
             }
 
             for (int32_t i = 0; i < static_cast<int32_t>(entries.size()); ++i) {
                 const EditorInspectorEntryAsset& entry = entries[i];
-                const bool is_current = entry.registry_alias == registry_alias;
+                const bool is_current = entry.name == asset_name;
 
                 ImGui::PushID(i);
                 if (combo_item(entry.display_name.c_str(), is_current) && !is_current) {
-                    picked_registry_alias = entry.registry_alias;
+                    picked_asset_name = entry.name;
                     changed = true;
                 }
                 ImGui::PopID();

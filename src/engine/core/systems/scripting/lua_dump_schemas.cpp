@@ -15,20 +15,12 @@ namespace hob {
         }
     }
 
-    void LuaScriptSystem::dump_path_schemas() {
-        const std::filesystem::path out_path = PathUtils::get_engine_root() / "scripts" / "path_schemas.generated.lua";
-
-        if (!m_impl->path_schemas.write_to_file(out_path)) {
-            log::lua.error("LuaScriptSystem::dump_path_schemas: failed to write '{}'", out_path.string());
-        }
-    }
-
-    void LuaScriptSystem::dump_factory_schemas() {
+    void LuaScriptSystem::dump_asset_factory_schemas() {
         const std::filesystem::path out_path =
-            PathUtils::get_engine_root() / "scripts" / "factory_schemas.generated.lua";
+            PathUtils::get_engine_root() / "scripts" / "asset_factory_schemas.generated.lua";
 
-        if (!m_impl->factory_schemas.write_to_file(out_path)) {
-            log::lua.error("LuaScriptSystem::dump_factory_schemas: failed to write '{}'", out_path.string());
+        if (!m_impl->asset_factory_schemas.write_to_file(out_path)) {
+            log::lua.error("LuaScriptSystem::dump_asset_factory_schemas: failed to write '{}'", out_path.string());
         }
     }
 } // namespace hob

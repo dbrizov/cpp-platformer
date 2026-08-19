@@ -73,19 +73,15 @@ namespace hob {
         void bind_audio();
         void bind_entity_spawner();
         void bind_scripts();
-        void bind_assets();
         void bind_debug();
         void bind_logging();
 
         void dump_component_schemas();
-        void dump_path_schemas();
-        void dump_factory_schemas();
+        void dump_asset_factory_schemas();
 
         void dump_bindings_meta();
-        void dump_path_schemas_meta();
-        void dump_path_aliases_meta();
-        void dump_factory_schemas_meta();
-        void dump_factory_aliases_meta();
+        void dump_asset_factory_schemas_meta();
+        void dump_asset_names_meta();
         void dump_entity_registry_meta();
         void dump_component_registry_meta();
         void dump_shader_params_meta();

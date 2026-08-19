@@ -27,8 +27,8 @@
 #include "engine/math/constants.h"
 #include "lua_bind_helpers.h"
 #include "lua_meta.h"
+#include "lua_schema_asset_factory.h"
 #include "lua_schema_component.h"
-#include "lua_schema_factory.h"
 #include "lua_schema_keys.h"
 #include "lua_script_system.h"
 #include "lua_script_system_impl.h"
@@ -114,7 +114,7 @@ namespace hob {
         sol::state& lua = m_impl->lua;
         LuaMetaRegistry& meta = m_impl->meta;
         LuaComponentSchemaRegistry& schemas = m_impl->component_schemas;
-        LuaFactorySchemaRegistry& factory_schemas = m_impl->factory_schemas;
+        LuaAssetFactorySchemaRegistry& asset_factory_schemas = m_impl->asset_factory_schemas;
 
         // Component
         bind_usertype<Component>(lua, meta)
@@ -613,10 +613,10 @@ namespace hob {
                 return self.looping;
             });
 
-        bind_factory_schema<AnimationClip>(factory_schemas,
-                                           "DefineAnimationClip",
-                                           "AnimationClips",
-                                           {"textures", "fps", "looping", "tracks", "duration"});
+        bind_asset_factory_schema<AnimationClip>(asset_factory_schemas,
+                                                 "DefineAnimationClip",
+                                                 asset_factory::ANIMATION_CLIPS,
+                                                 {"textures", "fps", "looping", "tracks", "duration"});
 
         bind_usertype<SpriteAnimatorComponent>(lua, meta, Bases<Component>{})
             .method("add_clip", &SpriteAnimatorComponent::add_clip, {"name", "clip"})

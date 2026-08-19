@@ -206,25 +206,21 @@ namespace hob::editor {
 
                 return;
             }
-            else if (const char* registry = get_asset_registry_for_field_type(type); registry != nullptr) {
-                const std::vector<EditorInspectorEntryAsset>& entries = get_asset_entries(engine, registry);
-                const std::string registry_alias = get_asset_alias(engine, registry, value);
+            else if (const char* factory_name = get_asset_factory_name_for_field_type(type); factory_name != nullptr) {
+                const std::vector<EditorInspectorEntryAsset>& entries = get_asset_entries(engine, factory_name);
+                const std::string asset_name = get_asset_name(engine, factory_name, value);
                 const std::string display_name = lua_object_to_display_string(engine, value);
 
-                std::string picked_registry_alias;
-                if (field_asset(label.c_str(),
-                                display_name,
-                                registry_alias,
-                                is_resource_set(value),
-                                entries,
-                                picked_registry_alias)) {
+                std::string picked_asset_name;
+                if (field_asset(
+                        label.c_str(), asset_name, display_name, is_asset_set(value), entries, picked_asset_name)) {
                     EditorFieldTarget asset_target = component_target;
                     asset_target.field = name;
 
                     const sol::object new_ref =
-                        picked_registry_alias.empty()
+                        picked_asset_name.empty()
                             ? sol::make_object(lua, sol::lua_nil)
-                            : editor_call(engine, "get_asset_ref", registry, picked_registry_alias);
+                            : editor_call(engine, "get_asset_ref", factory_name, picked_asset_name);
 
                     editor.get_commands().push(
                         engine,

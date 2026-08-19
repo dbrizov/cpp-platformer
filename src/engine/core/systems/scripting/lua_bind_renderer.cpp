@@ -7,7 +7,8 @@
 #include "engine/math/vector2.h"
 #include "lua_bind_helpers.h"
 #include "lua_meta.h"
-#include "lua_schema_factory.h"
+#include "lua_schema_asset_factory.h"
+#include "lua_schema_keys.h"
 #include "lua_script_system.h"
 #include "lua_script_system_impl.h"
 #include "lua_type_names.h" // IWYU pragma: keep
@@ -67,7 +68,7 @@ namespace hob {
     void LuaScriptSystem::bind_renderer() {
         sol::state& lua = m_impl->lua;
         LuaMetaRegistry& meta = m_impl->meta;
-        LuaFactorySchemaRegistry& factory_schemas = m_impl->factory_schemas;
+        LuaAssetFactorySchemaRegistry& asset_factory_schemas = m_impl->asset_factory_schemas;
         Renderer& renderer = m_engine.get_renderer();
 
         // Texture
@@ -106,7 +107,8 @@ namespace hob {
             .method("get_height", &Texture::get_height)
             .method("get_path", &Texture::get_path);
 
-        bind_factory_schema<Texture>(factory_schemas, "DefineTexture", "Textures", {"path", "wrap", "filter"});
+        bind_asset_factory_schema<Texture>(
+            asset_factory_schemas, "DefineTexture", asset_factory::TEXTURES, {"path", "wrap", "filter"});
 
         // Shader
         bind_usertype<Shader>(lua, meta).factory_ctor(
@@ -135,7 +137,8 @@ namespace hob {
             },
             {"config"});
 
-        bind_factory_schema<Shader>(factory_schemas, "DefineShader", "Shaders", {"path", "blend", "cull", "defaults"});
+        bind_asset_factory_schema<Shader>(
+            asset_factory_schemas, "DefineShader", asset_factory::SHADERS, {"path", "blend", "cull", "defaults"});
 
         // Material
         bind_usertype<Material>(lua, meta)
@@ -229,6 +232,7 @@ namespace hob {
                 return renderer.clone_material(self);
             });
 
-        bind_factory_schema<Material>(factory_schemas, "DefineMaterial", "Materials", {"shader", "textures"});
+        bind_asset_factory_schema<Material>(
+            asset_factory_schemas, "DefineMaterial", asset_factory::MATERIALS, {"shader", "textures"});
     }
 } // namespace hob

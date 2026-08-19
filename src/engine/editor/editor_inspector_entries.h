@@ -9,7 +9,7 @@ namespace hob::editor {
     };
 
     struct EditorInspectorEntryAsset {
+        std::string name;
         std::string display_name;
-        std::string registry_alias;
     };
 } // namespace hob::editor

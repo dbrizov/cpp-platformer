@@ -9,8 +9,7 @@ end
 -- the editor host itself, and lib/ + meta/ are third-party code and type stubs.
 function _G.__load_engine_modules()
     Scripts.run_engine_folder("scripts", { "bootstrap.lua", "hot_reload.lua", "lib", "meta", "editor" })
-    __install_path_registries()
-    __install_factory_registries()
+    __install_asset_factories()
 end
 
 function _G.__load_project_definitions()

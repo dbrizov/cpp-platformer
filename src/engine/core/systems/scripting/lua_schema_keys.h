@@ -33,14 +33,22 @@ namespace hob {
         constexpr const char* ANGLE = "angle"; // Stored in radians
         constexpr const char* ENUM = "enum";
         constexpr const char* BITMASK = "bitmask";
+        constexpr const char* AABB = "aabb";
+        constexpr const char* CAPSULE = "capsule";
+        constexpr const char* CIRCLE = "circle";
         constexpr const char* TEXTURE = "texture";
         constexpr const char* MATERIAL = "material";
         constexpr const char* ANIMATION_CLIP = "animation_clip";
         constexpr const char* AUDIO_CLIP = "audio_clip";
-        constexpr const char* AABB = "aabb";
-        constexpr const char* CAPSULE = "capsule";
-        constexpr const char* CIRCLE = "circle";
 
         constexpr const char* OTHER = "other";
     } // namespace field_type
+
+    namespace asset_factory {
+        constexpr const char* TEXTURES = "Textures";
+        constexpr const char* SHADERS = "Shaders";
+        constexpr const char* MATERIALS = "Materials";
+        constexpr const char* ANIMATION_CLIPS = "AnimationClips";
+        constexpr const char* AUDIO_CLIPS = "AudioClips";
+    } // namespace asset_factory
 } // namespace hob

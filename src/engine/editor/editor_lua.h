@@ -25,7 +25,6 @@ namespace hob::editor {
         constexpr const char* INDEX = "index";
         constexpr const char* FIELDS = "fields";
         constexpr const char* DISPLAY_NAME = "display_name";
-        constexpr const char* REGISTRY_ALIAS = "registry_alias";
     } // namespace query_key
 
     sol::protected_function get_editor_func(Engine& engine, const char* name);
@@ -48,13 +47,13 @@ namespace hob::editor {
         return result;
     }
 
-    bool is_resource_set(const sol::object& value);
+    bool is_asset_set(const sol::object& value);
 
-    std::string get_asset_alias(Engine& engine, const std::string& registry, const sol::object& object);
-    const char* get_asset_registry_for_field_type(std::string_view type);
+    std::string get_asset_name(Engine& engine, const std::string& factory_name, const sol::object& object);
+    const char* get_asset_factory_name_for_field_type(std::string_view type);
 
     void clear_asset_entry_cache();
-    const std::vector<EditorInspectorEntryAsset>& get_asset_entries(Engine& engine, const std::string& registry);
+    const std::vector<EditorInspectorEntryAsset>& get_asset_entries(Engine& engine, const std::string& factory_name);
     std::vector<EditorInspectorEntryEnum> get_enum_entries(Engine& engine, const std::string& name);
 
     std::string lua_object_to_display_string(Engine& engine, const sol::object& value);

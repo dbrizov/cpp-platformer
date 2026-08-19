@@ -1,4 +1,4 @@
--- Unwraps any deferred DefineX reference (Assets.X, Materials.X, AnimationClips.X, ...)
+-- Unwraps any deferred DefineX reference (Textures.X, Materials.X, AnimationClips.X, ...)
 ---@param value any
 ---@return any
 function _G.unwrap_def(value)
