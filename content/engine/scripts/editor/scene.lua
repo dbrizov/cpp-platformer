@@ -133,8 +133,9 @@ function Editor.get_instance_def(instance_id)
     return scene_state.entity_def_by_instance_id[instance_id]
 end
 
+-- Re-points the orphaned defs at the reloaded document; false means the caller must respawn instead.
 ---@return boolean
-function Editor.rebind_after_reload()
+function Editor.rebind_instance_defs()
     local name = scene_state.name
     if name == nil then
         return true

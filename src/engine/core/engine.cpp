@@ -97,7 +97,7 @@ namespace hob {
         std::vector<Entity*> entities;
 
         while (is_running) {
-            m_timer.frame_start();
+            m_timer.begin_frame();
 
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
@@ -129,6 +129,10 @@ namespace hob {
             }
 
             m_imgui_system.new_frame();
+
+            if (m_hooks != nullptr) {
+                m_hooks->begin_frame();
+            }
 
             m_entity_spawner.resolve_requests();
             m_entity_spawner.get_entities(entities);
@@ -215,8 +219,12 @@ namespace hob {
                 m_renderer.cancel_command_buffer();
             }
 
+            if (m_hooks != nullptr) {
+                m_hooks->end_frame();
+            }
+
             m_input.end_frame(is_game_input_active);
-            m_timer.frame_end();
+            m_timer.end_frame();
         }
     }
 

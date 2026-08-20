@@ -55,12 +55,12 @@ namespace hob {
         return m_real_time;
     }
 
-    void Timer::frame_start() {
+    void Timer::begin_frame() {
         const uint64_t now_ticks = SDL_GetPerformanceCounter();
         const uint64_t diff_ticks = now_ticks - m_last_frame_start_ticks;
 
-        m_frame_start_ticks = now_ticks; // Remember (for frame_end)
-        m_last_frame_start_ticks = now_ticks; // Remember (for next frame_start)
+        m_frame_start_ticks = now_ticks; // Remember (for end_frame)
+        m_last_frame_start_ticks = now_ticks; // Remember (for next begin_frame)
 
         double dt_seconds = static_cast<double>(diff_ticks) / static_cast<double>(m_frequency);
 
@@ -76,7 +76,7 @@ namespace hob {
         m_real_time += m_delta_time;
     }
 
-    void Timer::frame_end() {
+    void Timer::end_frame() {
         if (m_vsync_enabled || m_target_fps == 0) {
             return;
         }

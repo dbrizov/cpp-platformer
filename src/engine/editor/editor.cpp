@@ -214,7 +214,13 @@ namespace hob::editor {
         open_pending_scene();
     }
 
+    void Editor::end_frame() {
+        m_actions.flush(*this);
+    }
+
     void Editor::tick(float delta_time) {
+        update_input();
+
         const bool simulate = (m_state == EditorState::Play) || (m_state == EditorState::Paused && m_step_requested);
         m_step_requested = false;
 
@@ -225,8 +231,6 @@ namespace hob::editor {
     }
 
     void Editor::draw_gui() {
-        update_input();
-
         if (ImGui::BeginMainMenuBar()) {
             m_menu_bar.draw(*this);
             m_toolbar.draw(*this);
@@ -242,8 +246,6 @@ namespace hob::editor {
         for (EditorDock* dock : get_docks()) {
             dock->draw(*this);
         }
-
-        m_actions.flush(*this);
     }
 
     void Editor::render_passes() {
@@ -254,7 +256,7 @@ namespace hob::editor {
         m_engine.get_lua_script_system().run_engine_folder(EDITOR_SCRIPTS_FOLDER);
         clear_asset_entry_cache();
 
-        const sol::object rebound = editor_call(m_engine, "rebind_after_reload");
+        const sol::object rebound = editor_call(m_engine, "rebind_instance_defs");
         if (rebound.is<bool>() && !rebound.as<bool>()) {
             request_open_scene(m_current_scene);
         }

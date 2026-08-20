@@ -95,6 +95,7 @@ namespace hob::editor {
 
 #pragma region EngineHooks
         void init() override;
+        void end_frame() override;
         void tick(float delta_time) override;
         void draw_gui() override;
         void render_passes() override;

@@ -7,18 +7,16 @@ namespace hob {
     public:
         virtual ~EngineHooks() = default;
 
+        // clang-format off
         virtual void init() {}
+        virtual void begin_frame() {}
+        virtual void end_frame() {}
         virtual void tick(float delta_time) {}
         virtual void draw_gui() {}
         virtual void render_passes() {}
         virtual void on_lua_hot_reloaded() {}
-
-        virtual bool on_quit_requested() {
-            return false;
-        }
-
-        virtual bool on_window_close_requested(SDL_WindowID window_id) {
-            return false;
-        }
+        virtual bool on_quit_requested() { return false; }
+        virtual bool on_window_close_requested(SDL_WindowID window_id) { return false; }
+        // clang-format on
     };
 } // namespace hob

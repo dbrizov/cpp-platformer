@@ -6,4 +6,5 @@
 
 ---@class Scenes
 ---@field Arena string
+---@field ArenaEmpty string
 Scenes = {}

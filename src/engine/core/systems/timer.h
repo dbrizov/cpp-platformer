@@ -39,7 +39,7 @@ namespace hob {
         float get_real_time() const;
 
     private:
-        void frame_start();
-        void frame_end();
+        void begin_frame();
+        void end_frame();
     };
 } // namespace hob
