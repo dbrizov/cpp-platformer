@@ -159,6 +159,7 @@ namespace hob {
         const Vector2 translation = direction * (distance / dir_length);
 
         b2QueryFilter filter = b2DefaultQueryFilter();
+        filter.categoryBits = ~0ull;
         filter.maskBits = layer_mask;
 
         const b2RayResult ray = b2World_CastRayClosest(
@@ -204,6 +205,7 @@ namespace hob {
         const Vector2 translation = direction * (distance / dir_length);
 
         b2QueryFilter filter = b2DefaultQueryFilter();
+        filter.categoryBits = ~0ull;
         filter.maskBits = layer_mask;
 
         struct CallbackContext {
