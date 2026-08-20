@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <string>
 #include <vector>
 
 #include <box2d/collision.h>
@@ -23,6 +24,8 @@ namespace hob {
         Vector2 normal;
         float distance = 0.0f;
         bool hit = false;
+
+        std::string to_string() const;
     };
 
     class PhysicsWorld {

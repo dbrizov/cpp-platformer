@@ -1,6 +1,7 @@
 #include "physics.h"
 
 #include <cmath>
+#include <format>
 
 #include <box2d/box2d.h>
 
@@ -20,6 +21,18 @@ namespace hob {
             return 1;
         }
     } // namespace
+
+    std::string RaycastHit::to_string() const {
+        if (!hit) {
+            return "RaycastHit(miss)";
+        }
+
+        return std::format("RaycastHit(entity_id = {}, point = {}, normal = {}, distance = {:.3f})",
+                           collider != nullptr ? std::to_string(collider->get_entity().get_id()) : "<null collider>",
+                           point.to_string(),
+                           normal.to_string(),
+                           distance);
+    }
 
     PhysicsWorld::PhysicsWorld(const Vector2& gravity)
         : m_id(b2_nullWorldId) {
@@ -329,5 +342,15 @@ namespace hob {
                               [this](const ConsoleVariable& cvar) {
                                   cvar_show_colliders = cvar.bool_value();
                               });
+
+        console.register_command("p_stats", "Log Box2D world counters", [this, &console](CommandArgs) {
+            const b2Counters counters = b2World_GetCounters(m_physics_world.get_id());
+            console.log("bodies = {}, shapes = {}, contacts = {}, static_tree_height = {}, tree_height = {}",
+                        counters.bodyCount,
+                        counters.shapeCount,
+                        counters.contactCount,
+                        counters.staticTreeHeight,
+                        counters.treeHeight);
+        });
     }
 } // namespace hob

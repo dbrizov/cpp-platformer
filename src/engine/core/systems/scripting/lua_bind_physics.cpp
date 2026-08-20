@@ -30,6 +30,8 @@ namespace hob {
             .field("normal", &RaycastHit::normal)
             .field("distance", &RaycastHit::distance)
             .field("hit", &RaycastHit::hit)
+            .op_tostring(&RaycastHit::to_string)
+            .op_concat(&RaycastHit::to_string)
             .property_sig(
                 "entity",
                 [](const RaycastHit& h, const sol::this_state ts) -> sol::object {
