@@ -21,7 +21,7 @@ namespace hob {
         return m_shader.get();
     }
 
-    bool Material::get_param(const std::string& name, float* out, uint32_t count) const {
+    bool Material::get_param(std::string_view name, float* out, uint32_t count) const {
         uint32_t offset = 0;
         if (!resolve_param("get_param", name, count, offset)) {
             return false;
@@ -31,7 +31,7 @@ namespace hob {
         return true;
     }
 
-    bool Material::set_param(const std::string& name, const float* values, uint32_t count) {
+    bool Material::set_param(std::string_view name, const float* values, uint32_t count) {
         uint32_t offset = 0;
         if (!resolve_param("set_param", name, count, offset)) {
             return false;
@@ -49,7 +49,7 @@ namespace hob {
         return static_cast<uint32_t>(m_params.size());
     }
 
-    const TextureRef& Material::get_texture(const std::string& name) const {
+    const TextureRef& Material::get_texture(std::string_view name) const {
         static const TextureRef none;
 
         if (!m_shader) {
@@ -64,7 +64,7 @@ namespace hob {
         return m_textures[slot];
     }
 
-    bool Material::set_texture(const std::string& name, TextureRef texture) {
+    bool Material::set_texture(std::string_view name, TextureRef texture) {
         if (!m_shader) {
             log::renderer.error("Material::set_texture: '{}' on a material with no shader", name);
             return false;
@@ -84,7 +84,7 @@ namespace hob {
         return std::make_shared<Material>(*this);
     }
 
-    bool Material::resolve_param(const char* op, const std::string& name, uint32_t count, uint32_t& out_offset) const {
+    bool Material::resolve_param(const char* op, std::string_view name, uint32_t count, uint32_t& out_offset) const {
         if (!m_shader) {
             log::renderer.error("Material::{}: '{}' on a material with no shader", op, name);
             return false;

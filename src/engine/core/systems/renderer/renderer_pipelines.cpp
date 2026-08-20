@@ -115,7 +115,7 @@ namespace hob {
         }
 
         void resolve_material_layout(const ShaderUniformBlock& block, Shader& shader) {
-            std::unordered_map<std::string, ShaderParam> params;
+            ShaderParamMap params;
             params.reserve(block.members.size());
             for (const ShaderUniformMember& member : block.members) {
                 params.emplace(member.name, ShaderParam{member.type, member.offset, member.size});

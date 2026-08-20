@@ -1,4 +1,5 @@
 #include <string>
+#include <string_view>
 
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
@@ -18,7 +19,7 @@ namespace hob {
         // For each reflected param present in `cfg` (as its typed Lua value), write it through `set`
         // (Material::set_param or Shader::set_default_param — both take name/floats/count).
         template<typename Setter>
-        void apply_params(const std::unordered_map<std::string, ShaderParam>& params,
+        void apply_params(const ShaderParamMap& params,
                           const sol::table& cfg,
                           Setter set) {
             for (const auto& [name, param] : params) {
@@ -179,7 +180,7 @@ namespace hob {
             .method("get_name", &Material::get_name)
             .method("set_name", &Material::set_name, {"name"})
             .method("get_param",
-                    [&lua](const Material& self, const std::string& name) -> sol::object {
+                    [&lua](const Material& self, std::string_view name) -> sol::object {
                         const Shader* shader = self.get_shader();
                         const ShaderParam* param = shader ? shader->find_param(name) : nullptr;
                         if (!param) {
@@ -208,7 +209,7 @@ namespace hob {
                     },
                     {"name"})
             .method("set_param",
-                    [](Material& self, const std::string& name, const sol::object& value) {
+                    [](Material& self, std::string_view name, const sol::object& value) {
                         if (value.is<Color>()) {
                             const Color c = value.as<Color>();
                             const float v[4] = {c.r, c.g, c.b, c.a};

@@ -6,15 +6,15 @@ namespace hob {
     class PathUtils {
     public:
         // Engine content (framework Lua + builtin assets) that ships with the binary.
-        static std::filesystem::path get_engine_root();
-        static std::filesystem::path get_engine_assets_root();
+        static const std::filesystem::path& get_engine_root();
+        static const std::filesystem::path& get_engine_assets_root();
 
         // Active game project (Lua + assets + config).
         static std::filesystem::path resolve_project_root(int32_t argc, char* argv[]);
         static void set_project_root(const std::filesystem::path& project_root);
-        static std::filesystem::path get_project_root();
-        static std::filesystem::path get_project_assets_root();
-        static std::filesystem::path get_project_config_root();
+        static const std::filesystem::path& get_project_root();
+        static const std::filesystem::path& get_project_assets_root();
+        static const std::filesystem::path& get_project_config_root();
 
         // Individual file paths.
         static std::filesystem::path get_engine_config_file_path();

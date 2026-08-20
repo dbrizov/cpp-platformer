@@ -3,6 +3,7 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "shader.h"
@@ -28,19 +29,19 @@ namespace hob {
 
         const Shader* get_shader() const;
 
-        bool get_param(const std::string& name, float* out, uint32_t count) const;
-        bool set_param(const std::string& name, const float* values, uint32_t count);
+        bool get_param(std::string_view name, float* out, uint32_t count) const;
+        bool set_param(std::string_view name, const float* values, uint32_t count);
 
         const uint8_t* get_params_data() const;
         uint32_t get_params_size() const;
 
-        const TextureRef& get_texture(const std::string& name) const;
+        const TextureRef& get_texture(std::string_view name) const;
         const TextureRef& get_texture(uint32_t slot) const;
-        bool set_texture(const std::string& name, TextureRef texture);
+        bool set_texture(std::string_view name, TextureRef texture);
 
         MaterialRef clone() const;
 
     private:
-        bool resolve_param(const char* op, const std::string& name, uint32_t count, uint32_t& out_offset) const;
+        bool resolve_param(const char* op, std::string_view name, uint32_t count, uint32_t& out_offset) const;
     };
 } // namespace hob

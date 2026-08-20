@@ -13,30 +13,35 @@
 namespace hob {
     namespace {
         std::filesystem::path s_project_root;
+        std::filesystem::path s_project_assets_root;
+        std::filesystem::path s_project_config_root;
 
         // Root directory that holds the content/ tree (content/engine, content/projects) and hob2d.log.
-        std::filesystem::path root_dir() {
+        const std::filesystem::path& root_dir() {
 #ifndef NDEBUG
             // (DEBUG) the repo root, derived from this file's location.
-            const std::filesystem::path source_file_path = __FILE__;
-            return source_file_path
-                .parent_path() // src/engine/core
-                .parent_path() // src/engine
-                .parent_path() // src
-                .parent_path(); // repo root
+            static const std::filesystem::path root = std::filesystem::path(__FILE__)
+                                                          .parent_path() // src/engine/core
+                                                          .parent_path() // src/engine
+                                                          .parent_path() // src
+                                                          .parent_path(); // repo root
 #else
             // (RELEASE) the executable directory, where content/ is synced.
-            return std::filesystem::current_path();
+            static const std::filesystem::path root = std::filesystem::current_path();
 #endif
+
+            return root;
         }
     } // namespace
 
-    std::filesystem::path PathUtils::get_engine_root() {
-        return root_dir() / "content" / "engine";
+    const std::filesystem::path& PathUtils::get_engine_root() {
+        static const std::filesystem::path root = root_dir() / "content" / "engine";
+        return root;
     }
 
-    std::filesystem::path PathUtils::get_engine_assets_root() {
-        return get_engine_root() / "assets";
+    const std::filesystem::path& PathUtils::get_engine_assets_root() {
+        static const std::filesystem::path root = get_engine_root() / "assets";
+        return root;
     }
 
     std::filesystem::path PathUtils::resolve_project_root(int32_t argc, char* argv[]) {
@@ -74,19 +79,23 @@ namespace hob {
 
     void PathUtils::set_project_root(const std::filesystem::path& project_root) {
         s_project_root = project_root;
+        s_project_assets_root = project_root / "assets";
+        s_project_config_root = project_root / "config";
     }
 
-    std::filesystem::path PathUtils::get_project_root() {
+    const std::filesystem::path& PathUtils::get_project_root() {
         HOB_CHECK(!s_project_root.empty(), "Project root requested before set_project_root() was called");
         return s_project_root;
     }
 
-    std::filesystem::path PathUtils::get_project_assets_root() {
-        return get_project_root() / "assets";
+    const std::filesystem::path& PathUtils::get_project_assets_root() {
+        HOB_CHECK(!s_project_root.empty(), "Project assets root requested before set_project_root() was called");
+        return s_project_assets_root;
     }
 
-    std::filesystem::path PathUtils::get_project_config_root() {
-        return get_project_root() / "config";
+    const std::filesystem::path& PathUtils::get_project_config_root() {
+        HOB_CHECK(!s_project_root.empty(), "Project config root requested before set_project_root() was called");
+        return s_project_config_root;
     }
 
     std::filesystem::path PathUtils::get_engine_config_file_path() {

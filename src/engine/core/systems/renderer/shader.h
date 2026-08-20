@@ -9,6 +9,7 @@
 
 #include <SDL3/SDL_gpu.h>
 
+#include "engine/core/string_hash.h"
 #include "engine/math/constants.h"
 #include "shader_reflection.h"
 
@@ -64,6 +65,8 @@ namespace hob {
         uint32_t slot = 0;
     };
 
+    using ShaderParamMap = std::unordered_map<std::string, ShaderParam, StringHash, std::equal_to<>>;
+
     class Shader {
         SDL_GPUDevice* m_device = nullptr;
         SDL_GPUGraphicsPipeline* m_pipeline = nullptr;
@@ -77,7 +80,7 @@ namespace hob {
 
         uint32_t m_material_slot = INVALID_SHADER_SLOT; // user-facing "Material" cbuffer
         uint32_t m_material_size = 0;
-        std::unordered_map<std::string, ShaderParam> m_params;
+        ShaderParamMap m_params;
         std::vector<uint8_t> m_default_params;
         std::vector<ShaderTexture> m_textures;
 
@@ -105,16 +108,16 @@ namespace hob {
 
         uint32_t get_material_slot() const;
         uint32_t get_material_size() const;
-        void set_material_layout(uint32_t slot, uint32_t size, std::unordered_map<std::string, ShaderParam> params);
+        void set_material_layout(uint32_t slot, uint32_t size, ShaderParamMap params);
 
-        const std::unordered_map<std::string, ShaderParam>& get_params() const;
+        const ShaderParamMap& get_params() const;
         const std::vector<uint8_t>& get_default_params() const;
         void set_default_params(std::vector<uint8_t> defaults);
-        bool set_default_param(const std::string& name, const float* values, uint32_t count);
-        const ShaderParam* find_param(const std::string& name) const;
+        bool set_default_param(std::string_view name, const float* values, uint32_t count);
+        const ShaderParam* find_param(std::string_view name) const;
 
         const std::vector<ShaderTexture>& get_textures() const;
         void set_textures(std::vector<ShaderTexture> textures);
-        const ShaderTexture* find_texture(const std::string& name) const;
+        const ShaderTexture* find_texture(std::string_view name) const;
     };
 } // namespace hob

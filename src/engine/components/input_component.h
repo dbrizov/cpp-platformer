@@ -1,6 +1,9 @@
 #pragma once
 
+#include <string_view>
+
 #include "component.h"
+#include "engine/core/string_hash.h"
 #include "engine/core/systems/input.h"
 
 namespace hob {
@@ -23,10 +26,13 @@ namespace hob {
 
         InputEventHandlerId m_input_event_handler_id = INVALID_INPUT_EVENT_HANDLER_ID;
 
+        template<typename T>
+        using BindingMap = std::unordered_map<std::string, std::vector<T>, StringHash, std::equal_to<>>;
+
         BindingId m_next_binding_id = 0;
-        std::unordered_map<std::string, std::vector<AxisBindingEntry>> m_axis_bindings;
-        std::unordered_map<std::string, std::vector<ActionBindingEntry>> m_action_pressed_bindings;
-        std::unordered_map<std::string, std::vector<ActionBindingEntry>> m_action_released_bindings;
+        BindingMap<AxisBindingEntry> m_axis_bindings;
+        BindingMap<ActionBindingEntry> m_action_pressed_bindings;
+        BindingMap<ActionBindingEntry> m_action_released_bindings;
 
     public:
         explicit InputComponent(Entity& entity);
@@ -38,11 +44,11 @@ namespace hob {
 
         std::string to_string() const override;
 
-        BindingId bind_axis(const char* axis_name, AxisBindingFunc function);
-        void unbind_axis(const char* axis_name, BindingId axis_binding_id);
+        BindingId bind_axis(std::string_view axis_name, AxisBindingFunc function);
+        void unbind_axis(std::string_view axis_name, BindingId axis_binding_id);
 
-        BindingId bind_action(const char* action_name, InputEventType event_type, ActionBindingFunc function);
-        void unbind_action(const char* action_name, BindingId action_binding_id);
+        BindingId bind_action(std::string_view action_name, InputEventType event_type, ActionBindingFunc function);
+        void unbind_action(std::string_view action_name, BindingId action_binding_id);
 
         void clear_all_bindings();
 

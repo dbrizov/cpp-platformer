@@ -1,5 +1,6 @@
 #include <format>
 #include <string>
+#include <string_view>
 
 #include "engine/components/audio_component.h"
 #include "engine/components/camera_component.h"
@@ -30,9 +31,9 @@ namespace hob {
         bind_usertype<EntityRef>(m_lua, m_meta)
             .method("get_id", &EntityRef::get_id)
             .method("get_name",
-                    [](const EntityRef& r) -> std::string {
+                    [](const EntityRef& r) -> std::string_view {
                         Entity* e = r.resolve();
-                        return e ? e->get_name() : std::string();
+                        return e ? std::string_view(e->get_name()) : std::string_view();
                     })
             .method("set_name",
                     [](const EntityRef& r, const std::string& name) {
@@ -42,9 +43,9 @@ namespace hob {
                     },
                     {"name"})
             .method("get_prefab_name",
-                    [](const EntityRef& r) -> std::string {
+                    [](const EntityRef& r) -> std::string_view {
                         Entity* e = r.resolve();
-                        return e ? e->get_prefab_name() : std::string();
+                        return e ? std::string_view(e->get_prefab_name()) : std::string_view();
                     })
             .method("set_prefab_name",
                     [](const EntityRef& r, const std::string& name) {
@@ -149,7 +150,7 @@ namespace hob {
                     })
             .method_sig(
                 "get_lua_component",
-                [](const EntityRef& r, const std::string& class_name) -> sol::object {
+                [](const EntityRef& r, std::string_view class_name) -> sol::object {
                     Entity* e = r.resolve();
                     if (e == nullptr) {
                         return sol::lua_nil;

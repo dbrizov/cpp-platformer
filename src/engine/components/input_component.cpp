@@ -4,6 +4,18 @@
 #include "engine/entity/entity.h"
 
 namespace hob {
+    namespace {
+        template<typename Map>
+        Map::mapped_type& find_or_add(Map& map, std::string_view name) {
+            auto it = map.find(name);
+            if (it == map.end()) {
+                it = map.emplace(std::string(name), typename Map::mapped_type{}).first;
+            }
+
+            return it->second;
+        }
+    } // namespace
+
     InputComponent::InputComponent(Entity& entity)
         : Component(entity) {}
 
@@ -25,17 +37,17 @@ namespace hob {
         return "InputComponent";
     }
 
-    BindingId InputComponent::bind_axis(const char* axis_name, AxisBindingFunc function) {
+    BindingId InputComponent::bind_axis(std::string_view axis_name, AxisBindingFunc function) {
         const BindingId binding_id = m_next_binding_id;
         m_next_binding_id += 1;
 
-        auto& axis_bindings = m_axis_bindings[axis_name];
+        auto& axis_bindings = find_or_add(m_axis_bindings, axis_name);
         axis_bindings.emplace_back(binding_id, std::move(function));
 
         return binding_id;
     }
 
-    void InputComponent::unbind_axis(const char* axis_name, BindingId axis_binding_id) {
+    void InputComponent::unbind_axis(std::string_view axis_name, BindingId axis_binding_id) {
         auto it = m_axis_bindings.find(axis_name);
         if (it == m_axis_bindings.end()) {
             return;
@@ -54,25 +66,25 @@ namespace hob {
         }
     }
 
-    BindingId InputComponent::bind_action(const char* action_name,
+    BindingId InputComponent::bind_action(std::string_view action_name,
                                           InputEventType event_type,
                                           ActionBindingFunc function) {
         const BindingId binding_id = m_next_binding_id;
         m_next_binding_id += 1;
 
         if (event_type == InputEventType::Pressed) {
-            auto& bindings = m_action_pressed_bindings[action_name];
+            auto& bindings = find_or_add(m_action_pressed_bindings, action_name);
             bindings.emplace_back(binding_id, std::move(function));
         }
         else if (event_type == InputEventType::Released) {
-            auto& bindings = m_action_released_bindings[action_name];
+            auto& bindings = find_or_add(m_action_released_bindings, action_name);
             bindings.emplace_back(binding_id, std::move(function));
         }
 
         return binding_id;
     }
 
-    void InputComponent::unbind_action(const char* action_name, BindingId action_binding_id) {
+    void InputComponent::unbind_action(std::string_view action_name, BindingId action_binding_id) {
         auto erase_from = [&](auto& map) {
             auto it = map.find(action_name);
             if (it == map.end()) {

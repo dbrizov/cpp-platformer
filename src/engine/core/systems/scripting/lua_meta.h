@@ -43,6 +43,7 @@ namespace hob {
     HOB_LUA_TYPE(float, "number")
     HOB_LUA_TYPE(double, "number")
     HOB_LUA_TYPE(std::string, "string")
+    HOB_LUA_TYPE(std::string_view, "string")
     HOB_LUA_TYPE(const char*, "string")
     HOB_LUA_TYPE(sol::table, "table")
     // clang-format on

@@ -128,15 +128,13 @@ namespace hob {
         return m_material_size;
     }
 
-    void Shader::set_material_layout(uint32_t slot,
-                                     uint32_t size,
-                                     std::unordered_map<std::string, ShaderParam> params) {
+    void Shader::set_material_layout(uint32_t slot, uint32_t size, ShaderParamMap params) {
         m_material_slot = slot;
         m_material_size = size;
         m_params = std::move(params);
     }
 
-    const std::unordered_map<std::string, ShaderParam>& Shader::get_params() const {
+    const ShaderParamMap& Shader::get_params() const {
         return m_params;
     }
 
@@ -148,7 +146,7 @@ namespace hob {
         m_default_params = std::move(defaults);
     }
 
-    bool Shader::set_default_param(const std::string& name, const float* values, uint32_t count) {
+    bool Shader::set_default_param(std::string_view name, const float* values, uint32_t count) {
         const ShaderParam* param = find_param(name);
         if (!param) {
             log::renderer.error("Shader::set_default_param: shader '{}' has no param '{}'", m_path, name);
@@ -178,7 +176,7 @@ namespace hob {
         return true;
     }
 
-    const ShaderParam* Shader::find_param(const std::string& name) const {
+    const ShaderParam* Shader::find_param(std::string_view name) const {
         auto it = m_params.find(name);
         return it != m_params.end() ? &it->second : nullptr;
     }
@@ -191,7 +189,7 @@ namespace hob {
         m_textures = std::move(textures);
     }
 
-    const ShaderTexture* Shader::find_texture(const std::string& name) const {
+    const ShaderTexture* Shader::find_texture(std::string_view name) const {
         for (const ShaderTexture& tex : m_textures) {
             if (tex.name == name) {
                 return &tex;

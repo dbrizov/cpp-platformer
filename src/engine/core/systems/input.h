@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <functional>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -23,11 +24,11 @@ namespace hob {
     };
 
     struct InputEvent {
-        const char* name;
+        std::string_view name;
         InputEventType type;
         float axis_value;
 
-        InputEvent(const char* ev_name, InputEventType ev_type, float ev_axis_value);
+        InputEvent(std::string_view ev_name, InputEventType ev_type, float ev_axis_value);
     };
 
     using InputEventHandler = std::function<void(const InputEvent&)>;
@@ -49,12 +50,27 @@ namespace hob {
         std::unordered_map<InputEventHandlerId, InputEventHandlerIndex> m_handler_index_by_id;
 
         InputConfig m_input_config;
-        std::unordered_map<std::string, float> m_axis_values;
 
-        // Digital source edge tracking. Keyed by a packed (device, code) id.
+        struct ActionEntry {
+            std::string_view name;
+            std::vector<uint32_t> source_indices;
+        };
+
+        struct AxisEntry {
+            std::string_view name;
+            const AxisConfig* config = nullptr;
+            std::vector<uint32_t> positive_indices;
+            std::vector<uint32_t> negative_indices;
+            float ramped_value = 0.0f; // digital accel/decel ramp, carried across frames
+        };
+
+        std::vector<ActionEntry> m_actions;
+        std::vector<AxisEntry> m_axes;
+
+        // Digital source edge tracking, parallel to m_digital_sources.
         std::vector<InputSource> m_digital_sources;
-        std::unordered_map<uint32_t, bool> m_down_this_frame;
-        std::unordered_map<uint32_t, bool> m_down_last_frame;
+        std::vector<uint8_t> m_down_this_frame;
+        std::vector<uint8_t> m_down_last_frame;
 
         // Per-frame device state.
         bool m_is_mouse_over_game_window = false;
@@ -93,6 +109,7 @@ namespace hob {
         void update_mouse_state();
         void update_down_states();
 
+        void build_dispatch_tables();
         void dispatch_event(const InputEvent& event) const;
         void dispatch_actions();
         void dispatch_axes(float delta_time);

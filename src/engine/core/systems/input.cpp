@@ -14,7 +14,7 @@
 #include "renderer/renderer.h"
 
 namespace hob {
-    InputEvent::InputEvent(const char* ev_name, InputEventType ev_type, float ev_axis_value)
+    InputEvent::InputEvent(std::string_view ev_name, InputEventType ev_type, float ev_axis_value)
         : name(ev_name)
         , type(ev_type)
         , axis_value(ev_axis_value) {}
@@ -24,15 +24,10 @@ namespace hob {
         m_input_config = InputConfig(PathUtils::get_input_config_file_path());
         m_digital_sources = m_input_config.digital_sources();
 
-        for (const auto& [axis, _] : m_input_config.axes) {
-            m_axis_values[axis] = 0.0f;
-        }
+        m_down_this_frame.assign(m_digital_sources.size(), 0);
+        m_down_last_frame.assign(m_digital_sources.size(), 0);
 
-        for (const InputSource& source : m_digital_sources) {
-            const uint32_t id = pack_source(source);
-            m_down_this_frame[id] = false;
-            m_down_last_frame[id] = false;
-        }
+        build_dispatch_tables();
 
         adopt_any_gamepad();
 
@@ -195,10 +190,40 @@ namespace hob {
     }
 
     void Input::update_down_states() {
-        for (const InputSource& source : m_digital_sources) {
-            const uint32_t id = pack_source(source);
-            m_down_last_frame[id] = m_down_this_frame[id];
-            m_down_this_frame[id] = is_source_down(source);
+        m_down_last_frame = m_down_this_frame;
+        for (size_t i = 0; i < m_digital_sources.size(); ++i) {
+            m_down_this_frame[i] = is_source_down(m_digital_sources[i]) ? 1 : 0;
+        }
+    }
+
+    void Input::build_dispatch_tables() {
+        std::unordered_map<uint32_t, uint32_t> index_by_packed_source;
+        index_by_packed_source.reserve(m_digital_sources.size());
+        for (uint32_t i = 0; i < static_cast<uint32_t>(m_digital_sources.size()); ++i) {
+            index_by_packed_source.emplace(pack_source(m_digital_sources[i]), i);
+        }
+
+        const auto to_indices = [&index_by_packed_source](const std::vector<InputSource>& sources) {
+            std::vector<uint32_t> indices;
+            indices.reserve(sources.size());
+            for (const InputSource& source : sources) {
+                const auto it = index_by_packed_source.find(pack_source(source));
+                HOB_ASSERT(it != index_by_packed_source.end(), "Input source missing from the digital source table");
+                indices.push_back(it->second);
+            }
+
+            return indices;
+        };
+
+        m_actions.reserve(m_input_config.actions.size());
+        for (const auto& [name, config] : m_input_config.actions) {
+            m_actions.push_back(ActionEntry{name, to_indices(config.sources)});
+        }
+
+        m_axes.reserve(m_input_config.axes.size());
+        for (const auto& [name, config] : m_input_config.axes) {
+            m_axes.push_back(
+                AxisEntry{name, &config, to_indices(config.positive_sources), to_indices(config.negative_sources)});
         }
     }
 
@@ -209,40 +234,41 @@ namespace hob {
     }
 
     void Input::dispatch_actions() {
-        for (const auto& [action, mapping] : m_input_config.actions) {
+        for (const ActionEntry& action : m_actions) {
             bool down_now = false;
             bool down_before = false;
-            for (const InputSource& source : mapping.sources) {
-                const uint32_t id = pack_source(source);
-                down_now = down_now || m_down_this_frame[id];
-                down_before = down_before || m_down_last_frame[id];
+            for (const uint32_t index : action.source_indices) {
+                down_now = down_now || m_down_this_frame[index] != 0;
+                down_before = down_before || m_down_last_frame[index] != 0;
             }
 
             if (down_now && !down_before) {
-                dispatch_event(InputEvent(action.c_str(), InputEventType::Pressed, 0.0f));
+                dispatch_event(InputEvent(action.name, InputEventType::Pressed, 0.0f));
             }
             else if (!down_now && down_before) {
-                dispatch_event(InputEvent(action.c_str(), InputEventType::Released, 0.0f));
+                dispatch_event(InputEvent(action.name, InputEventType::Released, 0.0f));
             }
         }
     }
 
     void Input::dispatch_axes(float delta_time) {
-        auto any_down = [&](const std::vector<InputSource>& sources) {
-            for (const InputSource& source : sources) {
-                if (m_down_this_frame[pack_source(source)]) {
+        auto any_down = [this](const std::vector<uint32_t>& indices) {
+            for (const uint32_t index : indices) {
+                if (m_down_this_frame[index] != 0) {
                     return true;
                 }
             }
             return false;
         };
 
-        for (auto& [axis, mapping] : m_input_config.axes) {
-            // Keyboard-style ramped value (accel/decel) from the digital sources.
-            const bool any_positive = any_down(mapping.positive_sources);
-            const bool any_negative = any_down(mapping.negative_sources);
+        for (AxisEntry& axis : m_axes) {
+            const AxisConfig& mapping = *axis.config;
 
-            float& ramped = m_axis_values[axis];
+            // Keyboard-style ramped value (accel/decel) from the digital sources.
+            const bool any_positive = any_down(axis.positive_indices);
+            const bool any_negative = any_down(axis.negative_indices);
+
+            float& ramped = axis.ramped_value;
 
             if ((any_positive && any_negative) || (!any_positive && !any_negative)) {
                 if (ramped < 0.0f) {
@@ -279,7 +305,7 @@ namespace hob {
                 result = std::clamp(result, -1.0f, 1.0f);
             }
 
-            dispatch_event(InputEvent(axis.c_str(), InputEventType::Axis, result));
+            dispatch_event(InputEvent(axis.name, InputEventType::Axis, result));
         }
     }
 

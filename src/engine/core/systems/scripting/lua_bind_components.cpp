@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 
 #include "engine/animation/animation_clip.h"
@@ -450,19 +451,21 @@ namespace hob {
             .method_sig(
                 "bind_axis",
                 [](InputComponent& self, const std::string& name, const sol::protected_function& fn) {
-                    return self.bind_axis(name.c_str(), [fn, name](float v) {
+                    auto handler = [fn, name](float v) {
                         auto result = fn(v);
                         if (!result.valid()) {
                             const sol::error err = result;
                             log::sol2.error("Lua error in axis '{}' handler: {}", name, err.what());
                         }
-                    });
+                    };
+
+                    return self.bind_axis(name, std::move(handler));
                 },
                 "(name: string, fn: fun(value: number)): integer")
             .method_sig(
                 "unbind_axis",
-                [](InputComponent& self, const std::string& name, BindingId id) {
-                    self.unbind_axis(name.c_str(), id);
+                [](InputComponent& self, std::string_view name, BindingId id) {
+                    self.unbind_axis(name, id);
                 },
                 "(name: string, id: integer)")
             .method_sig(
@@ -471,19 +474,21 @@ namespace hob {
                    const std::string& name,
                    InputEventType type,
                    const sol::protected_function& fn) {
-                    return self.bind_action(name.c_str(), type, [fn, name]() {
+                    auto handler = [fn, name]() {
                         auto result = fn();
                         if (!result.valid()) {
                             const sol::error err = result;
                             log::sol2.error("Lua error in action '{}' handler: {}", name, err.what());
                         }
-                    });
+                    };
+
+                    return self.bind_action(name, type, std::move(handler));
                 },
                 "(name: string, type: InputEventType, fn: fun()): integer")
             .method_sig(
                 "unbind_action",
-                [](InputComponent& self, const std::string& name, BindingId id) {
-                    self.unbind_action(name.c_str(), id);
+                [](InputComponent& self, std::string_view name, BindingId id) {
+                    self.unbind_action(name, id);
                 },
                 "(name: string, id: integer)")
             .method("clear_all_bindings", &InputComponent::clear_all_bindings);
