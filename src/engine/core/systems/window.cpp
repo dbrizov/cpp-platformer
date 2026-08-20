@@ -10,10 +10,9 @@ namespace hob {
         : m_gpu_device(gpu_device) {
         HOB_CHECK(m_gpu_device, "Window init failed: GPU device is null");
 
-        SDL_WindowFlags window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
-        if (config.maximized) {
-            window_flags |= SDL_WINDOW_MAXIMIZED;
-        }
+        // Created hidden so the window can be placed before it is maximized - a maximized window
+        // cannot be moved, so maximizing first would pin it to whichever display SDL picked.
+        const SDL_WindowFlags window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_HIDDEN;
 
         m_window = SDL_CreateWindow(config.title.c_str(), config.width, config.height, window_flags);
         HOB_CHECK(m_window, "Window SDL_CreateWindow failed: {}", SDL_GetError());
@@ -21,6 +20,12 @@ namespace hob {
         if (config.x != SDL_WINDOWPOS_UNDEFINED && config.y != SDL_WINDOWPOS_UNDEFINED) {
             SDL_SetWindowPosition(m_window, config.x, config.y);
         }
+
+        if (config.maximized) {
+            SDL_MaximizeWindow(m_window);
+        }
+
+        SDL_ShowWindow(m_window);
 
         const bool window_claimed = SDL_ClaimWindowForGPUDevice(m_gpu_device, m_window);
         HOB_CHECK(window_claimed, "Window SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError());
@@ -74,8 +79,16 @@ namespace hob {
         return Vector2(static_cast<float>(width), static_cast<float>(height));
     }
 
+    void Window::get_size(int32_t& width, int32_t& height) const {
+        SDL_GetWindowSize(m_window, &width, &height);
+    }
+
     void Window::get_size_px(int32_t& width, int32_t& height) const {
         SDL_GetWindowSizeInPixels(m_window, &width, &height);
+    }
+
+    void Window::get_position(int32_t& x, int32_t& y) const {
+        SDL_GetWindowPosition(m_window, &x, &y);
     }
 
     float Window::get_pixel_density() const {
@@ -85,5 +98,9 @@ namespace hob {
 
     bool Window::has_focus() const {
         return (SDL_GetWindowFlags(m_window) & SDL_WINDOW_INPUT_FOCUS) != 0;
+    }
+
+    bool Window::is_maximized() const {
+        return (SDL_GetWindowFlags(m_window) & SDL_WINDOW_MAXIMIZED) != 0;
     }
 } // namespace hob

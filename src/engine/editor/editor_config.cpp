@@ -11,7 +11,42 @@
 namespace hob::editor {
     namespace {
         constexpr int32_t JSON_INDENT = 4;
+
+        nlohmann::ordered_json editor_window_config_to_json(const EditorWindowConfig& config) {
+            return {
+                {"x", config.x},
+                {"y", config.y},
+                {"width", config.width},
+                {"height", config.height},
+                {"maximized", config.maximized},
+            };
+        }
+
+        EditorWindowConfig json_to_editor_window_config(const nlohmann::json& json, const char* window_name) {
+            EditorWindowConfig config;
+            if (!json.contains(window_name)) {
+                return config;
+            }
+
+            const auto& w = json[window_name];
+            config.x = w.value("x", config.x);
+            config.y = w.value("y", config.y);
+            config.width = w.value("width", config.width);
+            config.height = w.value("height", config.height);
+            config.maximized = w.value("maximized", config.maximized);
+
+            if (!config.has_size()) {
+                config.width = 0;
+                config.height = 0;
+            }
+
+            return config;
+        }
     } // namespace
+
+    bool EditorWindowConfig::has_size() const {
+        return width > 0 && height > 0;
+    }
 
     EditorConfig::EditorConfig(const std::filesystem::path& json_path) {
         std::ifstream file(json_path);
@@ -28,42 +63,16 @@ namespace hob::editor {
             return;
         }
 
-        if (json.contains("window")) {
-            const auto& w = json["window"];
-            x = w.value("x", x);
-            y = w.value("y", y);
-            width = w.value("width", width);
-            height = w.value("height", height);
-            maximized = w.value("maximized", maximized);
-
-            if (width <= 0 || height <= 0) {
-                width = 0;
-                height = 0;
-            }
-        }
+        main_window = json_to_editor_window_config(json, "main_window");
+        game_window = json_to_editor_window_config(json, "game_window");
 
         last_open_scene = json.value("last_open_scene", last_open_scene);
     }
 
     void EditorConfig::save(const std::filesystem::path& json_path) const {
-        nlohmann::json json;
-        std::ifstream in(json_path);
-        if (in.is_open()) {
-            try {
-                in >> json;
-            }
-            catch (const nlohmann::json::exception&) {
-                json = nlohmann::json::object();
-            }
-        }
-
-        json["window"] = {
-            {"x", x},
-            {"y", y},
-            {"width", width},
-            {"height", height},
-            {"maximized", maximized},
-        };
+        nlohmann::ordered_json json;
+        json["main_window"] = editor_window_config_to_json(main_window);
+        json["game_window"] = editor_window_config_to_json(game_window);
         json["last_open_scene"] = last_open_scene;
 
         std::ofstream out(json_path);
@@ -72,6 +81,34 @@ namespace hob::editor {
             return;
         }
         out << json.dump(JSON_INDENT) << '\n';
+    }
+
+    EditorWindowConfig window_to_editor_window_config(const Window& window) {
+        EditorWindowConfig config;
+        window.get_position(config.x, config.y);
+        window.get_size(config.width, config.height);
+        config.maximized = window.is_maximized();
+        return config;
+    }
+
+    EditorWindowConfig window_config_to_editor_window_config(const WindowConfig& window_config) {
+        EditorWindowConfig editor_window_config;
+        editor_window_config.x = window_config.x;
+        editor_window_config.y = window_config.y;
+        editor_window_config.width = window_config.width;
+        editor_window_config.height = window_config.height;
+        editor_window_config.maximized = window_config.maximized;
+        return editor_window_config;
+    }
+
+    WindowConfig editor_window_config_to_window_config(const EditorWindowConfig& editor_window_config) {
+        WindowConfig window_config;
+        window_config.x = editor_window_config.x;
+        window_config.y = editor_window_config.y;
+        window_config.width = editor_window_config.width;
+        window_config.height = editor_window_config.height;
+        window_config.maximized = editor_window_config.maximized;
+        return window_config;
     }
 
     std::filesystem::path get_editor_config_file_path() {
@@ -83,24 +120,19 @@ namespace hob::editor {
     }
 
     HostConfig make_editor_host_config(const GraphicsConfig& graphics_config, const EditorConfig& editor_config) {
-        WindowConfig window_config;
-        window_config.title = "Hob2D Editor";
-        window_config.vsync = graphics_config.vsync_enabled;
-
-        const bool have_saved_geometry = editor_config.width > 0 && editor_config.height > 0;
-        if (have_saved_geometry) {
-            window_config.width = editor_config.width;
-            window_config.height = editor_config.height;
-            window_config.x = editor_config.x;
-            window_config.y = editor_config.y;
-            window_config.maximized = editor_config.maximized;
+        WindowConfig main_window_config;
+        if (editor_config.main_window.has_size()) {
+            main_window_config = editor_window_config_to_window_config(editor_config.main_window);
         }
         else {
-            window_config.maximized = true;
+            main_window_config.maximized = true;
         }
 
+        main_window_config.title = "Hob2D Editor";
+        main_window_config.vsync = graphics_config.vsync_enabled;
+
         HostConfig host_config;
-        host_config.main_window_override = window_config;
+        host_config.main_window_override = main_window_config;
         host_config.main_window_hosts_game = false;
         host_config.run_project_main_on_boot = false;
 

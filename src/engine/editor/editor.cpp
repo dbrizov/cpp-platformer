@@ -34,6 +34,16 @@ namespace hob::editor {
         io.IniFilename = m_imgui_ini_path.c_str();
         io.ConfigDragClickToInputText = true;
 
+        const EditorConfig editor_config(get_editor_config_file_path());
+        m_pending_scene_open = editor_config.last_open_scene;
+
+        if (editor_config.game_window.has_size()) {
+            WindowConfig game_window_config = editor_window_config_to_window_config(editor_config.game_window);
+            game_window_config.title = m_engine.get_game_window_config().title;
+            game_window_config.vsync = m_engine.get_game_window_config().vsync;
+            m_engine.set_game_window_config(game_window_config);
+        }
+
         m_engine.get_lua_script_system().run_engine_folder(EDITOR_SCRIPTS_FOLDER);
 
         apply_style();
@@ -207,10 +217,10 @@ namespace hob::editor {
             return;
         }
 
-        const std::string last_open_scene = EditorConfig(get_editor_config_file_path()).last_open_scene;
-        const bool is_registered = std::find(names.begin(), names.end(), last_open_scene) != names.end();
+        if (std::find(names.begin(), names.end(), m_pending_scene_open) == names.end()) {
+            m_pending_scene_open = names.front();
+        }
 
-        m_pending_scene_open = is_registered ? last_open_scene : names.front();
         open_pending_scene();
     }
 
@@ -326,6 +336,21 @@ namespace hob::editor {
         }
     }
 
+    void Editor::reset_edit_session() {
+        m_commands.clear();
+        m_selection.clear();
+        m_scene_view.reset_pick_cycle();
+        m_inspector.reset_edit_state();
+    }
+
+    void Editor::clear_world() {
+        editor_call(m_engine, "clear_world");
+    }
+
+    void Editor::load_scene() {
+        editor_call(m_engine, "load_scene");
+    }
+
     void Editor::build_default_layout(ImGuiID dock_space_id) {
         const ImGuiDockNodeFlags node_flags =
             static_cast<ImGuiDockNodeFlags>(ImGuiDockNodeFlags_DockSpace) | ImGuiDockNodeFlags_PassthruCentralNode;
@@ -350,27 +375,10 @@ namespace hob::editor {
         ImGui::DockBuilderFinish(dock_space_id);
     }
 
-    void Editor::reset_edit_session() {
-        m_commands.clear();
-        m_selection.clear();
-        m_scene_view.reset_pick_cycle();
-        m_inspector.reset_edit_state();
-    }
-
-    void Editor::clear_world() {
-        editor_call(m_engine, "clear_world");
-    }
-
-    void Editor::load_scene() {
-        editor_call(m_engine, "load_scene");
-    }
-
     void Editor::save_layout() {
-        SDL_Window* window = m_engine.get_main_window().get_window();
         EditorConfig editor_config;
-        SDL_GetWindowPosition(window, &editor_config.x, &editor_config.y);
-        SDL_GetWindowSize(window, &editor_config.width, &editor_config.height);
-        editor_config.maximized = (SDL_GetWindowFlags(window) & SDL_WINDOW_MAXIMIZED) != 0;
+        editor_config.main_window = window_to_editor_window_config(m_engine.get_main_window());
+        editor_config.game_window = window_config_to_editor_window_config(m_engine.get_game_window_config());
         editor_config.last_open_scene = m_current_scene;
         editor_config.save(get_editor_config_file_path());
     }

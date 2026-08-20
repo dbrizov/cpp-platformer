@@ -232,8 +232,7 @@ namespace hob::editor {
         if (enabled && (open || hovered)) {
             const ImGuiStyle& style = ImGui::GetStyle();
             const float spacing_above = IM_TRUNC(style.ItemSpacing.y * 0.5f);
-            const float row_top =
-                window->DC.CursorPosPrevLine.y + window->DC.PrevLineTextBaseOffset - spacing_above;
+            const float row_top = window->DC.CursorPosPrevLine.y + window->DC.PrevLineTextBaseOffset - spacing_above;
 
             const ImVec2 row_min(window->Pos.x, row_top);
             const ImVec2 row_max(window->Pos.x + window->Size.x,

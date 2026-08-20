@@ -14,6 +14,7 @@
 #include "docks/editor_dock_hierarchy.h"
 #include "docks/editor_dock_inspector.h"
 #include "docks/editor_dock_scene_view.h"
+#include "editor_config.h"
 #include "editor_entity_selection.h"
 #include "engine/core/engine_hooks.h"
 
@@ -107,7 +108,6 @@ namespace hob::editor {
     private:
         static constexpr size_t DOCK_COUNT = 4;
 
-        // Drawn in this order, and the source of the shortcut contexts.
         std::array<EditorDock*, DOCK_COUNT> get_docks();
 
         void update_input();

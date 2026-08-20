@@ -70,6 +70,8 @@ namespace hob {
         const Window& get_main_window() const;
         const Window& get_play_window() const;
         const Window* get_game_window() const;
+        WindowConfig get_game_window_config() const;
+        void set_game_window_config(const WindowConfig& config);
         void open_game_window();
         void close_game_window();
 

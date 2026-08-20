@@ -17,7 +17,7 @@
 
 namespace hob {
     namespace {
-        WindowConfig make_game_window_config(const GraphicsConfig& graphics_config) {
+        WindowConfig make_window_config(const GraphicsConfig& graphics_config) {
             WindowConfig config;
             config.title = graphics_config.window_title;
             config.width = static_cast<int32_t>(graphics_config.window_width);
@@ -27,7 +27,7 @@ namespace hob {
         }
 
         WindowConfig make_main_window_config(const EngineConfig& config) {
-            return config.host_config.main_window_override.value_or(make_game_window_config(config.graphics_config));
+            return config.host_config.main_window_override.value_or(make_window_config(config.graphics_config));
         }
     } // namespace
 
@@ -44,7 +44,7 @@ namespace hob {
         , m_audio(config.audio_config)
         , m_entity_spawner(*this)
         , m_lua_script_system(*this, config.host_config.run_project_main_on_boot)
-        , m_game_window_config(make_game_window_config(config.graphics_config)) {
+        , m_game_window_config(make_window_config(config.graphics_config)) {
 
         m_renderer.register_cvars(m_console);
         m_physics.register_cvars(m_console);
@@ -284,6 +284,22 @@ namespace hob {
         return m_game_window.get();
     }
 
+    WindowConfig Engine::get_game_window_config() const {
+        if (m_game_window == nullptr) {
+            return m_game_window_config;
+        }
+
+        WindowConfig config = m_game_window_config;
+        m_game_window->get_position(config.x, config.y);
+        m_game_window->get_size(config.width, config.height);
+        config.maximized = m_game_window->is_maximized();
+        return config;
+    }
+
+    void Engine::set_game_window_config(const WindowConfig& config) {
+        m_game_window_config = config;
+    }
+
     void Engine::open_game_window() {
         if (m_game_window != nullptr) {
             return;
@@ -303,6 +319,8 @@ namespace hob {
         if (m_game_window == nullptr) {
             return;
         }
+
+        m_game_window_config = get_game_window_config();
 
         // The last frame presented to this window may still be in flight; wait before releasing it.
         SDL_WaitForGPUIdle(m_renderer.get_gpu_device());
