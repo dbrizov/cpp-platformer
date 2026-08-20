@@ -2,6 +2,7 @@
 
 #include <array>
 #include <string>
+#include <vector>
 
 #include <imgui.h>
 
@@ -36,6 +37,9 @@ namespace hob::editor {
         EditorState m_state = EditorState::Edit;
         bool m_step_requested = false;
 
+        std::string m_current_scene;
+        std::string m_pending_scene_open;
+
         EditorEntitySelection m_selection;
 
         EditorCommandStack m_commands;
@@ -69,6 +73,12 @@ namespace hob::editor {
         void request_reset_layout();
         void request_quit();
         void request_action(EditorActionId id);
+        void request_open_scene(const std::string& name);
+
+        std::vector<std::string> get_scene_names() const;
+        const std::string& get_current_scene() const;
+        bool is_scene_dirty() const;
+        void open_pending_scene();
 
         EditorEntitySelection& get_selection();
         const EditorEntitySelection& get_selection() const;
@@ -84,6 +94,7 @@ namespace hob::editor {
         EditorDockAssets& get_assets();
 
 #pragma region EngineHooks
+        void init() override;
         void tick(float delta_time) override;
         void draw_gui() override;
         void render_passes() override;
@@ -101,6 +112,10 @@ namespace hob::editor {
         void update_input();
         bool is_context_active(EditorActionContext context) const;
         void prune_selection();
+
+        void reset_edit_session();
+        void clear_world();
+        void load_scene();
 
         void build_default_layout(ImGuiID dock_space_id);
         void save_layout();

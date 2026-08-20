@@ -28,21 +28,21 @@ namespace hob::editor {
             return;
         }
 
-        if (!json.contains("window")) {
-            return;
+        if (json.contains("window")) {
+            const auto& w = json["window"];
+            x = w.value("x", x);
+            y = w.value("y", y);
+            width = w.value("width", width);
+            height = w.value("height", height);
+            maximized = w.value("maximized", maximized);
+
+            if (width <= 0 || height <= 0) {
+                width = 0;
+                height = 0;
+            }
         }
 
-        const auto& w = json["window"];
-        x = w.value("x", x);
-        y = w.value("y", y);
-        width = w.value("width", width);
-        height = w.value("height", height);
-        maximized = w.value("maximized", maximized);
-
-        if (width <= 0 || height <= 0) {
-            width = 0;
-            height = 0;
-        }
+        last_open_scene = json.value("last_open_scene", last_open_scene);
     }
 
     void EditorConfig::save(const std::filesystem::path& json_path) const {
@@ -64,6 +64,7 @@ namespace hob::editor {
             {"height", height},
             {"maximized", maximized},
         };
+        json["last_open_scene"] = last_open_scene;
 
         std::ofstream out(json_path);
         if (!out.is_open()) {

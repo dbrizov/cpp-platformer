@@ -89,6 +89,10 @@ namespace hob {
     }
 
     void Engine::run() {
+        if (m_hooks != nullptr) {
+            m_hooks->init();
+        }
+
         bool is_running = true;
         std::vector<Entity*> entities;
 

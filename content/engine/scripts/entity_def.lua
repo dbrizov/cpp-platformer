@@ -220,3 +220,10 @@ EntitySpawner.destroy_entity = function(entity)
     end
     destroy_entity_c(entity)
 end
+
+local clear_c = EntitySpawner.clear_c
+
+EntitySpawner.clear = function()
+    _G.__entity_prefab_by_id = {}
+    clear_c()
+end

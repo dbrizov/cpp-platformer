@@ -242,6 +242,8 @@ function EntitySpawner.spawn_entity_c() end
 ---@param entity Entity
 function EntitySpawner.destroy_entity_c(entity) end
 
+function EntitySpawner.clear_c() end
+
 ---@param id integer
 ---@return Entity
 function EntitySpawner.get_entity(id) end

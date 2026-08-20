@@ -138,6 +138,18 @@ namespace hob::editor {
                     },
             },
             {
+                .id = EditorActionId::OpenScene,
+                .label = "Open Scene",
+                .chord = ImGuiKey_None,
+                .context = EditorActionContext::Global,
+                .is_enabled = nullptr,
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        editor.open_pending_scene();
+                    },
+            },
+            {
                 .id = EditorActionId::Quit,
                 .label = "Quit",
                 .chord = ImGuiKey_None,

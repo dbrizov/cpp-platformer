@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <string>
 
 #include "engine/core/engine_config.h"
 
@@ -11,6 +12,8 @@ namespace hob::editor {
         int32_t width = 0;
         int32_t height = 0;
         bool maximized = false;
+
+        std::string last_open_scene;
 
         EditorConfig() = default;
         explicit EditorConfig(const std::filesystem::path& json_path);

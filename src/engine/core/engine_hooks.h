@@ -7,6 +7,7 @@ namespace hob {
     public:
         virtual ~EngineHooks() = default;
 
+        virtual void init() {}
         virtual void tick(float delta_time) {}
         virtual void draw_gui() {}
         virtual void render_passes() {}

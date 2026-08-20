@@ -56,7 +56,9 @@ namespace hob::editor {
 
     bool begin_menu(const char* label);
     void end_menu();
-    bool menu_item(const char* label, const char* shortcut = nullptr, bool enabled = true);
+    bool begin_submenu(const char* label, bool enabled = true);
+    void end_submenu();
+    bool menu_item(const char* label, const char* shortcut = nullptr, bool enabled = true, bool selected = false);
 
     bool begin_combo(const char* preview);
     void end_combo();

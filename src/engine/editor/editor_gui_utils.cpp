@@ -208,7 +208,59 @@ namespace hob::editor {
         ImGui::EndMenu();
     }
 
-    bool menu_item(const char* label, const char* shortcut, bool enabled) {
+    bool begin_submenu(const char* label, bool enabled) {
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+        ImDrawList* draw_list = window->DrawList;
+        ImDrawListSplitter splitter;
+        splitter.Split(draw_list, DRAW_CHANNEL_COUNT);
+        splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_FOREGROUND);
+
+        StyleColorStack colors;
+        colors.push(ImGuiCol_Header, COLOR_TRANSPARENT);
+        colors.push(ImGuiCol_HeaderHovered, COLOR_TRANSPARENT);
+        colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
+
+        StyleVarStack vars;
+        vars.push(ImGuiStyleVar_WindowPadding, MENU_BAR_POPUP_PADDING);
+
+        const bool open = ImGui::BeginMenu(label, enabled);
+        vars.pop();
+        colors.pop();
+
+        const bool hovered = !open && ImGui::IsItemHovered();
+        if (enabled && (open || hovered)) {
+            const ImGuiStyle& style = ImGui::GetStyle();
+            const float spacing_above = IM_TRUNC(style.ItemSpacing.y * 0.5f);
+            const float row_top =
+                window->DC.CursorPosPrevLine.y + window->DC.PrevLineTextBaseOffset - spacing_above;
+
+            const ImVec2 row_min(window->Pos.x, row_top);
+            const ImVec2 row_max(window->Pos.x + window->Size.x,
+                                 row_top + window->DC.PrevLineSize.y + style.ItemSpacing.y);
+
+            splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
+            draw_highlight(draw_list,
+                           inset_rect(row_min, row_max, MENU_BAR_POPUP_ITEM_INSET),
+                           open ? COLOR_MENU_BAR_ITEM_ACTIVE : COLOR_MENU_BAR_ITEM_HOVER,
+                           MENU_BAR_ITEM_ROUNDING);
+        }
+
+        splitter.Merge(draw_list);
+
+        if (open) {
+            ImGui::PushStyleColor(ImGuiCol_Separator, COLOR_MENU_BAR_SEPARATOR);
+        }
+
+        return open;
+    }
+
+    void end_submenu() {
+        ImGui::PopStyleColor();
+        ImGui::EndMenu();
+    }
+
+    bool menu_item(const char* label, const char* shortcut, bool enabled, bool selected) {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         ImDrawListSplitter splitter;
         splitter.Split(draw_list, DRAW_CHANNEL_COUNT);
@@ -225,7 +277,6 @@ namespace hob::editor {
         const ImGuiWindow* window = ImGui::GetCurrentWindow();
         const float shortcut_y = window->DC.CursorPos.y + window->DC.CurrLineTextBaseOffset;
 
-        const bool selected = false;
         const bool pressed = ImGui::MenuItem(label, shortcut, selected, enabled);
         colors.pop();
 

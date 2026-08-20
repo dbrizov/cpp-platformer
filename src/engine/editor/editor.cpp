@@ -76,19 +76,18 @@ namespace hob::editor {
         const bool leaving_play = (state == EditorState::Edit);
 
         if (entering_play || leaving_play) {
-            m_commands.clear();
-            m_selection.clear();
-            m_scene_view.reset_pick_cycle();
-            m_inspector.reset_edit_state();
+            reset_edit_session();
         }
 
         if (entering_play) {
+            clear_world();
             m_engine.open_game_window();
-            m_engine.get_lua_script_system().run_project_main();
+            load_scene();
         }
         else if (leaving_play) {
-            m_engine.get_entity_spawner().clear();
+            clear_world();
             m_engine.close_game_window();
+            load_scene();
         }
 
         m_state = state;
@@ -110,6 +109,55 @@ namespace hob::editor {
 
     void Editor::request_action(EditorActionId id) {
         m_actions.request(id);
+    }
+
+    void Editor::request_open_scene(const std::string& name) {
+        m_pending_scene_open = name;
+        request_action(EditorActionId::OpenScene);
+    }
+
+    std::vector<std::string> Editor::get_scene_names() const {
+        std::vector<std::string> names;
+
+        const sol::object result = editor_call(m_engine, "get_scene_names");
+        if (result.is<sol::table>()) {
+            const sol::table table = result.as<sol::table>();
+            names.reserve(table.size());
+            for (int32_t i = 1; i <= table.size(); ++i) {
+                names.push_back(table.get<std::string>(i));
+            }
+        }
+
+        return names;
+    }
+
+    const std::string& Editor::get_current_scene() const {
+        return m_current_scene;
+    }
+
+    bool Editor::is_scene_dirty() const {
+        const sol::object result = editor_call(m_engine, "is_scene_dirty");
+        return result.is<bool>() && result.as<bool>();
+    }
+
+    void Editor::open_pending_scene() {
+        if (m_pending_scene_open.empty()) {
+            return;
+        }
+
+        const std::string name = std::move(m_pending_scene_open);
+        m_pending_scene_open.clear();
+
+        const sol::object result = editor_call(m_engine, "open_scene", name);
+        if (!result.is<bool>() || !result.as<bool>()) {
+            clear_world();
+            m_current_scene.clear();
+            reset_edit_session();
+            return;
+        }
+
+        m_current_scene = name;
+        reset_edit_session();
     }
 
     EditorEntitySelection& Editor::get_selection() {
@@ -152,6 +200,20 @@ namespace hob::editor {
         return m_assets;
     }
 
+    void Editor::init() {
+        const std::vector<std::string> names = get_scene_names();
+        if (names.empty()) {
+            log::engine.info("Editor: the project defines no scenes; starting with an empty world");
+            return;
+        }
+
+        const std::string last_open_scene = EditorConfig(get_editor_config_file_path()).last_open_scene;
+        const bool is_registered = std::find(names.begin(), names.end(), last_open_scene) != names.end();
+
+        m_pending_scene_open = is_registered ? last_open_scene : names.front();
+        open_pending_scene();
+    }
+
     void Editor::tick(float delta_time) {
         const bool simulate = (m_state == EditorState::Play) || (m_state == EditorState::Paused && m_step_requested);
         m_step_requested = false;
@@ -191,6 +253,11 @@ namespace hob::editor {
     void Editor::on_lua_hot_reloaded() {
         m_engine.get_lua_script_system().run_engine_folder(EDITOR_SCRIPTS_FOLDER);
         clear_asset_entry_cache();
+
+        const sol::object rebound = editor_call(m_engine, "rebind_after_reload");
+        if (rebound.is<bool>() && !rebound.as<bool>()) {
+            request_open_scene(m_current_scene);
+        }
     }
 
     bool Editor::on_quit_requested() {
@@ -281,12 +348,28 @@ namespace hob::editor {
         ImGui::DockBuilderFinish(dock_space_id);
     }
 
+    void Editor::reset_edit_session() {
+        m_commands.clear();
+        m_selection.clear();
+        m_scene_view.reset_pick_cycle();
+        m_inspector.reset_edit_state();
+    }
+
+    void Editor::clear_world() {
+        editor_call(m_engine, "clear_world");
+    }
+
+    void Editor::load_scene() {
+        editor_call(m_engine, "load_scene");
+    }
+
     void Editor::save_layout() {
         SDL_Window* window = m_engine.get_main_window().get_window();
         EditorConfig editor_config;
         SDL_GetWindowPosition(window, &editor_config.x, &editor_config.y);
         SDL_GetWindowSize(window, &editor_config.width, &editor_config.height);
         editor_config.maximized = (SDL_GetWindowFlags(window) & SDL_WINDOW_MAXIMIZED) != 0;
+        editor_config.last_open_scene = m_current_scene;
         editor_config.save(get_editor_config_file_path());
     }
 } // namespace hob::editor

@@ -25,6 +25,10 @@ namespace hob {
                       spawner.destroy_entity(r.get_id());
                   },
                   {"entity"})
+            .func("clear_c",
+                  [&spawner]() {
+                      spawner.clear();
+                  })
             .func("get_entity",
                   [&spawner](EntityId id) {
                       return EntityRef(id, spawner);

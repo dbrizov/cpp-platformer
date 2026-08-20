@@ -17,6 +17,7 @@ namespace hob::editor {
         Stop,
         FocusSelection,
         ResetLayout,
+        OpenScene,
         Quit,
         Count,
     };
