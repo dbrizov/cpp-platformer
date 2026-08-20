@@ -1,6 +1,7 @@
 #include "editor_toolbar.h"
 
 #include <algorithm>
+#include <iterator>
 
 #include <imgui.h>
 
@@ -11,50 +12,31 @@
 
 namespace hob::editor {
     namespace {
-        constexpr int32_t TOOLBAR_MAX_ITEMS = 3;
+        struct EditorToolbarItem {
+            EditorActionId id;
+            EditorBarIcon icon;
+        };
+
+        constexpr EditorToolbarItem TOOLBAR_ITEMS[] = {
+            {EditorActionId::Play, EditorBarIcon::Play},
+            {EditorActionId::Pause, EditorBarIcon::Pause},
+            {EditorActionId::Step, EditorBarIcon::Step},
+            {EditorActionId::Stop, EditorBarIcon::Stop},
+        };
+
+        constexpr int32_t TOOLBAR_ITEM_COUNT = static_cast<int32_t>(std::size(TOOLBAR_ITEMS));
     } // namespace
 
     void EditorToolbar::draw(Editor& editor) {
-        const EditorState state = editor.get_state();
-
-        EditorActionId items[TOOLBAR_MAX_ITEMS]{};
-        int32_t item_count = 0;
-
-        switch (state) {
-            case EditorState::Edit: {
-                items[item_count++] = EditorActionId::Play;
-                break;
-            }
-            case EditorState::Play: {
-                items[item_count++] = EditorActionId::Pause;
-                items[item_count++] = EditorActionId::Stop;
-                break;
-            }
-            case EditorState::Paused: {
-                items[item_count++] = EditorActionId::Play;
-                items[item_count++] = EditorActionId::Step;
-                items[item_count++] = EditorActionId::Stop;
-                break;
-            }
-        }
-
-        const char* state_label = (state == EditorState::Edit)   ? "Edit"
-                                  : (state == EditorState::Play) ? "Play"
-                                                                 : "Paused";
-
-        float toolbar_width = ImGui::CalcTextSize(state_label).x + MENU_BAR_ITEM_SPACING_X;
-        for (int32_t i = 0; i < item_count; ++i) {
-            toolbar_width += action_bar_button_width(editor, items[i]);
-        }
+        const float toolbar_width =
+            TOOLBAR_BUTTON_WIDTH * TOOLBAR_ITEM_COUNT + TOOLBAR_BUTTON_SPACING_X * (TOOLBAR_ITEM_COUNT - 1);
 
         const float cursor_x = ImGui::GetCursorPosX();
-        const float right_edge_x = cursor_x + ImGui::GetContentRegionAvail().x;
-        ImGui::SetCursorPosX(std::max(cursor_x, right_edge_x - toolbar_width));
+        const float centered_x = (ImGui::GetWindowWidth() - toolbar_width) * 0.5f - TOOLBAR_BUTTON_SPACING_X;
+        ImGui::SetCursorPosX(std::max(cursor_x, centered_x));
 
-        for (int32_t i = 0; i < item_count; ++i) {
-            action_bar_button(editor, items[i]);
+        for (const EditorToolbarItem& item : TOOLBAR_ITEMS) {
+            action_bar_icon_button(editor, item.id, item.icon);
         }
-
-        ImGui::TextDisabled("%s", state_label);
     }
 } // namespace hob::editor

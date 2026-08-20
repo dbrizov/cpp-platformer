@@ -15,7 +15,14 @@
 #include "engine/math/vector2.h"
 
 namespace hob::editor {
-    struct StyleColorStack {
+    enum class EditorBarIcon : uint8_t {
+        Play,
+        Pause,
+        Step,
+        Stop,
+    };
+
+    struct EditorStyleColorStack {
         int32_t count = 0;
 
         void push(ImGuiCol index, const ImVec4& color) {
@@ -29,8 +36,13 @@ namespace hob::editor {
         }
     };
 
-    struct StyleVarStack {
+    struct EditorStyleVarStack {
         int32_t count = 0;
+
+        void push(ImGuiStyleVar index, float value) {
+            ImGui::PushStyleVar(index, value);
+            count += 1;
+        }
 
         void push(ImGuiStyleVar index, const ImVec2& value) {
             ImGui::PushStyleVar(index, value);
@@ -64,8 +76,9 @@ namespace hob::editor {
     void end_combo();
     bool combo_item(const char* label, bool selected);
 
-    bool bar_button(const char* label);
-    float bar_button_width(const char* label);
+    bool bar_icon_button(const char* id, EditorBarIcon icon, bool enabled, bool active, const char* tooltip);
+
+    void set_tooltip(const char* fmt, ...) IM_FMTARGS(1);
 
     bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) IM_FMTARGS(4);
 

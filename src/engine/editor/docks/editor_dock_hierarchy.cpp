@@ -29,7 +29,7 @@ namespace hob::editor {
 
             EntityId clicked_entity_id = INVALID_ENTITY_ID;
 
-            StyleVarStack vars;
+            EditorStyleVarStack vars;
             vars.push(ImGuiStyleVar_ItemSpacing, HIERARCHY_ITEM_SPACING);
 
             // Draw parentless entities. Child entities are drawn recursively

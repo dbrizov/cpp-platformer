@@ -7,6 +7,7 @@
 
 namespace hob::editor {
     class Editor;
+    enum class EditorBarIcon : uint8_t;
 
     enum class EditorActionId : uint8_t {
         Undo,
@@ -37,6 +38,7 @@ namespace hob::editor {
         ImGuiKeyChord chord; // ImGuiKey_None leaves the action unbound.
         EditorActionContext context;
         bool (*is_enabled)(const Editor&); // Null is always enabled.
+        bool (*is_active)(const Editor&); // Null is never active.
         std::string (*format_label)(const Editor&); // Null uses label.
         void (*run)(Editor&);
     };
@@ -47,6 +49,7 @@ namespace hob::editor {
     uint32_t context_bit(EditorActionContext context);
 
     bool is_action_enabled(const Editor& editor, EditorActionId id);
+    bool is_action_active(const Editor& editor, EditorActionId id);
     std::string get_action_label(const Editor& editor, EditorActionId id);
 
     std::string make_command_label(const char* verb, const std::string& command_label);
@@ -54,6 +57,5 @@ namespace hob::editor {
     bool is_chord_pressed(ImGuiKeyChord chord);
 
     bool action_menu_item(Editor& editor, EditorActionId id);
-    bool action_bar_button(Editor& editor, EditorActionId id);
-    float action_bar_button_width(const Editor& editor, EditorActionId id);
+    bool action_bar_icon_button(Editor& editor, EditorActionId id, EditorBarIcon icon);
 } // namespace hob::editor

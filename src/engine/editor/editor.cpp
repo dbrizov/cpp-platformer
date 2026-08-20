@@ -299,7 +299,8 @@ namespace hob::editor {
     void Editor::update_input() {
         m_active_contexts = 0;
 
-        if (m_engine.get_main_window().has_focus() && !ImGui::GetIO().WantTextInput) {
+        const bool has_focus = m_engine.get_main_window().has_focus() || m_engine.get_play_window().has_focus();
+        if (has_focus && !ImGui::GetIO().WantTextInput) {
             m_active_contexts |= context_bit(EditorActionContext::Global);
 
             // Last frame's, since draw() writes them after this runs and a dock rect only exists mid-draw.

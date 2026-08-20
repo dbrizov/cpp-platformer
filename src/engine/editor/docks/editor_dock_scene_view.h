@@ -20,7 +20,7 @@ namespace hob::editor {
         uint32_t m_color_target_height = 0;
 
         // Recorded while drawing, consumed by the next frame's input phase.
-        SceneRect m_rect;
+        EditorSceneRect m_rect;
         bool m_rect_valid = false;
 
         // Clicking the same spot repeatedly cycles through overlapping candidates.
@@ -46,8 +46,12 @@ namespace hob::editor {
                                     const Vector2& world_pos,
                                     std::vector<EntityId>& out_candidates) const;
 
-        void draw_grid(ImDrawList* draw_list, const SceneRect& scene_rect) const;
-        void draw_camera_view_rect(const Editor& editor, ImDrawList* draw_list, const SceneRect& scene_rect) const;
-        void draw_selection_overlay(const Editor& editor, ImDrawList* draw_list, const SceneRect& scene_rect) const;
+        void draw_grid(ImDrawList* draw_list, const EditorSceneRect& scene_rect) const;
+        void draw_camera_view_rect(const Editor& editor,
+                                   ImDrawList* draw_list,
+                                   const EditorSceneRect& scene_rect) const;
+        void draw_selection_overlay(const Editor& editor,
+                                    ImDrawList* draw_list,
+                                    const EditorSceneRect& scene_rect) const;
     };
 } // namespace hob::editor

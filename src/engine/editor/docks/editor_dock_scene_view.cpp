@@ -53,14 +53,14 @@ namespace hob::editor {
             return index % GRID_MAJOR_EVERY == 0;
         }
 
-        struct SpriteRect {
+        struct EditorSpriteRect {
             Vector2 origin;
             float rotation = 0.0f;
             Vector2 min;
             Vector2 max;
         };
 
-        bool compute_sprite_rect(const SpriteComponent& sprite, SpriteRect& out_rect) {
+        bool compute_sprite_rect(const SpriteComponent& sprite, EditorSpriteRect& out_rect) {
             if (sprite.get_texture() == nullptr) {
                 return false;
             }
@@ -77,7 +77,7 @@ namespace hob::editor {
             return true;
         }
 
-        bool is_point_inside_sprite_rect(const SpriteRect& rect, const Vector2& world_pos) {
+        bool is_point_inside_sprite_rect(const EditorSpriteRect& rect, const Vector2& world_pos) {
             const Vector2 world_delta = world_pos - rect.origin;
             const float cos = std::cos(-rect.rotation);
             const float sin = std::sin(-rect.rotation);
@@ -91,7 +91,7 @@ namespace hob::editor {
         AABB compute_entity_world_bounds(const Entity& entity) {
             const SpriteComponent* sprite = entity.get_component<SpriteComponent>();
 
-            SpriteRect rect;
+            EditorSpriteRect rect;
             if (sprite != nullptr && compute_sprite_rect(*sprite, rect)) {
                 const Vector2 origin = rect.origin;
                 const float rotation = rect.rotation;
@@ -148,9 +148,12 @@ namespace hob::editor {
     void EditorDockSceneView::draw(Editor& editor) {
         m_rect_valid = false;
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        EditorStyleVarStack vars;
+        vars.push(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
         const bool visible = begin(ImGuiWindowFlags_NoScrollbar);
-        ImGui::PopStyleVar();
+
+        vars.pop();
 
         if (visible) {
             // The image fills the dock, so hovering it is what counts -- not the tab bar above it.
@@ -168,7 +171,7 @@ namespace hob::editor {
                         m_color_target, ImVec2(image_size.x, image_size.y), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
 
                     const ImVec2 item_min = ImGui::GetItemRectMin();
-                    const SceneRect scene_rect{Vector2(item_min.x, item_min.y), image_size};
+                    const EditorSceneRect scene_rect{Vector2(item_min.x, item_min.y), image_size};
 
                     m_rect = scene_rect;
                     m_rect_valid = true;
@@ -276,17 +279,17 @@ namespace hob::editor {
         const EntitySpawner& spawner = editor.get_engine().get_entity_spawner();
         const std::vector<SpriteComponent*>& sprites = spawner.get_sprites();
 
-        struct SpriteHit {
+        struct EditorSpriteHit {
             EntityId entity_id;
             int32_t z_index;
             int32_t sprite_index;
         };
 
-        std::vector<SpriteHit> sprite_hits;
+        std::vector<EditorSpriteHit> sprite_hits;
         for (int32_t i = 0; i < sprites.size(); ++i) {
             const SpriteComponent* sprite = sprites[i];
 
-            SpriteRect rect;
+            EditorSpriteRect rect;
             if (!compute_sprite_rect(*sprite, rect) || !is_point_inside_sprite_rect(rect, world_pos)) {
                 continue;
             }
@@ -296,11 +299,11 @@ namespace hob::editor {
 
         if (!sprite_hits.empty()) {
             // Topmost first: higher z wins, and at equal z the later-registered sprite draws on top.
-            std::sort(sprite_hits.begin(), sprite_hits.end(), [](const SpriteHit& a, const SpriteHit& b) {
+            std::sort(sprite_hits.begin(), sprite_hits.end(), [](const EditorSpriteHit& a, const EditorSpriteHit& b) {
                 return (a.z_index != b.z_index) ? (a.z_index > b.z_index) : (a.sprite_index > b.sprite_index);
             });
 
-            for (const SpriteHit& hit : sprite_hits) {
+            for (const EditorSpriteHit& hit : sprite_hits) {
                 out_candidates.push_back(hit.entity_id);
             }
 
@@ -311,7 +314,7 @@ namespace hob::editor {
         // a fixed screen radius around the origin, so the grab area stays the same size on screen at any zoom.
         const float pick_radius_world = PICK_RADIUS_PX / m_camera.get_pixels_per_meter_f();
 
-        struct OriginHit {
+        struct EditorOriginHit {
             EntityId entity_id;
             float world_distance;
         };
@@ -319,7 +322,7 @@ namespace hob::editor {
         std::vector<Entity*> entities;
         spawner.get_entities(entities);
 
-        std::vector<OriginHit> origin_hits;
+        std::vector<EditorOriginHit> origin_hits;
         for (const Entity* entity : entities) {
             const float world_distance = (entity->get_transform()->get_position() - world_pos).length();
             if (world_distance <= pick_radius_world) {
@@ -327,11 +330,11 @@ namespace hob::editor {
             }
         }
 
-        std::sort(origin_hits.begin(), origin_hits.end(), [](const OriginHit& a, const OriginHit& b) {
+        std::sort(origin_hits.begin(), origin_hits.end(), [](const EditorOriginHit& a, const EditorOriginHit& b) {
             return a.world_distance < b.world_distance;
         });
 
-        for (const OriginHit& hit : origin_hits) {
+        for (const EditorOriginHit& hit : origin_hits) {
             out_candidates.push_back(hit.entity_id);
         }
     }
@@ -359,7 +362,7 @@ namespace hob::editor {
         }
     }
 
-    void EditorDockSceneView::draw_grid(ImDrawList* draw_list, const SceneRect& scene_rect) const {
+    void EditorDockSceneView::draw_grid(ImDrawList* draw_list, const EditorSceneRect& scene_rect) const {
         const float cell_meters = grid_cell_meters(m_camera.get_pixels_per_meter_f());
 
         const Vector2 top_left = scene_rect.top_left;
@@ -412,7 +415,7 @@ namespace hob::editor {
 
     void EditorDockSceneView::draw_camera_view_rect(const Editor& editor,
                                                     ImDrawList* draw_list,
-                                                    const SceneRect& scene_rect) const {
+                                                    const EditorSceneRect& scene_rect) const {
         Engine& engine = editor.get_engine();
 
         const CameraComponent* camera = engine.get_active_camera();
@@ -447,7 +450,7 @@ namespace hob::editor {
 
     void EditorDockSceneView::draw_selection_overlay(const Editor& editor,
                                                      ImDrawList* draw_list,
-                                                     const SceneRect& scene_rect) const {
+                                                     const EditorSceneRect& scene_rect) const {
         const EntitySpawner& spawner = editor.get_engine().get_entity_spawner();
         const EditorEntitySelection& selection = editor.get_selection();
         const EntityId primary_entity_id = selection.primary();
@@ -464,7 +467,7 @@ namespace hob::editor {
 
             const SpriteComponent* sprite = entity->get_component<SpriteComponent>();
 
-            SpriteRect rect;
+            EditorSpriteRect rect;
             if (sprite != nullptr && compute_sprite_rect(*sprite, rect)) {
                 const Vector2 origin = rect.origin;
                 const float rotation = rect.rotation;

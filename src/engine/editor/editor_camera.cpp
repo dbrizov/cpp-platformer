@@ -36,14 +36,14 @@ namespace hob::editor {
         return Renderer::ortho_top_left(w, h) * world_to_pixels;
     }
 
-    Vector2 EditorCamera::screen_to_world(const Vector2& screen_pos, const SceneRect& scene_rect) const {
+    Vector2 EditorCamera::screen_to_world(const Vector2& screen_pos, const EditorSceneRect& scene_rect) const {
         Vector2 delta_px = screen_pos - scene_rect.top_left - scene_rect.size * 0.5f;
         delta_px.y = -delta_px.y;
 
         return position + delta_px / get_pixels_per_meter_f();
     }
 
-    Vector2 EditorCamera::world_to_screen(const Vector2& world_pos, const SceneRect& scene_rect) const {
+    Vector2 EditorCamera::world_to_screen(const Vector2& world_pos, const EditorSceneRect& scene_rect) const {
         Vector2 delta_px = (world_pos - position) * get_pixels_per_meter_f();
         delta_px.y = -delta_px.y;
 
@@ -56,7 +56,7 @@ namespace hob::editor {
         position.y += pixel_delta.y / ppm;
     }
 
-    void EditorCamera::zoom_at(const Vector2& screen_pos, const SceneRect& scene_rect, float wheel) {
+    void EditorCamera::zoom_at(const Vector2& screen_pos, const EditorSceneRect& scene_rect, float wheel) {
         const Vector2 world_pos_before = screen_to_world(screen_pos, scene_rect);
 
         // Rounding alone would stall: at 5 ppm, 5 / 1.1 rounds back to 5 and zooming out
@@ -72,7 +72,7 @@ namespace hob::editor {
         position = position + (world_pos_before - world_pos_after);
     }
 
-    void EditorCamera::focus_on(const AABB& world_bounds, const SceneRect& scene_rect) {
+    void EditorCamera::focus_on(const AABB& world_bounds, const EditorSceneRect& scene_rect) {
         position = world_bounds.center;
 
         const Vector2 world_size = world_bounds.size();

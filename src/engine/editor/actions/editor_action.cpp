@@ -56,6 +56,10 @@ namespace hob::editor {
                     [](const Editor& editor) {
                         return editor.get_state() != EditorState::Play;
                     },
+                .is_active =
+                    [](const Editor& editor) {
+                        return editor.get_state() == EditorState::Play;
+                    },
                 .format_label =
                     [](const Editor& editor) {
                         return std::string(editor.get_state() == EditorState::Paused ? "Resume" : "Play");
@@ -68,11 +72,15 @@ namespace hob::editor {
             {
                 .id = EditorActionId::Pause,
                 .label = "Pause",
-                .chord = ImGuiKey_None,
+                .chord = ImGuiKey_F7,
                 .context = EditorActionContext::Global,
                 .is_enabled =
                     [](const Editor& editor) {
                         return editor.get_state() == EditorState::Play;
+                    },
+                .is_active =
+                    [](const Editor& editor) {
+                        return editor.get_state() == EditorState::Paused;
                     },
                 .format_label = nullptr,
                 .run =
@@ -83,7 +91,7 @@ namespace hob::editor {
             {
                 .id = EditorActionId::Step,
                 .label = "Step",
-                .chord = ImGuiKey_None,
+                .chord = ImGuiKey_F8,
                 .context = EditorActionContext::Global,
                 .is_enabled =
                     [](const Editor& editor) {
@@ -186,6 +194,11 @@ namespace hob::editor {
         return action.is_enabled == nullptr || action.is_enabled(editor);
     }
 
+    bool is_action_active(const Editor& editor, EditorActionId id) {
+        const EditorAction& action = get_action(id);
+        return action.is_active != nullptr && action.is_active(editor);
+    }
+
     std::string get_action_label(const Editor& editor, EditorActionId id) {
         const EditorAction& action = get_action(id);
         return action.format_label != nullptr ? action.format_label(editor) : std::string(action.label);
@@ -245,18 +258,23 @@ namespace hob::editor {
         return true;
     }
 
-    bool action_bar_button(Editor& editor, EditorActionId id) {
-        const std::string label = get_action_label(editor, id);
-        if (!bar_button(label.c_str()) || !is_action_enabled(editor, id)) {
+    bool action_bar_icon_button(Editor& editor, EditorActionId id, EditorBarIcon icon) {
+        const EditorAction& action = get_action(id);
+        const std::string shortcut = format_shortcut(action.chord);
+
+        std::string tooltip = get_action_label(editor, id);
+        if (!shortcut.empty()) {
+            tooltip += " (" + shortcut + ")";
+        }
+
+        const char* button_id = action.label;
+        if (!bar_icon_button(
+                button_id, icon, is_action_enabled(editor, id), is_action_active(editor, id), tooltip.c_str())) {
             return false;
         }
 
         editor.request_action(id);
 
         return true;
-    }
-
-    float action_bar_button_width(const Editor& editor, EditorActionId id) {
-        return bar_button_width(get_action_label(editor, id).c_str());
     }
 } // namespace hob::editor

@@ -53,6 +53,8 @@ namespace hob::editor {
     constexpr float POPUP_ROUNDING = 3.0f;
     constexpr float POPUP_BORDER_SIZE = 0.0f;
 
+    constexpr float TOOLTIP_ROUNDING = 3.0f;
+
     constexpr ImVec2 FRAME_PADDING{10.0f, 6.0f};
     constexpr float FRAME_ROUNDING = 3.0f;
     constexpr float FRAME_BORDER_SIZE = 0.0f;
@@ -108,6 +110,24 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_MENU_BAR_ITEM_ACTIVE{0.259f, 0.259f, 0.259f, 1.0f};
     constexpr ImVec4 COLOR_MENU_BAR_SEPARATOR{0.141f, 0.141f, 0.141f, 1.0f};
 
+    // Toolbar
+    constexpr float TOOLBAR_ICON_SIZE = 12.0f;
+    constexpr float TOOLBAR_ICON_ROUNDING = 1.0f;
+    constexpr float TOOLBAR_ICON_BAR_WIDTH = 3.0f;
+    constexpr float TOOLBAR_ICON_SPACING_X = 2.0f;
+
+    constexpr float TOOLBAR_BUTTON_PADDING_X = 7.0f;
+    constexpr float TOOLBAR_BUTTON_SPACING_X = 4.0f;
+    constexpr float TOOLBAR_BUTTON_ROUNDING = 3.0f;
+    constexpr float TOOLBAR_BUTTON_WIDTH = TOOLBAR_ICON_SIZE + TOOLBAR_BUTTON_PADDING_X * 2.0f;
+
+    constexpr ImVec4 COLOR_TOOLBAR_BUTTON_HOVER{0.184f, 0.184f, 0.184f, 1.0f};
+    constexpr ImVec4 COLOR_TOOLBAR_BUTTON_ACTIVE{0.259f, 0.259f, 0.259f, 1.0f};
+
+    constexpr ImVec4 COLOR_TOOLBAR_ICON = COLOR_TEXT;
+    constexpr ImVec4 COLOR_TOOLBAR_ICON_ACTIVE = COLOR_ACCENT;
+    constexpr ImVec4 COLOR_TOOLBAR_ICON_DISABLED = with_alpha(COLOR_TEXT, 0.30f);
+
     // Hierarchy
     constexpr ImVec2 HIERARCHY_ITEM_SPACING{0.0f, 2.0f};
     constexpr ImVec2 HIERARCHY_ITEM_INSET{4.0f, 1.0f};
@@ -120,9 +140,7 @@ namespace hob::editor {
     constexpr float INSPECTOR_LABEL_WIDTH = 180.0f;
     constexpr float INSPECTOR_DRAG_SPEED_FLOAT = 0.02f;
     constexpr float INSPECTOR_DRAG_SPEED_INT = 0.1f;
-    constexpr float INSPECTOR_DRAG_SPEED_POSITION = 0.02f;
     constexpr float INSPECTOR_DRAG_SPEED_ROTATION_DEG = 0.5f;
-    constexpr float INSPECTOR_DRAG_SPEED_SCALE = 0.01f;
     constexpr float INSPECTOR_DRAG_SPEED_COLOR = 0.005f;
     constexpr float INSPECTOR_NESTED_INDENT = 12.0f;
 
