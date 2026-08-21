@@ -1,6 +1,7 @@
 #include <format>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include "engine/components/audio_component.h"
 #include "engine/components/camera_component.h"
@@ -37,9 +38,9 @@ namespace hob {
                         return e ? std::string_view(e->get_name()) : std::string_view();
                     })
             .method("set_name",
-                    [](const EntityRef& r, const std::string& name) {
+                    [](const EntityRef& r, std::string name) {
                         if (Entity* e = r.resolve()) {
-                            e->set_name(name);
+                            e->set_name(std::move(name));
                         }
                     },
                     {"name"})
@@ -49,9 +50,9 @@ namespace hob {
                         return e ? std::string_view(e->get_prefab_name()) : std::string_view();
                     })
             .method("set_prefab_name",
-                    [](const EntityRef& r, const std::string& name) {
+                    [](const EntityRef& r, std::string name) {
                         if (Entity* e = r.resolve()) {
-                            e->set_prefab_name(name);
+                            e->set_prefab_name(std::move(name));
                         }
                     },
                     {"name"})
@@ -75,13 +76,13 @@ namespace hob {
                     {"ticking"})
             .method_sig(
                 "add_lua_component",
-                [](const EntityRef& r, const std::string& class_name) -> sol::object {
+                [](const EntityRef& r, std::string class_name) -> sol::object {
                     Entity* e = r.resolve();
                     if (e == nullptr) {
                         return sol::lua_nil;
                     }
 
-                    LuaScriptComponent* lua_comp = e->add_component<LuaScriptComponent>(class_name);
+                    LuaScriptComponent* lua_comp = e->add_component<LuaScriptComponent>(std::move(class_name));
                     if (lua_comp == nullptr) {
                         return sol::lua_nil;
                     }

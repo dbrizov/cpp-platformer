@@ -1,4 +1,4 @@
-#include <string>
+#include <string_view>
 
 #include "engine/core/debug.h"
 #include "engine/math/vector2.h"
@@ -17,7 +17,7 @@ namespace hob {
             .func_sig(
                 "print",
                 [](sol::this_state ts,
-                   const std::string& message,
+                   std::string_view message,
                    sol::optional<Color> color,
                    sol::optional<float> duration,
                    sol::optional<bool> log) {

@@ -114,6 +114,7 @@ namespace hob {
 
     void Entity::set_id(EntityId id) {
         m_id = id;
+        m_fallback_display_name.clear();
     }
 
     const std::string& Entity::get_name() const {
@@ -132,7 +133,7 @@ namespace hob {
         m_prefab_name = std::move(name);
     }
 
-    std::string Entity::get_display_name() const {
+    const std::string& Entity::get_display_name() const {
         if (!m_name.empty()) {
             return m_name;
         }
@@ -141,7 +142,11 @@ namespace hob {
             return m_prefab_name;
         }
 
-        return std::format("Entity {}", m_id);
+        if (m_fallback_display_name.empty()) {
+            m_fallback_display_name = std::format("Entity {}", m_id);
+        }
+
+        return m_fallback_display_name;
     }
 
     bool Entity::is_in_play() const {
