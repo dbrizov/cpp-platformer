@@ -203,6 +203,9 @@ namespace hob {
         m_entity_spawn_requests.clear();
         m_entity_destroy_requests.clear();
         m_entity_ticking_sync_requests.clear();
+        m_entity_spawn_requests_swap_buffer.clear();
+        m_entity_destroy_requests_swap_buffer.clear();
+        m_entity_ticking_sync_requests_swap_buffer.clear();
     }
 
     void EntitySpawner::register_cvars(Console& console) {
@@ -357,31 +360,31 @@ namespace hob {
 
     void EntitySpawner::resolve_spawn_requests() {
         // Swap because someone might make a spawn request in enter_play()
-        std::vector<std::unique_ptr<Entity>> spawn_requests;
-        spawn_requests.swap(m_entity_spawn_requests);
+        m_entity_spawn_requests_swap_buffer.swap(m_entity_spawn_requests);
 
-        for (auto& entity : spawn_requests) {
+        for (auto& entity : m_entity_spawn_requests_swap_buffer) {
             const EntityId entity_id = entity->get_id();
             m_entity_records[entity_id].live_index = static_cast<EntityIndex>(m_entities.size());
             m_entities.emplace_back(std::move(entity));
             m_entities.back()->enter_play();
         }
+
+        m_entity_spawn_requests_swap_buffer.clear();
     }
 
     void EntitySpawner::resolve_destroy_requests() {
         // Swap because someone might make a destroy request in exit_play()
-        std::unordered_set<EntityId> destroy_requests;
-        destroy_requests.swap(m_entity_destroy_requests);
+        m_entity_destroy_requests_swap_buffer.swap(m_entity_destroy_requests);
 
         // exit_play() while entities are still present in the map
-        for (const EntityId id : destroy_requests) {
+        for (const EntityId id : m_entity_destroy_requests_swap_buffer) {
             Entity* entity = get_entity(id);
             if (entity != nullptr) {
                 entity->exit_play();
             }
         }
 
-        for (const EntityId id : destroy_requests) {
+        for (const EntityId id : m_entity_destroy_requests_swap_buffer) {
             auto it = m_entity_records.find(id);
             if (it == m_entity_records.end()) {
                 continue;
@@ -400,15 +403,16 @@ namespace hob {
             m_entities.pop_back();
             m_entity_records.erase(it);
         }
+
+        m_entity_destroy_requests_swap_buffer.clear();
     }
 
     void EntitySpawner::resolve_ticking_sync_requests() {
-        // Swap because someone might request a ticking change in a sync below (register/unregister
-        // doesn't call back here, but stay consistent with the spawn/destroy resolve pattern).
-        std::unordered_set<EntityId> requests;
-        requests.swap(m_entity_ticking_sync_requests);
+        // Swap because someone might request a ticking change in a sync below;
+        // (register/unregister doesn't call back here, but stay consistent with the spawn/destroy resolve pattern).
+        m_entity_ticking_sync_requests_swap_buffer.swap(m_entity_ticking_sync_requests);
 
-        for (const EntityId id : requests) {
+        for (const EntityId id : m_entity_ticking_sync_requests_swap_buffer) {
             Entity* entity = get_entity(id);
             if (entity == nullptr) {
                 continue; // Destroyed before the sync; exit_play() already unregistered it.
@@ -423,5 +427,7 @@ namespace hob {
                 unregister_ticking_entity(entity);
             }
         }
+
+        m_entity_ticking_sync_requests_swap_buffer.clear();
     }
 } // namespace hob

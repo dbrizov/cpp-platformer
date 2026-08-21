@@ -49,6 +49,10 @@ namespace hob {
         std::unordered_set<EntityId> m_entity_destroy_requests;
         std::unordered_set<EntityId> m_entity_ticking_sync_requests;
 
+        std::vector<std::unique_ptr<Entity>> m_entity_spawn_requests_swap_buffer;
+        std::unordered_set<EntityId> m_entity_destroy_requests_swap_buffer;
+        std::unordered_set<EntityId> m_entity_ticking_sync_requests_swap_buffer;
+
         std::vector<Entity*> m_ticking_entities; // Registry of in-play entities with ticking enabled
         std::vector<SpriteComponent*> m_sprites; // Registry of in-play sprites
         std::vector<RigidbodyComponent*> m_simulated_rigidbodies; // Registry of in-play non-static rigidbodies
