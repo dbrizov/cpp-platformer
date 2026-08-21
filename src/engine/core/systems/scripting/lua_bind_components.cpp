@@ -508,7 +508,7 @@ namespace hob {
                         self.set_texture(value.as<TextureRef>());
                     }
                     else if (value.is<std::string>()) {
-                        self.set_texture(value.as<std::string>());
+                        self.set_texture(value.as<std::string_view>());
                     }
                     else {
                         log::lua.error("SpriteComponent:set_texture expects a string path or a Texture");

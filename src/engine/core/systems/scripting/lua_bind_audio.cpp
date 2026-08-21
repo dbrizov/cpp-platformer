@@ -15,7 +15,7 @@ namespace hob {
                 return value.as<AudioClipRef>();
             }
             if (value.is<std::string>()) {
-                return audio.get_or_load_clip(value.as<std::string>());
+                return audio.get_or_load_clip(value.as<std::string_view>());
             }
             return nullptr;
         }

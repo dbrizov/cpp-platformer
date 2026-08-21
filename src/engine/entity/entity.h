@@ -97,6 +97,9 @@ namespace hob {
         template<ComponentType T>
         T* get_component() const;
 
+        template<ComponentType T, ComponentPredicate<T> Pred>
+        T* get_component(Pred&& pred) const;
+
         template<ComponentType T>
         std::vector<T*> get_components() const;
 
@@ -132,6 +135,18 @@ namespace hob {
     T* Entity::get_component() const {
         for (auto& c : m_components) {
             if (T* casted = dynamic_cast<T*>(c.get())) {
+                return casted;
+            }
+        }
+
+        return nullptr;
+    }
+
+    template<ComponentType T, ComponentPredicate<T> Pred>
+    T* Entity::get_component(Pred&& pred) const {
+        for (auto& c : m_components) {
+            T* casted = dynamic_cast<T*>(c.get());
+            if (casted != nullptr && pred(casted)) {
                 return casted;
             }
         }

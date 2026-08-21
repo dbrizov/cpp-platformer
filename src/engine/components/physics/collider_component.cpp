@@ -27,6 +27,10 @@ namespace hob {
     }
 
     void ColliderComponent::debug_draw_tick(float delta_time) {
+        if (!get_engine().get_physics().cvar_show_colliders) {
+            return;
+        }
+
         Color color;
         if (m_is_trigger) {
             color = Color::cyan();
@@ -46,9 +50,7 @@ namespace hob {
             }
         }
 
-        if (get_engine().get_physics().cvar_show_colliders) {
-            debug_draw_shape(color, get_entity().get_transform()->get_scale());
-        }
+        debug_draw_shape(color, get_entity().get_transform()->get_scale());
     }
 
     std::string ColliderComponent::to_string() const {

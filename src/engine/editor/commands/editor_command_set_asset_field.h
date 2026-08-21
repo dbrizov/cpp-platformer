@@ -5,6 +5,7 @@
 #include <sol/sol.hpp>
 
 #include "editor_command.h"
+#include "engine/editor/editor_asset_value.h"
 #include "engine/editor/editor_field_target.h"
 
 namespace hob {
@@ -12,11 +13,6 @@ namespace hob {
 } // namespace hob
 
 namespace hob::editor {
-    struct EditorAssetValue {
-        std::string asset_name;
-        sol::object inline_asset; // Set only when the registry cannot name the asset; keeps it alive.
-    };
-
     class EditorCommandSetAssetField : public EditorCommand {
         EditorFieldTarget m_target;
         std::string m_factory_name;

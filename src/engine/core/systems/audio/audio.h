@@ -1,10 +1,12 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
 #include "audio_clip.h"
+#include "engine/core/string_hash.h"
 
 struct MIX_Mixer;
 struct MIX_Track;
@@ -17,7 +19,7 @@ namespace hob {
         bool m_enabled;
         MIX_Mixer* m_mixer = nullptr;
 
-        std::unordered_map<std::string, AudioClipWeakRef> m_clips;
+        std::unordered_map<std::string, AudioClipWeakRef, StringHash, std::equal_to<>> m_clips;
         std::vector<MIX_Track*> m_oneshot_tracks;
 
         bool m_cvar_show_clips = false;
@@ -40,7 +42,8 @@ namespace hob {
 
         MIX_Mixer* get_mixer() const;
 
-        AudioClipRef get_or_load_clip(const std::string& relative_path);
+        AudioClipRef get_cached_clip(std::string_view key) const;
+        AudioClipRef get_or_load_clip(std::string_view relative_path);
 
         void play_oneshot(const AudioClipRef& clip, float volume = 1.0f);
 

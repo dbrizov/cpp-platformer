@@ -10,16 +10,28 @@
 #include "renderer.h"
 
 namespace hob {
-    TextureRef Renderer::get_or_load_texture(const std::string& relative_path) {
-        const std::string key = std::filesystem::path(relative_path).lexically_normal().generic_string();
+    TextureRef Renderer::get_cached_texture(std::string_view key) const {
+        const auto it = m_textures.find(key);
+        if (it == m_textures.end()) {
+            return TextureRef();
+        }
 
-        auto tex_it = m_textures.find(key);
-        if (tex_it != m_textures.end()) {
-            if (auto cached = tex_it->second.lock()) {
-                if (m_cvar_log_textures) {
-                    log::renderer.info(
-                        "Renderer::get_or_load_texture cache hit: '{}' (rc={})", key, cached.use_count());
-                }
+        TextureRef cached = it->second.lock();
+        if (cached && m_cvar_log_textures) {
+            log::renderer.info("Renderer::get_or_load_texture cache hit: '{}' (rc={})", key, cached.use_count());
+        }
+
+        return cached;
+    }
+
+    TextureRef Renderer::get_or_load_texture(std::string_view relative_path) {
+        if (TextureRef cached = get_cached_texture(relative_path)) {
+            return cached;
+        }
+
+        const std::string key = std::filesystem::path(relative_path).lexically_normal().generic_string();
+        if (key != relative_path) {
+            if (TextureRef cached = get_cached_texture(key)) {
                 return cached;
             }
         }

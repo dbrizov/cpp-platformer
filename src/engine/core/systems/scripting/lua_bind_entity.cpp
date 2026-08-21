@@ -158,15 +158,9 @@ namespace hob {
                         return sol::lua_nil;
                     }
 
-                    LuaScriptComponent* found = nullptr;
-                    e->for_each_component<LuaScriptComponent>(
-                        [&](LuaScriptComponent* lua_comp) {
-                            if (lua_comp->get_class_name() == class_name) {
-                                found = lua_comp;
-                            }
-                        },
-                        [&](const LuaScriptComponent*) {
-                            return found != nullptr;
+                    LuaScriptComponent* found =
+                        e->get_component<LuaScriptComponent>([class_name](const LuaScriptComponent* lua_comp) {
+                            return lua_comp->get_class_name() == class_name;
                         });
 
                     if (found != nullptr) {

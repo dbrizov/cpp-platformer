@@ -16,6 +16,7 @@
 #include "engine/editor/commands/editor_command_set_asset_field.h"
 #include "engine/editor/commands/editor_command_set_field.h"
 #include "engine/editor/editor.h"
+#include "engine/editor/editor_asset_value.h"
 #include "engine/editor/editor_field_target.h"
 #include "engine/editor/editor_gui_utils.h"
 #include "engine/editor/editor_lua.h"
@@ -237,13 +238,13 @@ namespace hob::editor {
                     EditorAssetValue new_asset;
                     new_asset.asset_name = picked_asset_name;
 
-                    editor.get_commands().push(engine,
-                                               std::make_unique<EditorCommandSetAssetField>(
-                                                   "Set " + component_label + " " + label,
-                                                   asset_target,
-                                                   factory_name,
-                                                   std::move(old_asset),
-                                                   std::move(new_asset)));
+                    editor.get_commands().push(
+                        engine,
+                        std::make_unique<EditorCommandSetAssetField>("Set " + component_label + " " + label,
+                                                                     asset_target,
+                                                                     factory_name,
+                                                                     std::move(old_asset),
+                                                                     std::move(new_asset)));
                 }
 
                 return;

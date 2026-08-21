@@ -509,7 +509,8 @@ namespace hob {
     }
 
     bool Renderer::init_default_sprite_pipeline() {
-        const std::string normalized_path = std::filesystem::path(DEFAULT_SPRITE_SHADER).lexically_normal().generic_string();
+        const std::string normalized_path =
+            std::filesystem::path(DEFAULT_SPRITE_SHADER).lexically_normal().generic_string();
 
         ShaderRef shader = build_shader(normalized_path, m_offscreen_format, BlendMode::Alpha, CullMode::None);
         if (!shader) {

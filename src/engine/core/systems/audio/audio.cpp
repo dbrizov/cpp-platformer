@@ -115,16 +115,27 @@ namespace hob {
         return m_mixer;
     }
 
-    AudioClipRef Audio::get_or_load_clip(const std::string& relative_path) {
+    AudioClipRef Audio::get_cached_clip(std::string_view key) const {
+        const auto it = m_clips.find(key);
+        if (it == m_clips.end()) {
+            return nullptr;
+        }
+
+        return it->second.lock();
+    }
+
+    AudioClipRef Audio::get_or_load_clip(std::string_view relative_path) {
         if (!m_enabled) {
             return nullptr;
         }
 
-        const std::string key = std::filesystem::path(relative_path).lexically_normal().generic_string();
+        if (AudioClipRef cached = get_cached_clip(relative_path)) {
+            return cached;
+        }
 
-        auto it = m_clips.find(key);
-        if (it != m_clips.end()) {
-            if (AudioClipRef cached = it->second.lock()) {
+        const std::string key = std::filesystem::path(relative_path).lexically_normal().generic_string();
+        if (key != relative_path) {
+            if (AudioClipRef cached = get_cached_clip(key)) {
                 return cached;
             }
         }

@@ -3,6 +3,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include "component.h"
 #include "engine/core/systems/renderer/material.h"
@@ -48,7 +49,7 @@ namespace hob {
 
         const TextureRef& get_texture() const;
         void set_texture(TextureRef texture);
-        void set_texture(const std::string& relative_path);
+        void set_texture(std::string_view relative_path);
         void clear_texture();
 
         const MaterialRef& get_material() const;

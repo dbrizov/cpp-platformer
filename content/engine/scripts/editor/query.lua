@@ -98,9 +98,7 @@ local function append_schema_fields(fields, component, schema)
         local field_meta = get_field_meta(schema, field)
         local is_hidden = field_meta ~= nil and field_meta.hidden == true
         if getter ~= nil and setter ~= nil and not is_hidden then
-            local ok, value = pcall(function()
-                return component[getter](component)
-            end)
+            local ok, value = pcall(component[getter], component)
 
             if ok then
                 local row = {}

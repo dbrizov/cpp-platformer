@@ -11,6 +11,7 @@
 #include <SDL3_shadercross/SDL_shadercross.h>
 
 #include "engine/core/aspect_mode.h"
+#include "engine/core/string_hash.h"
 #include "engine/math/color.h"
 #include "engine/math/matrix4x4.h"
 #include "engine/math/vector2.h"
@@ -113,7 +114,7 @@ namespace hob {
         SDL_GPUTextureFormat m_swapchain_format = SDL_GPU_TEXTUREFORMAT_INVALID;
 
         // -- Sprite pipelines --
-        std::unordered_map<std::string, TextureWeakRef> m_textures;
+        std::unordered_map<std::string, TextureWeakRef, StringHash, std::equal_to<>> m_textures;
         TextureRef m_fallback_texture; // 1x1 magenta, bound when a material leaves a texture slot unset
 
         ShaderRef m_default_shader;
@@ -224,7 +225,8 @@ namespace hob {
 
         void discard_pending_debug_draws();
 
-        TextureRef get_or_load_texture(const std::string& relative_path);
+        TextureRef get_cached_texture(std::string_view key) const;
+        TextureRef get_or_load_texture(std::string_view relative_path);
         TextureRef create_texture_from_rgba(const void* pixels, uint32_t width, uint32_t height);
 
         ShaderRef get_or_build_shader(const std::string& relative_path, BlendMode blend, CullMode cull);

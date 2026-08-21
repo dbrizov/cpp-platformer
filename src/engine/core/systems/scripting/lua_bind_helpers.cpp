@@ -8,7 +8,7 @@ namespace hob {
             return value.as<TextureRef>();
         }
         if (value.is<std::string>()) {
-            return renderer.get_or_load_texture(value.as<std::string>());
+            return renderer.get_or_load_texture(value.as<std::string_view>());
         }
         return nullptr;
     }
