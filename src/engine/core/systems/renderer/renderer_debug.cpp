@@ -147,7 +147,7 @@ namespace hob {
             return;
         }
 
-        if (ImGui::Begin("Texture Refs", nullptr, DEBUG_WINDOW_FLAGS)) {
+        if (ImGui::Begin(" Texture Refs ###Texture Refs", nullptr, DEBUG_WINDOW_FLAGS)) {
             int32_t total_refs = 0;
             for (const auto& [path, weak] : m_textures) {
                 if (auto tex = weak.lock()) {
@@ -202,7 +202,7 @@ namespace hob {
 
         // use_count() counts the m_shaders map entry plus every Material/ShaderRef holder; subtract
         // 1 for the map's own ref to show external holders.
-        if (ImGui::Begin("Shaders", nullptr, DEBUG_WINDOW_FLAGS)) {
+        if (ImGui::Begin(" Shaders ###Shaders", nullptr, DEBUG_WINDOW_FLAGS)) {
             ImGui::Text("Shaders: %zu", m_shaders.size());
 
             const ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
@@ -234,7 +234,7 @@ namespace hob {
             return static_cast<int32_t>(mat.use_count()) - 1;
         };
 
-        if (ImGui::Begin("Materials", nullptr, DEBUG_WINDOW_FLAGS)) {
+        if (ImGui::Begin(" Materials ###Materials", nullptr, DEBUG_WINDOW_FLAGS)) {
             size_t live = 0;
             int32_t total_refs = 0;
             for (const auto& weak : m_materials) {
@@ -288,7 +288,7 @@ namespace hob {
         }
 
         if (m_cvar_show_sprite_queue) {
-            if (ImGui::Begin("Sprite Queue", nullptr, DEBUG_WINDOW_FLAGS)) {
+            if (ImGui::Begin(" Sprite Queue ###Sprite Queue", nullptr, DEBUG_WINDOW_FLAGS)) {
                 // Collapse consecutive draws that share (z_index, shader_id, texture path) into a
                 // single row with a count. Adjacent identical draws form one batch, so grouping by
                 // runs keeps the draw order meaningful while cutting the row count.
