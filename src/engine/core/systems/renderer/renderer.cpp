@@ -199,22 +199,29 @@ namespace hob {
         m_main_swap_texture = nullptr;
         m_game_swap_texture = nullptr;
 
-        const bool ok = SDL_WaitAndAcquireGPUSwapchainTexture(
-                            m_command_buffer, m_main_window->get_window(), &m_main_swap_texture, nullptr, nullptr) &&
-                        m_main_swap_texture != nullptr;
-        if (!ok) {
+        if (m_command_buffer == nullptr) {
+            log::renderer.error("SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError());
             return false;
         }
 
-        if (m_game_window == nullptr) {
-            m_game_swap_texture = nullptr;
+        if (!SDL_WaitAndAcquireGPUSwapchainTexture(
+                m_command_buffer, m_main_window->get_window(), &m_main_swap_texture, nullptr, nullptr)) {
+            log::renderer.error("SDL_WaitAndAcquireGPUSwapchainTexture (main window) failed: {}", SDL_GetError());
+            return false;
         }
-        else if (m_game_window == m_main_window) {
+
+        // Swapchain == nullptr means the window is minimized or occluded
+        if (m_main_swap_texture == nullptr) {
+            return false;
+        }
+
+        if (m_game_window == m_main_window) {
             m_game_swap_texture = m_main_swap_texture;
         }
-        else if (!SDL_WaitAndAcquireGPUSwapchainTexture(
+        else if (m_game_window != nullptr &&
+                 !SDL_WaitAndAcquireGPUSwapchainTexture(
                      m_command_buffer, m_game_window->get_window(), &m_game_swap_texture, nullptr, nullptr)) {
-            m_game_swap_texture = nullptr;
+            log::renderer.error("SDL_WaitAndAcquireGPUSwapchainTexture (game window) failed: {}", SDL_GetError());
         }
 
         return true;
@@ -228,7 +235,10 @@ namespace hob {
     }
 
     void Renderer::cancel_command_buffer() {
-        SDL_CancelGPUCommandBuffer(m_command_buffer);
+        if (m_command_buffer != nullptr) {
+            SDL_CancelGPUCommandBuffer(m_command_buffer);
+        }
+
         m_command_buffer = nullptr;
         m_main_swap_texture = nullptr;
         m_game_swap_texture = nullptr;

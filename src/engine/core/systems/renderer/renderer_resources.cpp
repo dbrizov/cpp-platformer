@@ -219,7 +219,19 @@ namespace hob {
         SDL_UnmapGPUTransferBuffer(m_gpu_device, tb);
 
         SDL_GPUCommandBuffer* upload_cmd = SDL_AcquireGPUCommandBuffer(m_gpu_device);
+        if (!upload_cmd) {
+            log::renderer.error("SDL_AcquireGPUCommandBuffer (texture) failed: {}", SDL_GetError());
+            SDL_ReleaseGPUTransferBuffer(m_gpu_device, tb);
+            return false;
+        }
+
         SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(upload_cmd);
+        if (!copy) {
+            log::renderer.error("SDL_BeginGPUCopyPass (texture) failed: {}", SDL_GetError());
+            SDL_CancelGPUCommandBuffer(upload_cmd);
+            SDL_ReleaseGPUTransferBuffer(m_gpu_device, tb);
+            return false;
+        }
 
         SDL_GPUTextureTransferInfo src{};
         src.transfer_buffer = tb;
@@ -266,7 +278,17 @@ namespace hob {
         SDL_UnmapGPUTransferBuffer(m_gpu_device, m_upload_transfer_buffer);
 
         SDL_GPUCommandBuffer* upload_cmd = SDL_AcquireGPUCommandBuffer(m_gpu_device);
+        if (!upload_cmd) {
+            log::renderer.error("SDL_AcquireGPUCommandBuffer (buffer) failed: {}", SDL_GetError());
+            return false;
+        }
+
         SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(upload_cmd);
+        if (!copy) {
+            log::renderer.error("SDL_BeginGPUCopyPass (buffer) failed: {}", SDL_GetError());
+            SDL_CancelGPUCommandBuffer(upload_cmd);
+            return false;
+        }
 
         SDL_GPUTransferBufferLocation src{};
         src.transfer_buffer = m_upload_transfer_buffer;
