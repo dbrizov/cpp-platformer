@@ -6,6 +6,7 @@
 
 #include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
+#include "engine/math/constants.h"
 #include "renderer.h"
 
 namespace hob {
@@ -180,48 +181,6 @@ namespace hob {
         m_materials.push_back(material);
     }
 
-    bool Renderer::upload_buffer(SDL_GPUBuffer* dst_buffer, const void* data, uint32_t size) {
-        SDL_GPUTransferBufferCreateInfo tbi{};
-        tbi.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-        tbi.size = size;
-        SDL_GPUTransferBuffer* tb = SDL_CreateGPUTransferBuffer(m_gpu_device, &tbi);
-        if (!tb) {
-            log::renderer.error("SDL_CreateGPUTransferBuffer failed: {}", SDL_GetError());
-            return false;
-        }
-
-        void* map = SDL_MapGPUTransferBuffer(m_gpu_device, tb, false);
-        if (!map) {
-            log::renderer.error("SDL_MapGPUTransferBuffer failed: {}", SDL_GetError());
-            SDL_ReleaseGPUTransferBuffer(m_gpu_device, tb);
-            return false;
-        }
-        std::memcpy(map, data, size);
-        SDL_UnmapGPUTransferBuffer(m_gpu_device, tb);
-
-        SDL_GPUCommandBuffer* upload_cmd = SDL_AcquireGPUCommandBuffer(m_gpu_device);
-        SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(upload_cmd);
-
-        SDL_GPUTransferBufferLocation src{};
-        src.transfer_buffer = tb;
-        src.offset = 0;
-        SDL_GPUBufferRegion dst{};
-        dst.buffer = dst_buffer;
-        dst.offset = 0;
-        dst.size = size;
-        SDL_UploadToGPUBuffer(copy, &src, &dst, false);
-
-        SDL_EndGPUCopyPass(copy);
-
-        SDL_GPUFence* fence = SDL_SubmitGPUCommandBufferAndAcquireFence(upload_cmd);
-        if (fence) {
-            SDL_WaitForGPUFences(m_gpu_device, true, &fence, 1);
-            SDL_ReleaseGPUFence(m_gpu_device, fence);
-        }
-        SDL_ReleaseGPUTransferBuffer(m_gpu_device, tb);
-        return true;
-    }
-
     bool Renderer::upload_texture_rgba(SDL_GPUTexture* dst_texture,
                                        const void* pixels,
                                        uint32_t width,
@@ -237,7 +196,8 @@ namespace hob {
             return false;
         }
 
-        void* map = SDL_MapGPUTransferBuffer(m_gpu_device, tb, false);
+        constexpr bool cycle = false;
+        void* map = SDL_MapGPUTransferBuffer(m_gpu_device, tb, cycle);
         if (!map) {
             log::renderer.error("SDL_MapGPUTransferBuffer (texture) failed: {}", SDL_GetError());
             SDL_ReleaseGPUTransferBuffer(m_gpu_device, tb);
@@ -266,16 +226,81 @@ namespace hob {
         dst.h = height;
         dst.d = 1;
 
-        SDL_UploadToGPUTexture(copy, &src, &dst, false);
+        SDL_UploadToGPUTexture(copy, &src, &dst, cycle);
 
         SDL_EndGPUCopyPass(copy);
 
-        SDL_GPUFence* fence = SDL_SubmitGPUCommandBufferAndAcquireFence(upload_cmd);
-        if (fence) {
-            SDL_WaitForGPUFences(m_gpu_device, true, &fence, 1);
-            SDL_ReleaseGPUFence(m_gpu_device, fence);
-        }
+        SDL_SubmitGPUCommandBuffer(upload_cmd);
         SDL_ReleaseGPUTransferBuffer(m_gpu_device, tb);
+        return true;
+    }
+
+    bool Renderer::upload_buffer(SDL_GPUBuffer* dst_buffer, const void* data, uint32_t size) {
+        if (size == 0) {
+            return true;
+        }
+
+        if (!ensure_upload_transfer_buffer(size)) {
+            return false;
+        }
+
+        constexpr bool cycle = true;
+        void* map = SDL_MapGPUTransferBuffer(m_gpu_device, m_upload_transfer_buffer, cycle);
+        if (!map) {
+            log::renderer.error("SDL_MapGPUTransferBuffer failed: {}", SDL_GetError());
+            return false;
+        }
+        std::memcpy(map, data, size);
+        SDL_UnmapGPUTransferBuffer(m_gpu_device, m_upload_transfer_buffer);
+
+        SDL_GPUCommandBuffer* upload_cmd = SDL_AcquireGPUCommandBuffer(m_gpu_device);
+        SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(upload_cmd);
+
+        SDL_GPUTransferBufferLocation src{};
+        src.transfer_buffer = m_upload_transfer_buffer;
+        src.offset = 0;
+        SDL_GPUBufferRegion dst{};
+        dst.buffer = dst_buffer;
+        dst.offset = 0;
+        dst.size = size;
+        SDL_UploadToGPUBuffer(copy, &src, &dst, cycle);
+
+        SDL_EndGPUCopyPass(copy);
+
+        SDL_SubmitGPUCommandBuffer(upload_cmd);
+        return true;
+    }
+
+    bool Renderer::ensure_upload_transfer_buffer(uint32_t size) {
+        if (m_upload_transfer_buffer != nullptr && m_upload_transfer_capacity >= size) {
+            return true;
+        }
+
+        uint32_t capacity = m_upload_transfer_capacity > 0 ? m_upload_transfer_capacity : 64 * 1024;
+        while (capacity < size) {
+            if (capacity > MAX_UINT32 / 2) {
+                capacity = size;
+                break;
+            }
+
+            capacity *= 2;
+        }
+
+        SDL_GPUTransferBufferCreateInfo tbi{};
+        tbi.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        tbi.size = capacity;
+        SDL_GPUTransferBuffer* grown = SDL_CreateGPUTransferBuffer(m_gpu_device, &tbi);
+        if (!grown) {
+            log::renderer.error("SDL_CreateGPUTransferBuffer failed: {}", SDL_GetError());
+            return false;
+        }
+
+        if (m_upload_transfer_buffer != nullptr) {
+            SDL_ReleaseGPUTransferBuffer(m_gpu_device, m_upload_transfer_buffer);
+        }
+
+        m_upload_transfer_buffer = grown;
+        m_upload_transfer_capacity = capacity;
         return true;
     }
 } // namespace hob

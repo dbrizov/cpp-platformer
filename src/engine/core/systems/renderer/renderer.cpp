@@ -91,6 +91,8 @@ namespace hob {
         release_shaders();
         release_textures();
 
+        if (m_upload_transfer_buffer)
+            SDL_ReleaseGPUTransferBuffer(m_gpu_device, m_upload_transfer_buffer);
         if (m_quad_vbo)
             SDL_ReleaseGPUBuffer(m_gpu_device, m_quad_vbo);
         if (m_blit_sampler)

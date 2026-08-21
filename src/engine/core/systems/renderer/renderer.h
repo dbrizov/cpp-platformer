@@ -98,6 +98,11 @@ namespace hob {
         // -- Command buffer --
         SDL_GPUCommandBuffer* m_command_buffer = nullptr;
 
+        // -- Upload staging --
+        // Shared staging buffer for upload_buffer().
+        SDL_GPUTransferBuffer* m_upload_transfer_buffer = nullptr;
+        uint32_t m_upload_transfer_capacity = 0;
+
         // -- Texture targets --
         SDL_GPUTexture* m_offscreen_color_target = nullptr;
         SDL_GPUTextureFormat m_offscreen_format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
@@ -233,10 +238,12 @@ namespace hob {
         SDL_GPUSampler* get_or_create_sampler(const SamplerDesc& desc);
         const SamplerDesc& get_default_sampler_desc() const;
 
-        bool upload_buffer(SDL_GPUBuffer* dst_buffer, const void* data, uint32_t size);
         bool upload_texture_rgba(SDL_GPUTexture* dst_texture, const void* pixels, uint32_t width, uint32_t height);
+        bool upload_buffer(SDL_GPUBuffer* dst_buffer, const void* data, uint32_t size);
 
     private:
+        bool ensure_upload_transfer_buffer(uint32_t size);
+
         void release_texture(Texture& texture);
         void release_textures();
         void release_shaders();
