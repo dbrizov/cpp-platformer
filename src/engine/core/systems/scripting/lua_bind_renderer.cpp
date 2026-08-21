@@ -19,9 +19,7 @@ namespace hob {
         // For each reflected param present in `cfg` (as its typed Lua value), write it through `set`
         // (Material::set_param or Shader::set_default_param — both take name/floats/count).
         template<typename Setter>
-        void apply_params(const ShaderParamMap& params,
-                          const sol::table& cfg,
-                          Setter set) {
+        void apply_params(const ShaderParamMap& params, const sol::table& cfg, Setter set) {
             for (const auto& [name, param] : params) {
                 switch (param.type) {
                     case ShaderParamType::Float:

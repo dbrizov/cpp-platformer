@@ -1,8 +1,10 @@
 #pragma once
 
+#include <concepts>
 #include <limits>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "engine/components/component.h"
@@ -21,6 +23,12 @@ namespace hob {
 
     template<typename T>
     concept ComponentType = std::derived_from<T, Component>;
+
+    template<typename Func, typename T>
+    concept ComponentInvocable = std::invocable<Func, T*>;
+
+    template<typename Pred, typename T>
+    concept ComponentPredicate = std::predicate<Pred, T*>;
 
     class Entity final {
         friend class EntitySpawner;
@@ -90,6 +98,12 @@ namespace hob {
         template<ComponentType T>
         std::vector<T*> get_components() const;
 
+        template<ComponentType T, ComponentInvocable<T> Func>
+        void for_each_component(Func&& func) const;
+
+        template<ComponentType T, ComponentInvocable<T> Func, ComponentPredicate<T> Until>
+        void for_each_component(Func&& func, Until&& until) const;
+
         void sort_components();
     };
 
@@ -132,5 +146,24 @@ namespace hob {
         }
 
         return result;
+    }
+
+    template<ComponentType T, ComponentInvocable<T> Func>
+    void Entity::for_each_component(Func&& func) const {
+        for_each_component<T>(std::forward<Func>(func), [](T*) {
+            return false;
+        });
+    }
+
+    template<ComponentType T, ComponentInvocable<T> Func, ComponentPredicate<T> Until>
+    void Entity::for_each_component(Func&& func, Until&& until) const {
+        for (auto& c : m_components) {
+            if (T* casted = dynamic_cast<T*>(c.get())) {
+                func(casted);
+                if (until(casted)) {
+                    return;
+                }
+            }
+        }
     }
 } // namespace hob

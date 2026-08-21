@@ -1,9 +1,11 @@
 #pragma once
 
+#include <concepts>
 #include <limits>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "engine/entity/entity.h"
@@ -18,6 +20,12 @@ namespace hob {
 
     using EntityIndex = uint32_t;
     constexpr EntityIndex INVALID_ENTITY_INDEX = std::numeric_limits<EntityIndex>::max();
+
+    template<typename Func>
+    concept EntityInvocable = std::invocable<Func, Entity*>;
+
+    template<typename Pred>
+    concept EntityPredicate = std::predicate<Pred, Entity*>;
 
     // Per-id bookkeeping.
     // - 'ptr' is valid from spawn_entity() until the entity exits play.
@@ -65,6 +73,12 @@ namespace hob {
         Entity* get_entity(EntityId id) const;
         void get_entities(std::vector<Entity*>& out_entities) const;
 
+        template<EntityInvocable Func>
+        void for_each_entity(Func&& func) const;
+
+        template<EntityInvocable Func, EntityPredicate Until>
+        void for_each_entity(Func&& func, Until&& until) const;
+
         void register_ticking_entity(Entity* entity);
         void unregister_ticking_entity(Entity* entity);
         void request_entity_ticking_sync(EntityId id);
@@ -96,4 +110,21 @@ namespace hob {
         void resolve_destroy_requests();
         void resolve_ticking_sync_requests();
     };
+
+    template<EntityInvocable Func>
+    void EntitySpawner::for_each_entity(Func&& func) const {
+        for_each_entity(std::forward<Func>(func), [](Entity*) {
+            return false;
+        });
+    }
+
+    template<EntityInvocable Func, EntityPredicate Until>
+    void EntitySpawner::for_each_entity(Func&& func, Until&& until) const {
+        for (const auto& entity : m_entities) {
+            func(entity.get());
+            if (until(entity.get())) {
+                return;
+            }
+        }
+    }
 } // namespace hob

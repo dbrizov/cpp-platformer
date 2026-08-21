@@ -248,8 +248,9 @@ function EntitySpawner.clear_c() end
 ---@return Entity
 function EntitySpawner.get_entity(id) end
 
----@param fn fun(entity: Entity)
-function EntitySpawner.for_each(fn) end
+---@param func fun(entity: Entity)
+---@param until_predicate (fun(entity: Entity): boolean)?
+function EntitySpawner.for_each_entity(func, until_predicate) end
 
 -- Scripts
 ---@class Scripts
@@ -558,6 +559,10 @@ function Entity:get_lua_components() end
 
 ---@return Component[]
 function Entity:get_components() end
+
+---@param func fun(component: Component)
+---@param until_predicate (fun(component: Component): boolean)?
+function Entity:for_each_component(func, until_predicate) end
 
 ---@return RigidbodyComponent?
 function Entity:add_rigidbody() end

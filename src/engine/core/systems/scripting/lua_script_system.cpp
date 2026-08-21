@@ -271,20 +271,18 @@ namespace hob {
     }
 
     void LuaScriptSystem::refresh_lua_component_class_caches() {
-        std::vector<Entity*> entities;
-        m_engine.get_entity_spawner().get_entities(entities);
-
-        for (Entity* entity : entities) {
-            const std::vector<LuaScriptComponent*> components = entity->get_components<LuaScriptComponent>();
-            for (LuaScriptComponent* component : components) {
+        m_engine.get_entity_spawner().for_each_entity([](Entity* entity) {
+            bool refreshed_any = false;
+            entity->for_each_component<LuaScriptComponent>([&refreshed_any](LuaScriptComponent* component) {
                 component->refresh_class_cache();
-            }
+                refreshed_any = true;
+            });
 
             // Priorities may have changed during refresh; re-sort so execution order stays correct.
-            if (!components.empty()) {
+            if (refreshed_any) {
                 entity->sort_components();
             }
-        }
+        });
     }
 
     void LuaScriptSystem::register_cvars(Console& console) {

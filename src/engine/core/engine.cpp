@@ -94,7 +94,6 @@ namespace hob {
         }
 
         bool is_running = true;
-        std::vector<Entity*> entities;
 
         while (is_running) {
             m_timer.begin_frame();
@@ -135,7 +134,6 @@ namespace hob {
             }
 
             m_entity_spawner.resolve_requests();
-            m_entity_spawner.get_entities(entities);
 
             const float delta_time = m_timer.get_delta_time();
             const float scaled_delta_time = delta_time * m_timer.get_time_scale();
@@ -178,9 +176,9 @@ namespace hob {
             m_entity_spawner.debug_hierarchy();
 
 #ifndef NDEBUG
-            for (Entity* entity : entities) {
+            m_entity_spawner.for_each_entity([scaled_delta_time](Entity* entity) {
                 entity->debug_draw_tick(scaled_delta_time);
-            }
+            });
 #endif
 
             draw_entities();

@@ -343,11 +343,10 @@ namespace hob {
             vec2_field("Scale", "##scale", local_scale);
         }
 
-        const std::vector<Component*> components = entity->get_components<Component>();
         ImGui::SeparatorText("Components");
-        for (const Component* component : components) {
+        entity->for_each_component<Component>([](const Component* component) {
             ImGui::BulletText("%s", component->to_string().c_str());
-        }
+        });
     }
 
     void EntitySpawner::resolve_requests() {

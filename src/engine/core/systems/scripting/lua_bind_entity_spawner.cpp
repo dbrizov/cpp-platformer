@@ -1,6 +1,5 @@
-#include <vector>
-
 #include "engine/core/engine.h"
+#include "engine/core/logging.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/entity/entity.h"
 #include "engine/entity/entity_ref.h"
@@ -35,14 +34,36 @@ namespace hob {
                   },
                   {"id"})
             .func_sig(
-                "for_each",
-                [&spawner](const sol::function& fn) {
-                    std::vector<Entity*> entities;
-                    spawner.get_entities(entities);
-                    for (Entity* e : entities) {
-                        fn(EntityRef(e->get_id(), spawner));
+                "for_each_entity",
+                [&spawner](const sol::protected_function& func,
+                           const sol::optional<sol::protected_function>& until_predicate) {
+                    const auto visit = [&func, &spawner](Entity* entity) {
+                        const sol::protected_function_result result = func(EntityRef(entity->get_id(), spawner));
+                        if (!result.valid()) {
+                            const sol::error err = result;
+                            log::sol2.error("Lua error in EntitySpawner.for_each_entity: {}", err.what());
+                        }
+                    };
+
+                    if (!until_predicate) {
+                        spawner.for_each_entity(visit);
+                        return;
                     }
+
+                    spawner.for_each_entity(visit, [&until_predicate, &spawner](Entity* entity) {
+                        const sol::protected_function_result result =
+                            (*until_predicate)(EntityRef(entity->get_id(), spawner));
+                        if (!result.valid()) {
+                            const sol::error err = result;
+                            log::sol2.error("Lua error in EntitySpawner.for_each_entity until_predicate: {}",
+                                            err.what());
+                            return true;
+                        }
+
+                        const sol::optional<bool> stop = result;
+                        return stop.value_or(false);
+                    });
                 },
-                "(fn: fun(entity: Entity))");
+                "(func: fun(entity: Entity), until_predicate: (fun(entity: Entity): boolean)?)");
     }
 } // namespace hob

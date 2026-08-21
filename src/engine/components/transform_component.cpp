@@ -109,9 +109,9 @@ namespace hob {
         mark_world_matrix_dirty();
 
         // Scale feeds into the physics shape geometry; have each collider re-sync.
-        for (ColliderComponent* collider : get_entity().get_components<ColliderComponent>()) {
+        get_entity().for_each_component<ColliderComponent>([](ColliderComponent* collider) {
             collider->on_geometry_changed();
-        }
+        });
     }
 
     const Matrix2x3& TransformComponent::get_world_matrix() const {
@@ -196,9 +196,9 @@ namespace hob {
 
         // Colliders use WORLD scale, which keep_world_transform preserves; resync only if it changed.
         if (get_world_matrix().get_scale() != old_world_scale) {
-            for (ColliderComponent* collider : get_entity().get_components<ColliderComponent>()) {
+            get_entity().for_each_component<ColliderComponent>([](ColliderComponent* collider) {
                 collider->on_geometry_changed();
-            }
+            });
         }
     }
 

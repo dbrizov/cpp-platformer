@@ -84,7 +84,7 @@ end
 function _G.__reapply_scene_overrides_to_spawned_entities()
     local live = {}
 
-    EntitySpawner.for_each(function(entity)
+    EntitySpawner.for_each_entity(function(entity)
         local id = entity:get_id()
         local overrides = _G.__scene_overrides_by_entity_id[id]
         if overrides then

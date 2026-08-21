@@ -158,7 +158,7 @@ function _G.__reapply_prefabs_to_spawned_entities()
     end
 
     local live = {}
-    EntitySpawner.for_each(function(entity)
+    EntitySpawner.for_each_entity(function(entity)
         local id = entity:get_id()
         local name = _G.__entity_prefab_by_id[id]
         if name then

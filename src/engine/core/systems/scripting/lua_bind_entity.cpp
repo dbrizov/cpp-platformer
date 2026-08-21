@@ -16,6 +16,7 @@
 #include "engine/components/sprite_animator_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
+#include "engine/core/logging.h"
 #include "engine/entity/entity.h"
 #include "engine/entity/entity_ref.h"
 #include "lua_meta.h"
@@ -156,10 +157,19 @@ namespace hob {
                         return sol::lua_nil;
                     }
 
-                    for (LuaScriptComponent* lua_comp : e->get_components<LuaScriptComponent>()) {
-                        if (lua_comp->get_class_name() == class_name) {
-                            return lua_comp->impl().lua_instance;
-                        }
+                    LuaScriptComponent* found = nullptr;
+                    e->for_each_component<LuaScriptComponent>(
+                        [&](LuaScriptComponent* lua_comp) {
+                            if (lua_comp->get_class_name() == class_name) {
+                                found = lua_comp;
+                            }
+                        },
+                        [&](const LuaScriptComponent*) {
+                            return found != nullptr;
+                        });
+
+                    if (found != nullptr) {
+                        return found->impl().lua_instance;
                     }
 
                     return sol::lua_nil;
@@ -174,9 +184,9 @@ namespace hob {
                         return out;
                     }
 
-                    for (LuaScriptComponent* lua_comp : e->get_components<LuaScriptComponent>()) {
+                    e->for_each_component<LuaScriptComponent>([&out](LuaScriptComponent* lua_comp) {
                         out.add(lua_comp->impl().lua_instance);
-                    }
+                    });
 
                     return out;
                 },
@@ -192,6 +202,42 @@ namespace hob {
                     return e->get_components<Component>();
                 },
                 "(): Component[]")
+            .method_sig(
+                "for_each_component",
+                [](const EntityRef& r,
+                   const sol::protected_function& func,
+                   const sol::optional<sol::protected_function>& until_predicate) {
+                    Entity* e = r.resolve();
+                    if (e == nullptr) {
+                        return;
+                    }
+
+                    const auto visit = [&func](Component* component) {
+                        const sol::protected_function_result result = func(component);
+                        if (!result.valid()) {
+                            const sol::error err = result;
+                            log::sol2.error("Lua error in Entity.for_each_component: {}", err.what());
+                        }
+                    };
+
+                    if (!until_predicate) {
+                        e->for_each_component<Component>(visit);
+                        return;
+                    }
+
+                    e->for_each_component<Component>(visit, [&until_predicate](Component* component) {
+                        const sol::protected_function_result result = (*until_predicate)(component);
+                        if (!result.valid()) {
+                            const sol::error err = result;
+                            log::sol2.error("Lua error in Entity.for_each_component until_predicate: {}", err.what());
+                            return true;
+                        }
+
+                        const sol::optional<bool> stop = result;
+                        return stop.value_or(false);
+                    });
+                },
+                "(func: fun(component: Component), until_predicate: (fun(component: Component): boolean)?)")
             .op_tostring([](const EntityRef& r) {
                 Entity* e = r.resolve();
                 return e ? e->to_string() : std::format("Entity(invalid, id = {})", r.get_id());
