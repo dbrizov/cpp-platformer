@@ -45,6 +45,7 @@ namespace hob {
         std::vector<std::unique_ptr<Component>> m_components;
         mutable TransformComponent* m_transform = nullptr;
         mutable RigidbodyComponent* m_rigidbody = nullptr;
+        mutable bool m_rigidbody_resolved = false;
 
         explicit Entity(Engine& engine);
 
@@ -121,6 +122,7 @@ namespace hob {
 
         m_components.push_back(std::move(component));
         sort_components();
+        m_rigidbody_resolved = false;
 
         return component_ptr;
     }

@@ -169,8 +169,9 @@ namespace hob {
     }
 
     RigidbodyComponent* Entity::get_rigidbody() const {
-        if (m_rigidbody == nullptr) {
+        if (!m_rigidbody_resolved) {
             m_rigidbody = get_component<RigidbodyComponent>();
+            m_rigidbody_resolved = true;
         }
 
         return m_rigidbody;
