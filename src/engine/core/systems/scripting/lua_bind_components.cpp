@@ -518,6 +518,12 @@ namespace hob {
             .method("clear_texture", &SpriteComponent::clear_texture)
             .method("get_material", sol::resolve<MaterialRef()>(&SpriteComponent::get_material))
             .method_sig(
+                "get_material_const",
+                [](const SpriteComponent& self) -> const MaterialRef& {
+                    return self.get_material();
+                },
+                "(): Material?")
+            .method_sig(
                 "set_material",
                 [](SpriteComponent& self, const sol::object& value) {
                     if (!value.valid()) {
@@ -560,7 +566,7 @@ namespace hob {
                                                     .set_method = "set_texture",
                                                     .type = field_type::TEXTURE},
                                                    {.name = "material",
-                                                    .get_method = "get_material",
+                                                    .get_method = "get_material_const",
                                                     .set_method = "set_material",
                                                     .type = field_type::MATERIAL},
                                                    {"pivot", "get_pivot", "set_pivot"},

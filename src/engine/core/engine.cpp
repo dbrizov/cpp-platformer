@@ -3,6 +3,8 @@
 #include "engine_config.h"
 // clang-format on
 
+#include <utility>
+
 #include "debug.h"
 #include "engine/components/audio_component.h"
 #include "engine/components/camera_component.h"
@@ -10,6 +12,7 @@
 #include "engine/components/sockets_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
+#include "engine/core/assert.h"
 #include "engine/core/engine_hooks.h"
 #include "engine/core/systems/window.h"
 #include "engine/math/matrix2x3.h"
@@ -181,8 +184,8 @@ namespace hob {
             });
 #endif
 
-            draw_entities();
             flush_debug_draws_to_renderer(scaled_delta_time);
+
             if (m_console.is_open()) {
                 m_console.draw();
             }
@@ -190,6 +193,8 @@ namespace hob {
             if (m_hooks != nullptr) {
                 m_hooks->draw_gui();
             }
+
+            draw_entities();
 
             m_renderer.set_time(m_timer.get_game_time(), m_timer.get_real_time());
             if (m_renderer.acquire_command_buffer()) {
@@ -384,7 +389,15 @@ namespace hob {
             const bool interpolating =
                 transform_comp->get_interpolate_physics() && has_moving_physics_body(sprite_comp->get_entity());
 
+            const TextureRef& texture = sprite_comp->get_texture();
+            // const overload: reading the material here must not mark the sprite dirty every frame.
+            const MaterialRef& material = static_cast<const SpriteComponent*>(sprite_comp)->get_material();
+
             if (!sprite_dirty && !transform_dirty && !interpolating) {
+                const SpriteDrawData* pooled = m_renderer.get_sprite_draw(sprite_comp->get_sprite_draw_id());
+                HOB_CHECK(pooled == nullptr || (pooled->texture == texture.get() && pooled->material == material.get()),
+                          "Sprite draw {} is stale: its texture/material changed without marking render-dirty",
+                          sprite_comp->get_sprite_draw_id());
                 continue;
             }
 
@@ -395,16 +408,15 @@ namespace hob {
                                          : transform_comp->get_world_matrix();
 
             SpriteDrawData draw_data;
-            draw_data.texture = sprite_comp->get_texture();
-            // const overload: reading the material here must not mark the sprite dirty every frame.
-            draw_data.material = static_cast<const SpriteComponent*>(sprite_comp)->get_material();
+            draw_data.texture = texture.get();
+            draw_data.material = material.get();
             draw_data.z_index = sprite_comp->get_z_index();
             draw_data.pivot = sprite_comp->get_pivot();
             draw_data.world_pos = matrix.origin;
             draw_data.rotation = matrix.get_rotation();
             draw_data.size = sprite_comp->get_world_size();
 
-            m_renderer.update_sprite_draw(sprite_comp->get_sprite_draw_id(), draw_data);
+            m_renderer.update_sprite_draw(sprite_comp->get_sprite_draw_id(), std::move(draw_data));
         }
     }
 

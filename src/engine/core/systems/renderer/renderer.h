@@ -204,7 +204,8 @@ namespace hob {
 
         SpriteDrawId register_sprite_draw();
         void unregister_sprite_draw(SpriteDrawId draw_id);
-        void update_sprite_draw(SpriteDrawId draw_id, const SpriteDrawData& draw_data);
+        void update_sprite_draw(SpriteDrawId draw_id, SpriteDrawData draw_data);
+        const SpriteDrawData* get_sprite_draw(SpriteDrawId draw_id) const;
 
         void draw_debug_line(const Vector2& screen_start,
                              const Vector2& screen_end,

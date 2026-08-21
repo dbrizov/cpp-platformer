@@ -883,6 +883,9 @@ function SpriteComponent:clear_texture() end
 ---@return Material?
 function SpriteComponent:get_material() end
 
+---@return Material?
+function SpriteComponent:get_material_const() end
+
 ---@param material Material|nil
 function SpriteComponent:set_material(material) end
 

@@ -293,11 +293,11 @@ namespace hob {
                                       const SpriteDrawData& draw,
                                       const Matrix4x4& view_proj,
                                       const Shader*& bound_shader) {
-        if (!draw.texture || !draw.texture->m_gpu_texture) {
+        if (draw.texture == nullptr || !draw.texture->m_gpu_texture) {
             return;
         }
 
-        const Material& material = draw.material ? *draw.material : *m_default_material;
+        const Material& material = draw.material != nullptr ? *draw.material : *m_default_material;
         const Shader* shader = material.get_shader();
         if (!shader) {
             return;

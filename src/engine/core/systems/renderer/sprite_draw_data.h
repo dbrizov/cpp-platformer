@@ -15,8 +15,8 @@ namespace hob {
     constexpr SpriteDrawIndex INVALID_SPRITE_DRAW_INDEX = std::numeric_limits<SpriteDrawIndex>::max();
 
     struct SpriteDrawData {
-        TextureRef texture;
-        MaterialRef material;
+        const Texture* texture = nullptr;
+        const Material* material = nullptr;
         Vector2 world_pos; // pivot point, world meters
         Vector2 size; // quad size, world meters (texture/ppm * scale)
         Vector2 pivot = Vector2(0.5f, 0.5f); // pivot as a 0..1 fraction of the quad
@@ -24,7 +24,7 @@ namespace hob {
         int32_t z_index = 0;
 
         const Shader* get_shader() const {
-            return material ? material->get_shader() : nullptr;
+            return material != nullptr ? material->get_shader() : nullptr;
         }
     };
 } // namespace hob

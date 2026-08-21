@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 #include <SDL3/SDL.h>
 #include <SDL3_shadercross/SDL_shadercross.h>
@@ -299,7 +300,7 @@ namespace hob {
         m_sprite_draw_order_dirty = true;
     }
 
-    void Renderer::update_sprite_draw(SpriteDrawId draw_id, const SpriteDrawData& draw_data) {
+    void Renderer::update_sprite_draw(SpriteDrawId draw_id, SpriteDrawData draw_data) {
         if (draw_id < 0 || draw_id >= static_cast<SpriteDrawId>(m_sprite_draw_id_to_index.size())) {
             return;
         }
@@ -316,7 +317,20 @@ namespace hob {
             m_sprite_draw_order_dirty = true;
         }
 
-        slot = draw_data;
+        slot = std::move(draw_data);
+    }
+
+    const SpriteDrawData* Renderer::get_sprite_draw(SpriteDrawId draw_id) const {
+        if (draw_id < 0 || draw_id >= static_cast<SpriteDrawId>(m_sprite_draw_id_to_index.size())) {
+            return nullptr;
+        }
+
+        const SpriteDrawIndex index = m_sprite_draw_id_to_index[draw_id];
+        if (index == INVALID_SPRITE_DRAW_INDEX) {
+            return nullptr;
+        }
+
+        return &m_sprite_draws[index];
     }
 
     void Renderer::draw_debug_line(const Vector2& screen_start,
