@@ -5,23 +5,13 @@
 #include <sol/sol.hpp>
 
 #include "editor_command.h"
-#include "engine/entity/entity.h"
+#include "engine/editor/editor_field_target.h"
 
 namespace hob {
     class Engine;
 } // namespace hob
 
 namespace hob::editor {
-    struct EditorFieldTarget {
-        EntityId entity_id = INVALID_ENTITY_ID;
-        bool is_lua = false;
-        std::string component_key; // Schema key, e.g. "sprite" (C++ components)
-        int32_t component_index = 0; // Index into get_lua_components() (Lua components)
-        std::string field;
-
-        bool operator==(const EditorFieldTarget& other) const = default;
-    };
-
     class EditorCommandSetField : public EditorCommand {
         EditorFieldTarget m_target;
         sol::object m_old_value;

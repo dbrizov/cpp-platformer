@@ -11,7 +11,7 @@
 
 namespace hob {
     TextureRef Renderer::get_or_load_texture(const std::string& relative_path) {
-        const std::string key = std::filesystem::path(relative_path).lexically_normal().string();
+        const std::string key = std::filesystem::path(relative_path).lexically_normal().generic_string();
 
         auto tex_it = m_textures.find(key);
         if (tex_it != m_textures.end()) {

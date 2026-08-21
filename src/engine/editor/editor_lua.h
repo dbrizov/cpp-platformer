@@ -52,6 +52,8 @@ namespace hob::editor {
     std::string get_asset_name(Engine& engine, const std::string& factory_name, const sol::object& object);
     const char* get_asset_factory_name_for_field_type(std::string_view type);
 
+    bool asset_factory_identifies_by_path(std::string_view factory_name);
+
     void clear_asset_entry_cache();
     const std::vector<EditorInspectorEntryAsset>& get_asset_entries(Engine& engine, const std::string& factory_name);
     std::vector<EditorInspectorEntryEnum> get_enum_entries(Engine& engine, const std::string& name);

@@ -79,6 +79,10 @@ namespace hob::editor {
         return nullptr;
     }
 
+    bool asset_factory_identifies_by_path(std::string_view factory_name) {
+        return factory_name == asset_factory::TEXTURES || factory_name == asset_factory::AUDIO_CLIPS;
+    }
+
     void clear_asset_entry_cache() {
         g_asset_entries.clear();
     }

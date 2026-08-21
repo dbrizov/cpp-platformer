@@ -9,11 +9,14 @@
 #include <sol/sol.hpp>
 
 #include "engine/core/engine.h"
+#include "engine/core/logging.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/scripting/lua_schema_keys.h"
 #include "engine/core/systems/scripting/lua_script_system.h"
+#include "engine/editor/commands/editor_command_set_asset_field.h"
 #include "engine/editor/commands/editor_command_set_field.h"
 #include "engine/editor/editor.h"
+#include "engine/editor/editor_field_target.h"
 #include "engine/editor/editor_gui_utils.h"
 #include "engine/editor/editor_lua.h"
 #include "engine/entity/entity.h"
@@ -217,15 +220,30 @@ namespace hob::editor {
                     EditorFieldTarget asset_target = component_target;
                     asset_target.field = name;
 
-                    const sol::object new_ref =
-                        picked_asset_name.empty()
-                            ? sol::make_object(lua, sol::lua_nil)
-                            : editor_call(engine, "get_asset_ref", factory_name, picked_asset_name);
+                    EditorAssetValue old_asset;
+                    old_asset.asset_name = asset_name;
+                    if (asset_name.empty() && is_asset_set(value)) {
+                        if (asset_factory_identifies_by_path(factory_name)) {
+                            log::engine.error(
+                                "EditorDockInspector: no registry name for the current {} value of '{}'; its path does "
+                                "not match any definition, so undo will retain the object instead",
+                                factory_name,
+                                name);
+                        }
 
-                    editor.get_commands().push(
-                        engine,
-                        std::make_unique<EditorCommandSetField>(
-                            "Set " + component_label + " " + label, asset_target, value, new_ref));
+                        old_asset.inline_asset = value;
+                    }
+
+                    EditorAssetValue new_asset;
+                    new_asset.asset_name = picked_asset_name;
+
+                    editor.get_commands().push(engine,
+                                               std::make_unique<EditorCommandSetAssetField>(
+                                                   "Set " + component_label + " " + label,
+                                                   asset_target,
+                                                   factory_name,
+                                                   std::move(old_asset),
+                                                   std::move(new_asset)));
                 }
 
                 return;

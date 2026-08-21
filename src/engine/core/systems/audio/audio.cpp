@@ -120,7 +120,7 @@ namespace hob {
             return nullptr;
         }
 
-        const std::string key = std::filesystem::path(relative_path).lexically_normal().string();
+        const std::string key = std::filesystem::path(relative_path).lexically_normal().generic_string();
 
         auto it = m_clips.find(key);
         if (it != m_clips.end()) {
