@@ -101,6 +101,8 @@ namespace hob {
         while (is_running) {
             m_timer.begin_frame();
 
+            bool game_window_resized = false;
+
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
                 m_imgui_system.process_event(event);
@@ -119,8 +121,7 @@ namespace hob {
                 }
                 else if (event.type == SDL_EVENT_WINDOW_RESIZED) {
                     if (m_game_window && event.window.windowID == m_game_window->get_id()) {
-                        m_renderer.on_window_resized(event.window.data1, event.window.data2);
-                        m_ui_system.on_window_resized(event.window.data1, event.window.data2);
+                        game_window_resized = true;
                     }
                 }
                 else if (event.type == SDL_EVENT_KEY_DOWN) {
@@ -128,6 +129,10 @@ namespace hob {
                         m_console.toggle_open();
                     }
                 }
+            }
+
+            if (game_window_resized) {
+                sync_game_window_size();
             }
 
             m_imgui_system.new_frame();
@@ -311,11 +316,7 @@ namespace hob {
         m_game_window = std::make_unique<Window>(m_sdl_context.get_gpu_device(), m_game_window_config);
         m_renderer.set_game_window(m_game_window.get());
 
-        int32_t width_px = 0;
-        int32_t height_px = 0;
-        m_game_window->get_size_px(width_px, height_px);
-        m_renderer.on_window_resized(width_px, height_px);
-        m_ui_system.on_window_resized(width_px, height_px);
+        sync_game_window_size();
     }
 
     void Engine::close_game_window() {
@@ -376,6 +377,18 @@ namespace hob {
         }
 
         return camera->build_view_projection();
+    }
+
+    void Engine::sync_game_window_size() {
+        if (m_game_window == nullptr) {
+            return;
+        }
+
+        int32_t width_px = 0;
+        int32_t height_px = 0;
+        m_game_window->get_size_px(width_px, height_px);
+        m_renderer.on_window_resized(width_px, height_px);
+        m_ui_system.on_window_resized(width_px, height_px);
     }
 
     void Engine::draw_entities() {

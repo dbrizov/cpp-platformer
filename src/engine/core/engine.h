@@ -88,6 +88,8 @@ namespace hob {
     private:
         Matrix4x4 get_game_camera_view_projection() const;
 
+        void sync_game_window_size();
+
         void draw_entities();
         void flush_debug_draws_to_renderer(float delta_time);
 
