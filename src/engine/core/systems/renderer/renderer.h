@@ -86,6 +86,7 @@ namespace hob {
         std::vector<SpriteDrawId> m_sprite_draw_index_to_id;
         std::vector<SpriteDrawId> m_sprite_draw_free_ids;
         std::vector<uint32_t> m_sprite_draw_order;
+        bool m_sprite_draw_order_dirty = true;
 
         std::vector<DebugLineVertex> m_pending_debug_line_vertices;
         std::vector<DebugTextVertex> m_pending_debug_text_vertices;

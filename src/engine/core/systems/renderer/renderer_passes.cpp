@@ -35,7 +35,28 @@ namespace hob {
     }
 
     void Renderer::render_world_pass_to(SDL_GPUTexture* target, const Matrix4x4& view_proj) {
-        SDL_GPUCommandBuffer* cmd = m_command_buffer;
+        if (m_sprite_draw_order_dirty) {
+            m_sprite_draw_order.resize(m_sprite_draws.size());
+            for (uint32_t i = 0; i < m_sprite_draw_order.size(); ++i) {
+                m_sprite_draw_order[i] = i;
+            }
+
+            std::sort(m_sprite_draw_order.begin(), m_sprite_draw_order.end(), [this](uint32_t a, uint32_t b) {
+                const SpriteDrawData& da = m_sprite_draws[a];
+                const SpriteDrawData& db = m_sprite_draws[b];
+                if (da.z_index != db.z_index) {
+                    return da.z_index < db.z_index;
+                }
+
+                if (da.get_shader() != db.get_shader()) {
+                    return da.get_shader() < db.get_shader();
+                }
+
+                return a < b;
+            });
+
+            m_sprite_draw_order_dirty = false;
+        }
 
         SDL_GPUColorTargetInfo ct{};
         ct.texture = target;
@@ -45,28 +66,10 @@ namespace hob {
 
         // Render pass
         {
-            SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, &ct, 1, nullptr);
+            SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(m_command_buffer, &ct, 1, nullptr);
             if (!pass) {
                 return;
             }
-
-            // World sprites: build the draw order as a sorted index list (sorting the pool itself
-            // would scramble the handle->index mapping) by (z, shader). Rebuilt every frame so it
-            // stays in sync with the pool — the debug sprite-queue view reads it too.
-            m_sprite_draw_order.resize(m_sprite_draws.size());
-            for (uint32_t i = 0; i < m_sprite_draw_order.size(); ++i) {
-                m_sprite_draw_order[i] = i;
-            }
-
-            std::stable_sort(m_sprite_draw_order.begin(), m_sprite_draw_order.end(), [this](uint32_t a, uint32_t b) {
-                const SpriteDrawData& da = m_sprite_draws[a];
-                const SpriteDrawData& db = m_sprite_draws[b];
-                if (da.z_index != db.z_index) {
-                    return da.z_index < db.z_index;
-                }
-
-                return da.get_shader() < db.get_shader();
-            });
 
             if (!m_sprite_draw_order.empty()) {
                 SDL_GPUBufferBinding vb{};

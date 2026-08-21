@@ -269,6 +269,7 @@ namespace hob {
         }
 
         m_sprite_draw_index_to_id.push_back(draw_id);
+        m_sprite_draw_order_dirty = true;
         return draw_id;
     }
 
@@ -295,6 +296,7 @@ namespace hob {
         m_sprite_draw_index_to_id.pop_back();
         m_sprite_draw_id_to_index[draw_id] = INVALID_SPRITE_DRAW_INDEX;
         m_sprite_draw_free_ids.push_back(draw_id);
+        m_sprite_draw_order_dirty = true;
     }
 
     void Renderer::update_sprite_draw(SpriteDrawId draw_id, const SpriteDrawData& draw_data) {
@@ -307,7 +309,14 @@ namespace hob {
             return;
         }
 
-        m_sprite_draws[index] = draw_data;
+        SpriteDrawData& slot = m_sprite_draws[index];
+
+        // Only z_index and shader feed the draw order; a sprite that merely moved keeps its slot.
+        if (slot.z_index != draw_data.z_index || slot.get_shader() != draw_data.get_shader()) {
+            m_sprite_draw_order_dirty = true;
+        }
+
+        slot = draw_data;
     }
 
     void Renderer::draw_debug_line(const Vector2& screen_start,
