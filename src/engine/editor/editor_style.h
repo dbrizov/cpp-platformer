@@ -182,13 +182,14 @@ namespace hob::editor {
     constexpr float GIZMO_ARROW_HEAD_LENGTH_PX = 15.0f;
     constexpr float GIZMO_ARROW_HEAD_WIDTH_PX = 12.0f;
     constexpr float GIZMO_SCALE_BOX_PX = 12.0f;
-    constexpr float GIZMO_COMPOSITE_OFFSET_PX = 22.0f;
+    constexpr float GIZMO_COMPOSITE_OFFSET_PX = 0.0f;
     constexpr float GIZMO_COMPOSITE_SIZE_PX = 16.0f;
     constexpr float GIZMO_RING_RADIUS_PX = 86.0f;
     constexpr float GIZMO_RING_THICKNESS = 2.0f;
     constexpr int32_t GIZMO_RING_SEGMENTS = 64;
     constexpr float GIZMO_ORIGIN_RADIUS_PX = 3.0f;
     constexpr float GIZMO_PICK_TOLERANCE_PX = 7.0f;
+    constexpr float GIZMO_MIN_ROTATE_RADIUS_PX = 3.0f;
 
     constexpr ImVec4 COLOR_GIZMO_AXIS_X = COLOR_AXIS_X;
     constexpr ImVec4 COLOR_GIZMO_AXIS_Y = COLOR_AXIS_Y;

@@ -62,6 +62,7 @@ namespace hob::editor {
         Vector2 m_drag_axis_x_world;
         Vector2 m_drag_axis_y_world;
         Vector2 m_drag_grab_world;
+        float m_drag_pixels_per_meter = 1.0f;
         float m_drag_previous_angle = 0.0f;
         float m_drag_total_rotation = 0.0f;
 
@@ -105,7 +106,8 @@ namespace hob::editor {
         void begin_drag(const Editor& editor,
                         const Frame& frame,
                         EditorGizmoHandle handle,
-                        const Vector2& mouse_world_position);
+                        const Vector2& mouse_world_position,
+                        const EditorCamera& camera);
         void update_drag(Editor& editor, const Vector2& mouse_world_position);
         void end_drag(Editor& editor);
     };

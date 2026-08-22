@@ -29,10 +29,6 @@ namespace hob::editor {
         constexpr const char* LABEL_ROTATE = "Rotate";
         constexpr const char* LABEL_SCALE = "Scale";
 
-        constexpr float MIN_ROTATE_RADIUS = 0.001f;
-
-        constexpr float MIN_SCALE_REFERENCE = 0.001f;
-
         enum class GizmoOperation : uint8_t {
             Translate,
             Rotate,
@@ -73,9 +69,11 @@ namespace hob::editor {
             return (delta - direction * along).length() <= tolerance;
         }
 
-        bool is_inside_box(const Vector2& center, float size, const Vector2& point) {
+        bool is_inside_box(
+            const Vector2& center, const Vector2& axis_x, const Vector2& axis_y, float size, const Vector2& point) {
+            const Vector2 delta = point - center;
             const float half = size * 0.5f;
-            return std::abs(point.x - center.x) <= half && std::abs(point.y - center.y) <= half;
+            return std::abs(Vector2::dot(delta, axis_x)) <= half && std::abs(Vector2::dot(delta, axis_y)) <= half;
         }
 
         Vector2 world_to_local_position(const TransformComponent& transform, const Vector2& world_position) {
@@ -85,14 +83,6 @@ namespace hob::editor {
             }
 
             return parent->get_world_matrix().inverse().transform_point(world_position);
-        }
-
-        float get_scale_ratio(float current, float start) {
-            if (std::abs(start) <= MIN_SCALE_REFERENCE) {
-                return 1.0f;
-            }
-
-            return current / start;
         }
 
         EditorFieldTarget make_target(EntityId entity_id, const char* field) {
@@ -147,17 +137,28 @@ namespace hob::editor {
                 to_imvec(tip), to_imvec(head_base + side * half_width), to_imvec(head_base - side * half_width), color);
         }
 
-        void draw_box(ImDrawList* draw_list, const Vector2& center, float size, ImU32 color) {
-            const float half = size * 0.5f;
-            draw_list->AddRectFilled(
-                ImVec2(center.x - half, center.y - half), ImVec2(center.x + half, center.y + half), color);
+        void draw_box(ImDrawList* draw_list,
+                      const Vector2& center,
+                      const Vector2& axis_x,
+                      const Vector2& axis_y,
+                      float size,
+                      ImU32 color) {
+            const Vector2 half_x = axis_x * (size * 0.5f);
+            const Vector2 half_y = axis_y * (size * 0.5f);
+
+            draw_list->AddQuadFilled(to_imvec(center - half_x - half_y),
+                                     to_imvec(center + half_x - half_y),
+                                     to_imvec(center + half_x + half_y),
+                                     to_imvec(center - half_x + half_y),
+                                     color);
         }
 
         void draw_axis_with_box(ImDrawList* draw_list, const Vector2& origin, const Vector2& direction, ImU32 color) {
+            const Vector2 side(-direction.y, direction.x);
             const Vector2 box_center = origin + direction * (GIZMO_AXIS_LENGTH_PX - GIZMO_SCALE_BOX_PX * 0.5f);
 
             draw_list->AddLine(to_imvec(origin), to_imvec(box_center), color, GIZMO_AXIS_THICKNESS);
-            draw_box(draw_list, box_center, GIZMO_SCALE_BOX_PX, color);
+            draw_box(draw_list, box_center, direction, side, GIZMO_SCALE_BOX_PX, color);
         }
     } // namespace
 
@@ -219,7 +220,7 @@ namespace hob::editor {
             return false;
         }
 
-        begin_drag(editor, frame, m_hovered_handle, mouse_world_position);
+        begin_drag(editor, frame, m_hovered_handle, mouse_world_position, camera);
 
         return is_dragging();
     }
@@ -266,7 +267,7 @@ namespace hob::editor {
             }
         }
 
-        if (m_mode != EditorGizmoMode::Scale) {
+        if (m_mode == EditorGizmoMode::Rotate) {
             draw_list->AddCircleFilled(
                 to_imvec(frame.pivot_screen), GIZMO_ORIGIN_RADIUS_PX, ImGui::GetColorU32(COLOR_GIZMO_ORIGIN));
         }
@@ -328,19 +329,22 @@ namespace hob::editor {
                                              EditorGizmoHandle active_handle) const {
         const ImU32 highlight = ImGui::GetColorU32(COLOR_GIZMO_HIGHLIGHT);
 
-        draw_box(draw_list,
-                 get_composite_center(frame),
-                 GIZMO_COMPOSITE_SIZE_PX,
-                 (active_handle == EditorGizmoHandle::Plane) ? highlight : ImGui::GetColorU32(COLOR_GIZMO_COMPOSITE));
-
         draw_arrow(draw_list,
                    frame.pivot_screen,
                    frame.axis_x_screen,
                    (active_handle == EditorGizmoHandle::AxisX) ? highlight : ImGui::GetColorU32(COLOR_GIZMO_AXIS_X));
+
         draw_arrow(draw_list,
                    frame.pivot_screen,
                    frame.axis_y_screen,
                    (active_handle == EditorGizmoHandle::AxisY) ? highlight : ImGui::GetColorU32(COLOR_GIZMO_AXIS_Y));
+
+        draw_box(draw_list,
+                 get_composite_center(frame),
+                 frame.axis_x_screen,
+                 frame.axis_y_screen,
+                 GIZMO_COMPOSITE_SIZE_PX,
+                 (active_handle == EditorGizmoHandle::Plane) ? highlight : ImGui::GetColorU32(COLOR_GIZMO_COMPOSITE));
     }
 
     void EditorGizmo::draw_rotate_ring(ImDrawList* draw_list,
@@ -392,6 +396,8 @@ namespace hob::editor {
                                                                        : ImGui::GetColorU32(COLOR_GIZMO_AXIS_Y));
         draw_box(draw_list,
                  get_composite_center(frame),
+                 frame.axis_x_screen,
+                 frame.axis_y_screen,
                  GIZMO_COMPOSITE_SIZE_PX,
                  (active_handle == EditorGizmoHandle::Uniform) ? highlight : ImGui::GetColorU32(COLOR_GIZMO_COMPOSITE));
     }
@@ -399,7 +405,11 @@ namespace hob::editor {
     EditorGizmoHandle EditorGizmo::pick_handle(const Frame& frame, const Vector2& mouse_screen_position) const {
         switch (m_mode) {
             case EditorGizmoMode::TranslateRotate: {
-                if (is_inside_box(get_composite_center(frame), GIZMO_COMPOSITE_SIZE_PX, mouse_screen_position)) {
+                if (is_inside_box(get_composite_center(frame),
+                                  frame.axis_x_screen,
+                                  frame.axis_y_screen,
+                                  GIZMO_COMPOSITE_SIZE_PX,
+                                  mouse_screen_position)) {
                     return EditorGizmoHandle::Plane;
                 }
 
@@ -411,7 +421,11 @@ namespace hob::editor {
                 return is_on_ring(frame, mouse_screen_position) ? EditorGizmoHandle::Ring : EditorGizmoHandle::None;
             }
             case EditorGizmoMode::Translate: {
-                if (is_inside_box(get_composite_center(frame), GIZMO_COMPOSITE_SIZE_PX, mouse_screen_position)) {
+                if (is_inside_box(get_composite_center(frame),
+                                  frame.axis_x_screen,
+                                  frame.axis_y_screen,
+                                  GIZMO_COMPOSITE_SIZE_PX,
+                                  mouse_screen_position)) {
                     return EditorGizmoHandle::Plane;
                 }
                 break;
@@ -420,7 +434,11 @@ namespace hob::editor {
                 return is_on_ring(frame, mouse_screen_position) ? EditorGizmoHandle::Ring : EditorGizmoHandle::None;
             }
             case EditorGizmoMode::Scale: {
-                if (is_inside_box(get_composite_center(frame), GIZMO_COMPOSITE_SIZE_PX, mouse_screen_position)) {
+                if (is_inside_box(get_composite_center(frame),
+                                  frame.axis_x_screen,
+                                  frame.axis_y_screen,
+                                  GIZMO_COMPOSITE_SIZE_PX,
+                                  mouse_screen_position)) {
                     return EditorGizmoHandle::Uniform;
                 }
                 break;
@@ -458,7 +476,8 @@ namespace hob::editor {
     void EditorGizmo::begin_drag(const Editor& editor,
                                  const Frame& frame,
                                  EditorGizmoHandle handle,
-                                 const Vector2& mouse_world_position) {
+                                 const Vector2& mouse_world_position,
+                                 const EditorCamera& camera) {
         m_drag_entities.clear();
 
         const EntitySpawner& spawner = editor.get_engine().get_entity_spawner();
@@ -489,6 +508,7 @@ namespace hob::editor {
         m_drag_axis_x_world = frame.axis_x_world;
         m_drag_axis_y_world = frame.axis_y_world;
         m_drag_grab_world = mouse_world_position;
+        m_drag_pixels_per_meter = camera.get_pixels_per_meter_f();
         m_drag_previous_angle = std::atan2(grab_offset.y, grab_offset.x);
         m_drag_total_rotation = 0.0f;
     }
@@ -520,7 +540,7 @@ namespace hob::editor {
             }
             case GizmoOperation::Rotate: {
                 const Vector2 offset = mouse_world_position - m_drag_pivot_world;
-                if (offset.length() <= MIN_ROTATE_RADIUS) {
+                if (offset.length() * m_drag_pixels_per_meter <= GIZMO_MIN_ROTATE_RADIUS_PX) {
                     return;
                 }
 
@@ -530,22 +550,19 @@ namespace hob::editor {
                 break;
             }
             case GizmoOperation::Scale: {
-                const Vector2 start_offset = m_drag_grab_world - m_drag_pivot_world;
-                const Vector2 current_offset = mouse_world_position - m_drag_pivot_world;
+                const Vector2 delta = mouse_world_position - m_drag_grab_world;
+                const float handle_distance_world = GIZMO_AXIS_LENGTH_PX / m_drag_pixels_per_meter;
 
                 if (m_dragged_handle == EditorGizmoHandle::Uniform) {
                     const Vector2 diagonal = (m_drag_axis_x_world + m_drag_axis_y_world).normalized();
-                    const float uniform =
-                        get_scale_ratio(Vector2::dot(current_offset, diagonal), Vector2::dot(start_offset, diagonal));
+                    const float uniform = 1.0f + Vector2::dot(delta, diagonal) / handle_distance_world;
                     scale_factor = Vector2(uniform, uniform);
                 }
                 else if (m_dragged_handle == EditorGizmoHandle::AxisX) {
-                    scale_factor.x = get_scale_ratio(Vector2::dot(current_offset, m_drag_axis_x_world),
-                                                     Vector2::dot(start_offset, m_drag_axis_x_world));
+                    scale_factor.x = 1.0f + Vector2::dot(delta, m_drag_axis_x_world) / handle_distance_world;
                 }
                 else if (m_dragged_handle == EditorGizmoHandle::AxisY) {
-                    scale_factor.y = get_scale_ratio(Vector2::dot(current_offset, m_drag_axis_y_world),
-                                                     Vector2::dot(start_offset, m_drag_axis_y_world));
+                    scale_factor.y = 1.0f + Vector2::dot(delta, m_drag_axis_y_world) / handle_distance_world;
                 }
                 break;
             }
