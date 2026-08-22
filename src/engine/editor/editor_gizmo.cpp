@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <memory>
-#include <string>
 #include <utility>
 
 #include <imgui.h>
@@ -25,7 +24,7 @@
 
 namespace hob::editor {
     namespace {
-        constexpr const char* LABEL_TRANSLATE = "Move";
+        constexpr const char* LABEL_TRANSLATE = "Translate";
         constexpr const char* LABEL_ROTATE = "Rotate";
         constexpr const char* LABEL_SCALE = "Scale";
 
