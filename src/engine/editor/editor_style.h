@@ -48,9 +48,9 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_GRAB{0.349f, 0.349f, 0.349f, 1.0f};
     constexpr ImVec4 COLOR_GRAB_HOVER{0.431f, 0.431f, 0.431f, 1.0f};
 
-    constexpr ImVec4 COLOR_AXIS_X{1.000f, 0.353f, 0.412f, 1.0f};
-    constexpr ImVec4 COLOR_AXIS_Y{0.612f, 0.902f, 0.290f, 1.0f};
-    constexpr ImVec4 COLOR_AXIS_Z{0.400f, 0.686f, 1.000f, 1.0f};
+    constexpr ImVec4 COLOR_AXIS_X{0.94f, 0.26f, 0.30f, 1.0f};
+    constexpr ImVec4 COLOR_AXIS_Y{0.62f, 0.86f, 0.28f, 1.0f};
+    constexpr ImVec4 COLOR_AXIS_Z{0.20f, 0.58f, 0.92f, 1.0f};
     constexpr ImVec4 COLOR_AXIS_W{0.749f, 0.749f, 0.749f, 1.0f};
 
     // ImGuiStyle metrics
@@ -70,7 +70,7 @@ namespace hob::editor {
 
     constexpr float TOOLTIP_ROUNDING = 3.0f;
 
-    constexpr ImVec2 FRAME_PADDING{10.0f, 6.0f};
+    constexpr ImVec2 FRAME_PADDING{10.0f, 7.0f};
     constexpr float FRAME_ROUNDING = 3.0f;
     constexpr float FRAME_BORDER_SIZE = 0.0f;
     constexpr float COLOR_MARKER_SIZE = 3.0f;
@@ -176,20 +176,19 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_SCENE_VIEW_GRID_AXIS_Y = with_alpha(COLOR_AXIS_Y, 0.70f);
     constexpr ImVec4 COLOR_SCENE_VIEW_GRID_MINOR{1.0f, 1.0f, 1.0f, 0.094f};
     constexpr ImVec4 COLOR_SCENE_VIEW_GRID_MAJOR{1.0f, 1.0f, 1.0f, 0.20f};
-    constexpr ImVec4 COLOR_SCENE_VIEW_SELECTION_PRIMARY{1.000f, 0.627f, 0.118f, 1.0f};
+    constexpr ImVec4 COLOR_SCENE_VIEW_SELECTION_PRIMARY{1.0f, 0.68f, 0.20f, 1.0f};
     constexpr ImVec4 COLOR_SCENE_VIEW_SELECTION = with_alpha(COLOR_SCENE_VIEW_SELECTION_PRIMARY, 0.55f);
     constexpr ImVec4 COLOR_SCENE_VIEW_CAMERA_RECT = with_alpha(COLOR_ACCENT, 0.70f);
 
     // Gizmo
-    constexpr float GIZMO_AXIS_LENGTH_PX = 72.0f;
+    constexpr float GIZMO_AXIS_LENGTH_PX = 100.0f;
     constexpr float GIZMO_AXIS_THICKNESS = 2.0f;
-    constexpr float GIZMO_ARROW_HEAD_LENGTH_PX = 13.0f;
-    constexpr float GIZMO_ARROW_HEAD_WIDTH_PX = 10.0f;
-    constexpr float GIZMO_SCALE_BOX_PX = 10.0f;
-    constexpr float GIZMO_PLANE_OFFSET_PX = 22.0f;
-    constexpr float GIZMO_PLANE_SIZE_PX = 20.0f;
-    constexpr float GIZMO_UNIFORM_BOX_PX = 13.0f;
-    constexpr float GIZMO_RING_RADIUS_PX = 68.0f;
+    constexpr float GIZMO_ARROW_HEAD_LENGTH_PX = 15.0f;
+    constexpr float GIZMO_ARROW_HEAD_WIDTH_PX = 12.0f;
+    constexpr float GIZMO_SCALE_BOX_PX = 12.0f;
+    constexpr float GIZMO_COMPOSITE_OFFSET_PX = 22.0f;
+    constexpr float GIZMO_COMPOSITE_SIZE_PX = 16.0f;
+    constexpr float GIZMO_RING_RADIUS_PX = 80.0f;
     constexpr float GIZMO_RING_THICKNESS = 2.0f;
     constexpr int32_t GIZMO_RING_SEGMENTS = 64;
     constexpr float GIZMO_ORIGIN_RADIUS_PX = 3.0f;
@@ -197,10 +196,8 @@ namespace hob::editor {
 
     constexpr ImVec4 COLOR_GIZMO_AXIS_X = COLOR_AXIS_X;
     constexpr ImVec4 COLOR_GIZMO_AXIS_Y = COLOR_AXIS_Y;
-    constexpr ImVec4 COLOR_GIZMO_PLANE = with_alpha(COLOR_AXIS_Z, 0.35f);
-    constexpr ImVec4 COLOR_GIZMO_PLANE_OUTLINE = COLOR_AXIS_Z;
+    constexpr ImVec4 COLOR_GIZMO_COMPOSITE = COLOR_AXIS_Z;
     constexpr ImVec4 COLOR_GIZMO_RING = with_alpha(COLOR_AXIS_Z, 0.85f);
-    constexpr ImVec4 COLOR_GIZMO_UNIFORM = COLOR_AXIS_W;
     constexpr ImVec4 COLOR_GIZMO_ORIGIN = COLOR_AXIS_W;
     constexpr ImVec4 COLOR_GIZMO_HIGHLIGHT{1.000f, 0.847f, 0.322f, 1.0f};
 } // namespace hob::editor

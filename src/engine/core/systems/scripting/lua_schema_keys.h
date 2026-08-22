@@ -23,6 +23,13 @@ namespace hob {
         constexpr const char* HIDDEN = "hidden";
     } // namespace schema_key
 
+    namespace transform_key {
+        constexpr const char* SECTION = "transform";
+        constexpr const char* POSITION = "position";
+        constexpr const char* ROTATION = "rotation";
+        constexpr const char* SCALE = "scale";
+    } // namespace transform_key
+
     namespace field_type {
         constexpr const char* INT = "int";
         constexpr const char* FLOAT = "float";

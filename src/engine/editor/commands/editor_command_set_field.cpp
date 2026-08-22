@@ -7,12 +7,11 @@
 #include "engine/components/transform_component.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
+#include "engine/core/systems/scripting/lua_schema_keys.h"
 #include "engine/editor/editor_lua.h"
 
 namespace hob::editor {
     namespace {
-        const std::string TRANSFORM_COMPONENT_KEY = "transform";
-
         void sync_transform_to_physics(Engine& engine, EntityId entity_id) {
             Entity* entity = engine.get_entity_spawner().get_entity(entity_id);
             if (entity == nullptr) {
@@ -55,7 +54,7 @@ namespace hob::editor {
 
         editor_call(engine, "set_live_field", target.entity_id, target.component_key, target.field, value);
 
-        if (target.component_key == TRANSFORM_COMPONENT_KEY) {
+        if (target.component_key == transform_key::SECTION) {
             sync_transform_to_physics(engine, target.entity_id);
         }
     }

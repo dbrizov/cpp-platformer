@@ -167,6 +167,22 @@ namespace hob::editor {
                     },
             },
             {
+                .id = EditorActionId::GizmoToggleSpace,
+                .label = "Use Local Space",
+                .chord = ImGuiKey_T,
+                .context = EditorActionContext::Global,
+                .is_enabled = nullptr,
+                .is_active =
+                    [](const Editor& editor) {
+                        return editor.get_scene_view().get_gizmo_space() == EditorGizmoSpace::Local;
+                    },
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        editor.get_scene_view().toggle_gizmo_space();
+                    },
+            },
+            {
                 .id = EditorActionId::FocusSelection,
                 .label = "Focus Selection",
                 .chord = ImGuiKey_F,

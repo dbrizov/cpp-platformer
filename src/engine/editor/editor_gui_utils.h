@@ -23,6 +23,8 @@ namespace hob::editor {
         Translate,
         Rotate,
         Scale,
+        SpaceWorld,
+        SpaceLocal,
     };
 
     struct EditorStyleColorStack {

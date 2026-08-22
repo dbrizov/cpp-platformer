@@ -153,19 +153,19 @@ namespace hob {
 
         bind_component_schema<TransformComponent>(
             schemas,
-            "transform",
+            transform_key::SECTION,
             "get_transform",
             {
-                {.name = "position",
+                {.name = transform_key::POSITION,
                  .get_method = "get_local_position",
                  .set_method = "set_local_position",
                  .reapply_on_hot_reload = false},
-                {.name = "rotation",
+                {.name = transform_key::ROTATION,
                  .get_method = "get_local_rotation",
                  .set_method = "set_local_rotation",
                  .type = field_type::ANGLE,
                  .reapply_on_hot_reload = false},
-                {.name = "scale",
+                {.name = transform_key::SCALE,
                  .get_method = "get_local_scale",
                  .set_method = "set_local_scale",
                  .reapply_on_hot_reload = false},

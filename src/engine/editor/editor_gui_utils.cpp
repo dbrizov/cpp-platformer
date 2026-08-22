@@ -162,6 +162,31 @@ namespace hob::editor {
                         color);
                     break;
                 }
+                case EditorBarIcon::SpaceWorld: {
+                    const float radius = half - 1.0f;
+
+                    draw_list->AddCircle(center, radius, color, BAR_ICON_ARC_SEGMENTS, line_thickness);
+                    draw_list->AddLine(ImVec2(center.x - radius, center.y),
+                                       ImVec2(center.x + radius, center.y),
+                                       color,
+                                       line_thickness);
+                    draw_list->AddEllipse(center,
+                                          ImVec2(IM_ROUND(radius * 0.45f), radius),
+                                          color,
+                                          0.0f,
+                                          BAR_ICON_ARC_SEGMENTS,
+                                          line_thickness);
+                    break;
+                }
+                case EditorBarIcon::SpaceLocal: {
+                    draw_list->AddQuad(ImVec2(center.x, center.y - half),
+                                       ImVec2(center.x + half, center.y),
+                                       ImVec2(center.x, center.y + half),
+                                       ImVec2(center.x - half, center.y),
+                                       color,
+                                       line_thickness);
+                    break;
+                }
                 case EditorBarIcon::Scale: {
                     const float box = IM_ROUND(half * 0.7f);
                     const ImVec2 from(center.x - half + 1.0f, center.y + half - 1.0f);
@@ -581,7 +606,7 @@ namespace hob::editor {
     }
 
     bool field_angle(const char* label, float& degrees, float drag_speed) {
-        float normalized = math::normalize_angle(degrees);
+        float normalized = math::normalize_angle_deg(degrees);
         float* components[] = {&normalized};
         const bool changed =
             field_components(label, &COLOR_AXIS_Z, components, IM_COUNTOF(components), drag_speed, 0.0f, 0.0f);

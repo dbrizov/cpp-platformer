@@ -26,7 +26,8 @@ namespace hob {
             .constant("MAX_FLOAT", MAX_FLOAT)
             .constant("MIN_DOUBLE", MIN_DOUBLE)
             .constant("MAX_DOUBLE", MAX_DOUBLE)
-            .func("normalize_angle", &math::normalize_angle, {"angle_deg"})
+            .func("normalize_angle_deg", &math::normalize_angle_deg, {"angle_deg"})
+            .func("wrap_angle_rad", &math::wrap_angle_rad, {"angle_rad"})
             .func("lerp", &math::lerp, {"a", "b", "t"})
             .func("lerp_angle", &math::lerp_angle, {"a_deg", "b_deg", "t"});
 

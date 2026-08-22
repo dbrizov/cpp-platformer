@@ -21,6 +21,7 @@ namespace hob::editor {
         GizmoTranslate,
         GizmoRotate,
         GizmoScale,
+        GizmoToggleSpace,
         FocusSelection,
         ResetLayout,
         OpenScene,

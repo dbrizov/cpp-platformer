@@ -39,7 +39,11 @@ Math = {}
 
 ---@param angle_deg number
 ---@return number
-function Math.normalize_angle(angle_deg) end
+function Math.normalize_angle_deg(angle_deg) end
+
+---@param angle_rad number
+---@return number
+function Math.wrap_angle_rad(angle_rad) end
 
 ---@param a number
 ---@param b number

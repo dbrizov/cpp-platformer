@@ -39,6 +39,8 @@ namespace hob::editor {
 
         EditorGizmoMode get_gizmo_mode() const;
         void set_gizmo_mode(EditorGizmoMode mode);
+        EditorGizmoSpace get_gizmo_space() const;
+        void toggle_gizmo_space();
         void reset_gizmo();
 
         void focus_on_selection(const Editor& editor);

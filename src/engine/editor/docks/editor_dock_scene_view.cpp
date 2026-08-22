@@ -235,6 +235,14 @@ namespace hob::editor {
         m_gizmo.set_mode(mode);
     }
 
+    EditorGizmoSpace EditorDockSceneView::get_gizmo_space() const {
+        return m_gizmo.get_space();
+    }
+
+    void EditorDockSceneView::toggle_gizmo_space() {
+        m_gizmo.toggle_space();
+    }
+
     void EditorDockSceneView::reset_gizmo() {
         m_gizmo.reset();
     }
@@ -397,6 +405,10 @@ namespace hob::editor {
         for (const EditorSceneViewToolItem& item : SCENE_VIEW_TOOL_ITEMS) {
             action_bar_icon_button(editor, item.id, item.icon);
         }
+
+        const EditorBarIcon space_icon =
+            (m_gizmo.get_space() == EditorGizmoSpace::Local) ? EditorBarIcon::SpaceLocal : EditorBarIcon::SpaceWorld;
+        action_bar_icon_button(editor, EditorActionId::GizmoToggleSpace, space_icon);
 
         ImGui::EndMenuBar();
     }

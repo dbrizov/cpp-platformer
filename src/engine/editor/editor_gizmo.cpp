@@ -11,6 +11,7 @@
 #include "engine/components/transform_component.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
+#include "engine/core/systems/scripting/lua_schema_keys.h"
 #include "engine/core/systems/scripting/lua_script_system.h"
 #include "engine/editor/commands/editor_command_composite.h"
 #include "engine/editor/commands/editor_command_set_field.h"
@@ -19,34 +20,18 @@
 #include "engine/editor/editor_gui_utils.h"
 #include "engine/editor/editor_style.h"
 #include "engine/math/constants.h"
+#include "engine/math/mathf.h"
 #include "engine/math/matrix2x3.h"
 
 namespace hob::editor {
     namespace {
-        const std::string TRANSFORM_COMPONENT_KEY = "transform";
-
         constexpr const char* LABEL_TRANSLATE = "Move";
         constexpr const char* LABEL_ROTATE = "Rotate";
         constexpr const char* LABEL_SCALE = "Scale";
 
-        constexpr const char* FIELD_POSITION = "position";
-        constexpr const char* FIELD_ROTATION = "rotation";
-        constexpr const char* FIELD_SCALE = "scale";
-
         constexpr float MIN_ROTATE_RADIUS = 0.001f;
 
         constexpr float MIN_SCALE_REFERENCE = 0.001f;
-
-        float wrap_angle(float radians) {
-            constexpr float TWO_PI = PI * 2.0f;
-
-            radians = std::fmod(radians + PI, TWO_PI);
-            if (radians < 0.0f) {
-                radians += TWO_PI;
-            }
-
-            return radians - PI;
-        }
 
         const char* get_mode_label(EditorGizmoMode mode) {
             switch (mode) {
@@ -92,19 +77,11 @@ namespace hob::editor {
             return current / start;
         }
 
-        float get_scale_offset(float along, float reference) {
-            if (reference <= MIN_SCALE_REFERENCE) {
-                return 1.0f;
-            }
-
-            return 1.0f + along / reference;
-        }
-
         EditorFieldTarget make_target(EntityId entity_id, const char* field) {
             return EditorFieldTarget{
                 .entity_id = entity_id,
                 .is_lua = false,
-                .component_key = TRANSFORM_COMPONENT_KEY,
+                .component_key = transform_key::SECTION,
                 .component_index = 0,
                 .field = field,
             };
@@ -159,10 +136,10 @@ namespace hob::editor {
         }
 
         void draw_axis_with_box(ImDrawList* draw_list, const Vector2& origin, const Vector2& direction, ImU32 color) {
-            const Vector2 tip = origin + direction * GIZMO_AXIS_LENGTH_PX;
+            const Vector2 box_center = origin + direction * (GIZMO_AXIS_LENGTH_PX - GIZMO_SCALE_BOX_PX * 0.5f);
 
-            draw_list->AddLine(to_imvec(origin), to_imvec(tip), color, GIZMO_AXIS_THICKNESS);
-            draw_box(draw_list, tip, GIZMO_SCALE_BOX_PX, color);
+            draw_list->AddLine(to_imvec(origin), to_imvec(box_center), color, GIZMO_AXIS_THICKNESS);
+            draw_box(draw_list, box_center, GIZMO_SCALE_BOX_PX, color);
         }
     } // namespace
 
@@ -177,6 +154,23 @@ namespace hob::editor {
 
         m_mode = mode;
         m_hovered_handle = EditorGizmoHandle::None;
+    }
+
+    EditorGizmoSpace EditorGizmo::get_space() const {
+        return m_space;
+    }
+
+    void EditorGizmo::set_space(EditorGizmoSpace space) {
+        if (m_space == space) {
+            return;
+        }
+
+        m_space = space;
+        m_hovered_handle = EditorGizmoHandle::None;
+    }
+
+    void EditorGizmo::toggle_space() {
+        set_space(m_space == EditorGizmoSpace::World ? EditorGizmoSpace::Local : EditorGizmoSpace::World);
     }
 
     bool EditorGizmo::is_dragging() const {
@@ -242,19 +236,11 @@ namespace hob::editor {
 
         switch (m_mode) {
             case EditorGizmoMode::Translate: {
-                const Vector2 plane_center =
-                    frame.pivot_screen + (frame.axis_x_screen + frame.axis_y_screen) * GIZMO_PLANE_OFFSET_PX;
-                const bool plane_active = active_handle == EditorGizmoHandle::Plane;
-
                 draw_box(draw_list,
-                         plane_center,
-                         GIZMO_PLANE_SIZE_PX,
-                         plane_active ? highlight : ImGui::GetColorU32(COLOR_GIZMO_PLANE));
-
-                const float half = GIZMO_PLANE_SIZE_PX * 0.5f;
-                draw_list->AddRect(ImVec2(plane_center.x - half, plane_center.y - half),
-                                   ImVec2(plane_center.x + half, plane_center.y + half),
-                                   plane_active ? highlight : ImGui::GetColorU32(COLOR_GIZMO_PLANE_OUTLINE));
+                         get_composite_center(frame),
+                         GIZMO_COMPOSITE_SIZE_PX,
+                         (active_handle == EditorGizmoHandle::Plane) ? highlight
+                                                                     : ImGui::GetColorU32(COLOR_GIZMO_COMPOSITE));
 
                 draw_arrow(draw_list, frame.pivot_screen, frame.axis_x_screen, axis_x_color);
                 draw_arrow(draw_list, frame.pivot_screen, frame.axis_y_screen, axis_y_color);
@@ -291,10 +277,10 @@ namespace hob::editor {
                 draw_axis_with_box(draw_list, frame.pivot_screen, frame.axis_x_screen, axis_x_color);
                 draw_axis_with_box(draw_list, frame.pivot_screen, frame.axis_y_screen, axis_y_color);
                 draw_box(draw_list,
-                         frame.pivot_screen,
-                         GIZMO_UNIFORM_BOX_PX,
+                         get_composite_center(frame),
+                         GIZMO_COMPOSITE_SIZE_PX,
                          (active_handle == EditorGizmoHandle::Uniform) ? highlight
-                                                                       : ImGui::GetColorU32(COLOR_GIZMO_UNIFORM));
+                                                                       : ImGui::GetColorU32(COLOR_GIZMO_COMPOSITE));
                 break;
             }
         }
@@ -329,7 +315,7 @@ namespace hob::editor {
         const Matrix2x3& world_matrix = primary->get_transform()->get_world_matrix();
         frame.pivot_world = world_matrix.origin;
 
-        if (m_mode == EditorGizmoMode::Scale) {
+        if (m_space == EditorGizmoSpace::Local || m_mode == EditorGizmoMode::Scale) {
             const float rotation = world_matrix.get_rotation();
             frame.axis_x_world = Vector2(std::cos(rotation), std::sin(rotation));
             frame.axis_y_world = Vector2(-std::sin(rotation), std::cos(rotation));
@@ -347,18 +333,19 @@ namespace hob::editor {
             (camera.world_to_screen(frame.pivot_world + frame.axis_y_world, scene_rect) - frame.pivot_screen)
                 .normalized();
 
-        frame.axis_length_world = GIZMO_AXIS_LENGTH_PX / camera.get_pixels_per_meter_f();
         frame.valid = frame.axis_x_screen != Vector2::zero() && frame.axis_y_screen != Vector2::zero();
 
         return frame;
     }
 
+    Vector2 EditorGizmo::get_composite_center(const Frame& frame) {
+        return frame.pivot_screen + (frame.axis_x_screen + frame.axis_y_screen) * GIZMO_COMPOSITE_OFFSET_PX;
+    }
+
     EditorGizmoHandle EditorGizmo::pick_handle(const Frame& frame, const Vector2& mouse_screen_position) const {
         switch (m_mode) {
             case EditorGizmoMode::Translate: {
-                const Vector2 plane_center =
-                    frame.pivot_screen + (frame.axis_x_screen + frame.axis_y_screen) * GIZMO_PLANE_OFFSET_PX;
-                if (is_inside_box(plane_center, GIZMO_PLANE_SIZE_PX, mouse_screen_position)) {
+                if (is_inside_box(get_composite_center(frame), GIZMO_COMPOSITE_SIZE_PX, mouse_screen_position)) {
                     return EditorGizmoHandle::Plane;
                 }
                 break;
@@ -369,23 +356,26 @@ namespace hob::editor {
                                                                                               : EditorGizmoHandle::None;
             }
             case EditorGizmoMode::Scale: {
-                if (is_inside_box(frame.pivot_screen, GIZMO_UNIFORM_BOX_PX, mouse_screen_position)) {
+                if (is_inside_box(get_composite_center(frame), GIZMO_COMPOSITE_SIZE_PX, mouse_screen_position)) {
                     return EditorGizmoHandle::Uniform;
                 }
                 break;
             }
         }
 
-        const float length =
-            GIZMO_AXIS_LENGTH_PX + ((m_mode == EditorGizmoMode::Scale) ? GIZMO_SCALE_BOX_PX * 0.5f : 0.0f);
-
-        if (is_near_segment(
-                frame.pivot_screen, frame.axis_x_screen, length, mouse_screen_position, GIZMO_PICK_TOLERANCE_PX)) {
+        if (is_near_segment(frame.pivot_screen,
+                            frame.axis_x_screen,
+                            GIZMO_AXIS_LENGTH_PX,
+                            mouse_screen_position,
+                            GIZMO_PICK_TOLERANCE_PX)) {
             return EditorGizmoHandle::AxisX;
         }
 
-        if (is_near_segment(
-                frame.pivot_screen, frame.axis_y_screen, length, mouse_screen_position, GIZMO_PICK_TOLERANCE_PX)) {
+        if (is_near_segment(frame.pivot_screen,
+                            frame.axis_y_screen,
+                            GIZMO_AXIS_LENGTH_PX,
+                            mouse_screen_position,
+                            GIZMO_PICK_TOLERANCE_PX)) {
             return EditorGizmoHandle::AxisY;
         }
 
@@ -412,7 +402,7 @@ namespace hob::editor {
             drag.start_local_position = transform->get_local_position();
             drag.start_local_rotation = transform->get_local_rotation();
             drag.start_local_scale = transform->get_local_scale();
-            drag.start_world_position = transform->get_world_matrix().origin;
+            drag.start_world_position = transform->get_position();
         }
 
         if (m_drag_entities.empty()) {
@@ -426,7 +416,6 @@ namespace hob::editor {
         m_drag_axis_x_world = frame.axis_x_world;
         m_drag_axis_y_world = frame.axis_y_world;
         m_drag_grab_world = mouse_world_position;
-        m_drag_axis_length_world = frame.axis_length_world;
         m_drag_previous_angle = std::atan2(grab_offset.y, grab_offset.x);
         m_drag_total_rotation = 0.0f;
     }
@@ -461,7 +450,7 @@ namespace hob::editor {
                 }
 
                 const float angle = std::atan2(offset.y, offset.x);
-                m_drag_total_rotation += wrap_angle(angle - m_drag_previous_angle);
+                m_drag_total_rotation += math::wrap_angle_rad(angle - m_drag_previous_angle);
                 m_drag_previous_angle = angle;
                 break;
             }
@@ -471,8 +460,8 @@ namespace hob::editor {
 
                 if (m_dragged_handle == EditorGizmoHandle::Uniform) {
                     const Vector2 diagonal = (m_drag_axis_x_world + m_drag_axis_y_world).normalized();
-                    const float along = Vector2::dot(current_offset - start_offset, diagonal);
-                    const float uniform = get_scale_offset(along, m_drag_axis_length_world);
+                    const float uniform =
+                        get_scale_ratio(Vector2::dot(current_offset, diagonal), Vector2::dot(start_offset, diagonal));
                     scale_factor = Vector2(uniform, uniform);
                 }
                 else if (m_dragged_handle == EditorGizmoHandle::AxisX) {
@@ -504,13 +493,16 @@ namespace hob::editor {
                     write_field(engine,
                                 lua,
                                 drag.entity_id,
-                                FIELD_POSITION,
+                                transform_key::POSITION,
                                 world_to_local_position(*transform, world_position));
                     break;
                 }
                 case EditorGizmoMode::Rotate: {
-                    write_field(
-                        engine, lua, drag.entity_id, FIELD_ROTATION, drag.start_local_rotation + m_drag_total_rotation);
+                    write_field(engine,
+                                lua,
+                                drag.entity_id,
+                                transform_key::ROTATION,
+                                drag.start_local_rotation + m_drag_total_rotation);
 
                     if (!is_on_pivot) {
                         const Vector2 world_position = Vector2::rotate_around(
@@ -518,7 +510,7 @@ namespace hob::editor {
                         write_field(engine,
                                     lua,
                                     drag.entity_id,
-                                    FIELD_POSITION,
+                                    transform_key::POSITION,
                                     world_to_local_position(*transform, world_position));
                     }
                     break;
@@ -528,7 +520,7 @@ namespace hob::editor {
                         engine,
                         lua,
                         drag.entity_id,
-                        FIELD_SCALE,
+                        transform_key::SCALE,
                         Vector2(drag.start_local_scale.x * scale_factor.x, drag.start_local_scale.y * scale_factor.y));
 
                     if (!is_on_pivot) {
@@ -539,7 +531,7 @@ namespace hob::editor {
                         write_field(engine,
                                     lua,
                                     drag.entity_id,
-                                    FIELD_POSITION,
+                                    transform_key::POSITION,
                                     world_to_local_position(*transform, world_position));
                     }
                     break;
@@ -567,21 +559,21 @@ namespace hob::editor {
                             lua,
                             label,
                             drag.entity_id,
-                            FIELD_POSITION,
+                            transform_key::POSITION,
                             drag.start_local_position,
                             transform->get_local_position());
             push_if_changed(commands,
                             lua,
                             label,
                             drag.entity_id,
-                            FIELD_ROTATION,
+                            transform_key::ROTATION,
                             drag.start_local_rotation,
                             transform->get_local_rotation());
             push_if_changed(commands,
                             lua,
                             label,
                             drag.entity_id,
-                            FIELD_SCALE,
+                            transform_key::SCALE,
                             drag.start_local_scale,
                             transform->get_local_scale());
         }

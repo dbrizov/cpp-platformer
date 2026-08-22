@@ -17,6 +17,11 @@ namespace hob::editor {
         Scale,
     };
 
+    enum class EditorGizmoSpace : uint8_t {
+        World,
+        Local,
+    };
+
     enum class EditorGizmoHandle : uint8_t {
         None,
         AxisX,
@@ -35,7 +40,6 @@ namespace hob::editor {
             Vector2 axis_y_screen;
             Vector2 axis_x_world;
             Vector2 axis_y_world;
-            float axis_length_world = 0.0f;
         };
 
         struct DragEntity {
@@ -47,6 +51,7 @@ namespace hob::editor {
         };
 
         EditorGizmoMode m_mode = EditorGizmoMode::Translate;
+        EditorGizmoSpace m_space = EditorGizmoSpace::World;
 
         EditorGizmoHandle m_hovered_handle = EditorGizmoHandle::None;
 
@@ -56,13 +61,16 @@ namespace hob::editor {
         Vector2 m_drag_axis_x_world;
         Vector2 m_drag_axis_y_world;
         Vector2 m_drag_grab_world;
-        float m_drag_axis_length_world = 0.0f;
         float m_drag_previous_angle = 0.0f;
         float m_drag_total_rotation = 0.0f;
 
     public:
         EditorGizmoMode get_mode() const;
         void set_mode(EditorGizmoMode mode);
+
+        EditorGizmoSpace get_space() const;
+        void set_space(EditorGizmoSpace space);
+        void toggle_space();
 
         bool is_dragging() const;
 
@@ -81,6 +89,8 @@ namespace hob::editor {
 
     private:
         Frame build_frame(const Editor& editor, const EditorCamera& camera, const EditorSceneRect& scene_rect) const;
+
+        static Vector2 get_composite_center(const Frame& frame);
 
         EditorGizmoHandle pick_handle(const Frame& frame, const Vector2& mouse_screen_position) const;
 
