@@ -1,5 +1,5 @@
 #include "engine/core/engine.h"
-#include "engine/core/systems/input.h"
+#include "engine/core/systems/input/input.h"
 #include "lua_meta.h"
 #include "lua_script_system.h"
 #include "lua_script_system_impl.h"

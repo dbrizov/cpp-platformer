@@ -6,7 +6,7 @@
 #include "systems/console.h"
 #include "systems/entity_spawner.h"
 #include "systems/imgui_system.h"
-#include "systems/input.h"
+#include "systems/input/input.h"
 #include "systems/physics/physics.h"
 #include "systems/renderer/renderer.h"
 #include "systems/scripting/lua_script_system.h"

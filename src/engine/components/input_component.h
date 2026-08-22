@@ -4,7 +4,7 @@
 
 #include "component.h"
 #include "engine/core/string_hash.h"
-#include "engine/core/systems/input.h"
+#include "engine/core/systems/input/input.h"
 
 namespace hob {
     using BindingId = int64_t;

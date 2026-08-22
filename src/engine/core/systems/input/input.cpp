@@ -10,8 +10,8 @@
 #include "engine/core/assert.h"
 #include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
+#include "engine/core/systems/renderer/renderer.h"
 #include "engine/core/systems/window.h"
-#include "renderer/renderer.h"
 
 namespace hob {
     InputEvent::InputEvent(std::string_view ev_name, InputEventType ev_type, float ev_axis_value)
