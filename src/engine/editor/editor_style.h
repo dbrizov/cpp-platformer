@@ -9,21 +9,6 @@ namespace hob::editor {
         return ImVec4(color.x, color.y, color.z, alpha);
     }
 
-    struct EditorBarMetrics {
-        float icon_size = 1.0f;
-        ImVec2 item_padding;
-        ImVec2 button_inset;
-        bool square_button = true;
-
-        constexpr float button_height(float bar_height) const {
-            return bar_height - button_inset.y * 2.0f;
-        }
-
-        constexpr float button_width(float bar_height) const {
-            return square_button ? button_height(bar_height) : icon_size + item_padding.x * 2.0f;
-        }
-    };
-
     // Palette
     constexpr ImVec4 COLOR_TRANSPARENT{0.0f, 0.0f, 0.0f, 0.0f};
     constexpr ImVec4 COLOR_CLEAR{0.078f, 0.078f, 0.078f, 1.0f};
@@ -38,7 +23,7 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_BG_ACTIVE{0.286f, 0.286f, 0.286f, 1.0f};
     constexpr ImVec4 COLOR_BORDER{0.078f, 0.078f, 0.078f, 1.0f};
 
-    constexpr ImVec4 COLOR_TEXT{0.792f, 0.792f, 0.792f, 1.0f};
+    constexpr ImVec4 COLOR_TEXT{0.878f, 0.878f, 0.878f, 1.0f};
     constexpr ImVec4 COLOR_TEXT_DIM{0.584f, 0.584f, 0.584f, 1.0f};
 
     constexpr ImVec4 COLOR_BUTTON{0.259f, 0.259f, 0.259f, 1.0f};
@@ -110,31 +95,45 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_NAV_WINDOWING_DIM_BG{0.0f, 0.0f, 0.0f, 0.45f};
     constexpr ImVec4 COLOR_MODAL_DIM_BG{0.0f, 0.0f, 0.0f, 0.55f};
 
+    // Item (shared by bar items, bar popup rows and hierarchy rows)
+    constexpr ImVec4 COLOR_ITEM_HOVER{0.220f, 0.220f, 0.220f, 1.0f};
+    constexpr ImVec4 COLOR_ITEM_ACTIVE{0.259f, 0.259f, 0.259f, 1.0f};
+
+    // Icon atlas
+    constexpr uint32_t ICON_SIZE_PX = 16;
+    constexpr uint32_t ICON_PADDING_PX = 2;
+
     // Dock
     constexpr ImVec2 DOCK_TAB_PADDING{0.0f, FRAME_PADDING.y};
     constexpr ImVec2 DOCK_TAB_SPACING{0.0f, ITEM_INNER_SPACING.y};
 
     // Bar (shared by the menu bar, the main toolbar and the dock toolbars)
+    struct EditorBarMetrics {
+        ImVec2 item_padding;
+        ImVec2 button_inset;
+        bool square_button = true;
+
+        constexpr float button_height(float bar_height) const {
+            return bar_height - button_inset.y * 2.0f;
+        }
+
+        constexpr float button_width(float bar_height) const {
+            return square_button ? button_height(bar_height) : ICON_SIZE_PX + item_padding.x * 2.0f;
+        }
+    };
+
+    constexpr EditorBarMetrics BAR_METRICS{{5.0f, 0.0f}, {0.0f, 3.0f}, true};
+
     constexpr ImVec2 BAR_ITEM_SPACING{4.0f, 0.0f};
     constexpr float BAR_ITEM_ROUNDING = 3.0f;
     constexpr ImVec2 BAR_POPUP_PADDING{16.0f, 6.0f};
     constexpr ImVec2 BAR_POPUP_ITEM_INSET{6.0f, 1.0f};
 
-    constexpr float BAR_ICON_ROUNDING = 1.0f;
-    constexpr int32_t BAR_ICON_ARC_SEGMENTS = 24;
-    constexpr float BAR_ICON_BAR_WIDTH_RATIO = 0.25f;
-    constexpr float BAR_ICON_SPACING_RATIO = 1.0f / 6.0f;
-    constexpr float BAR_ICON_LINE_THICKNESS_RATIO = 0.125f;
-
-    constexpr EditorBarMetrics TOOLBAR_METRICS{16.0f, {5.0f, 0.0f}, {0.0f, 3.0f}, true};
-
-    constexpr ImVec4 COLOR_BAR_ITEM_HOVER{0.184f, 0.184f, 0.184f, 1.0f};
-    constexpr ImVec4 COLOR_BAR_ITEM_ACTIVE{0.259f, 0.259f, 0.259f, 1.0f};
     constexpr ImVec4 COLOR_BAR_SEPARATOR{0.141f, 0.141f, 0.141f, 1.0f};
 
     constexpr ImVec4 COLOR_BAR_ICON = COLOR_TEXT;
     constexpr ImVec4 COLOR_BAR_ICON_ACTIVE = COLOR_ACCENT;
-    constexpr ImVec4 COLOR_BAR_ICON_DISABLED = with_alpha(COLOR_TEXT, 0.30f);
+    constexpr ImVec4 COLOR_BAR_ICON_DISABLED = with_alpha(COLOR_BAR_ICON, 0.30f);
 
     // Menu Bar
     constexpr ImVec2 MENU_BAR_ITEM_PADDING{7.0f, 0.0f};
@@ -146,9 +145,6 @@ namespace hob::editor {
     constexpr ImVec2 HIERARCHY_ITEM_SPACING{0.0f, 2.0f};
     constexpr ImVec2 HIERARCHY_ITEM_INSET{4.0f, 1.0f};
     constexpr float HIERARCHY_ITEM_ROUNDING = 3.0f;
-
-    constexpr ImVec4 COLOR_HIERARCHY_ITEM_HOVER{0.212f, 0.212f, 0.212f, 1.0f};
-    constexpr ImVec4 COLOR_HIERARCHY_ITEM_SELECTED{0.259f, 0.259f, 0.259f, 1.0f};
 
     // Inspector
     constexpr float INSPECTOR_LABEL_WIDTH = 180.0f;

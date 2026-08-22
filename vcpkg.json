@@ -28,6 +28,7 @@
         "sdlgpu3-binding"
       ]
     },
+    "lunasvg",
     "rmlui",
     "lua",
     "sol2"

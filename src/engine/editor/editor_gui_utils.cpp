@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cctype>
-#include <cmath>
 #include <concepts>
 #include <cstdarg>
 #include <cstdio>
@@ -73,144 +72,22 @@ namespace hob::editor {
         }
 
         void draw_bar_icon(
-            ImDrawList* draw_list, const ImRect& rect, EditorBarIcon icon, ImU32 color, float icon_size) {
-            const ImVec2 center(IM_ROUND(rect.GetCenter().x), IM_ROUND(rect.GetCenter().y));
-            const float half = IM_ROUND(icon_size * 0.5f);
-            const float bar = IM_ROUND(icon_size * BAR_ICON_BAR_WIDTH_RATIO);
-            const float spacing = IM_ROUND(icon_size * BAR_ICON_SPACING_RATIO);
-            const float line_thickness = icon_size * BAR_ICON_LINE_THICKNESS_RATIO;
-
-            switch (icon) {
-                case EditorBarIcon::Play: {
-                    draw_list->AddTriangleFilled(ImVec2(center.x - half + 1.0f, center.y - half),
-                                                 ImVec2(center.x - half + 1.0f, center.y + half),
-                                                 ImVec2(center.x + half - 1.0f, center.y),
-                                                 color);
-                    break;
-                }
-                case EditorBarIcon::Pause: {
-                    draw_list->AddRectFilled(ImVec2(center.x - spacing - bar, center.y - half),
-                                             ImVec2(center.x - spacing, center.y + half),
-                                             color,
-                                             BAR_ICON_ROUNDING);
-                    draw_list->AddRectFilled(ImVec2(center.x + spacing, center.y - half),
-                                             ImVec2(center.x + spacing + bar, center.y + half),
-                                             color,
-                                             BAR_ICON_ROUNDING);
-                    break;
-                }
-                case EditorBarIcon::Step: {
-                    draw_list->AddTriangleFilled(ImVec2(center.x - half, center.y - half),
-                                                 ImVec2(center.x - half, center.y + half),
-                                                 ImVec2(center.x + half - bar - spacing, center.y),
-                                                 color);
-                    draw_list->AddRectFilled(ImVec2(center.x + half - bar, center.y - half),
-                                             ImVec2(center.x + half, center.y + half),
-                                             color,
-                                             BAR_ICON_ROUNDING);
-                    break;
-                }
-                case EditorBarIcon::Stop: {
-                    draw_list->AddRectFilled(ImVec2(center.x - half + 1.0f, center.y - half + 1.0f),
-                                             ImVec2(center.x + half - 1.0f, center.y + half - 1.0f),
-                                             color,
-                                             BAR_ICON_ROUNDING);
-                    break;
-                }
-                case EditorBarIcon::TranslateRotate: {
-                    const float radius = half - 1.0f;
-                    const float arm = IM_ROUND(half * 0.5f);
-
-                    draw_list->AddCircle(center, radius, color, BAR_ICON_ARC_SEGMENTS, line_thickness);
-                    draw_list->AddLine(
-                        ImVec2(center.x - arm, center.y), ImVec2(center.x + arm, center.y), color, line_thickness);
-                    draw_list->AddLine(
-                        ImVec2(center.x, center.y - arm), ImVec2(center.x, center.y + arm), color, line_thickness);
-                    break;
-                }
-                case EditorBarIcon::Translate: {
-                    const float head = IM_ROUND(half * 0.55f);
-
-                    draw_list->AddLine(
-                        ImVec2(center.x - half, center.y), ImVec2(center.x + half, center.y), color, line_thickness);
-                    draw_list->AddLine(
-                        ImVec2(center.x, center.y - half), ImVec2(center.x, center.y + half), color, line_thickness);
-
-                    draw_list->AddTriangleFilled(ImVec2(center.x + half, center.y),
-                                                 ImVec2(center.x + half - head, center.y - head),
-                                                 ImVec2(center.x + half - head, center.y + head),
-                                                 color);
-                    draw_list->AddTriangleFilled(ImVec2(center.x - half, center.y),
-                                                 ImVec2(center.x - half + head, center.y + head),
-                                                 ImVec2(center.x - half + head, center.y - head),
-                                                 color);
-                    draw_list->AddTriangleFilled(ImVec2(center.x, center.y - half),
-                                                 ImVec2(center.x + head, center.y - half + head),
-                                                 ImVec2(center.x - head, center.y - half + head),
-                                                 color);
-                    draw_list->AddTriangleFilled(ImVec2(center.x, center.y + half),
-                                                 ImVec2(center.x - head, center.y + half - head),
-                                                 ImVec2(center.x + head, center.y + half - head),
-                                                 color);
-                    break;
-                }
-                case EditorBarIcon::Rotate: {
-                    const float radius = half - 1.0f;
-                    const float head = IM_ROUND(half * 0.6f);
-                    const float end_angle = PI * 0.25f;
-
-                    draw_list->PathArcTo(center, radius, end_angle, end_angle + PI * 1.5f, BAR_ICON_ARC_SEGMENTS);
-                    draw_list->PathStroke(color, ImDrawFlags_None, line_thickness);
-
-                    const ImVec2 radial(std::cos(end_angle), std::sin(end_angle));
-                    const ImVec2 tangent(radial.y, -radial.x);
-                    const ImVec2 base(center.x + radial.x * radius, center.y + radial.y * radius);
-
-                    draw_list->AddTriangleFilled(
-                        ImVec2(base.x + tangent.x * head, base.y + tangent.y * head),
-                        ImVec2(base.x + radial.x * head * 0.8f, base.y + radial.y * head * 0.8f),
-                        ImVec2(base.x - radial.x * head * 0.8f, base.y - radial.y * head * 0.8f),
-                        color);
-                    break;
-                }
-                case EditorBarIcon::SpaceWorld: {
-                    const float radius = half - 1.0f;
-
-                    draw_list->AddCircle(center, radius, color, BAR_ICON_ARC_SEGMENTS, line_thickness);
-                    draw_list->AddLine(ImVec2(center.x - radius, center.y),
-                                       ImVec2(center.x + radius, center.y),
-                                       color,
-                                       line_thickness);
-                    draw_list->AddEllipse(center,
-                                          ImVec2(IM_ROUND(radius * 0.45f), radius),
-                                          color,
-                                          0.0f,
-                                          BAR_ICON_ARC_SEGMENTS,
-                                          line_thickness);
-                    break;
-                }
-                case EditorBarIcon::SpaceLocal: {
-                    draw_list->AddQuad(ImVec2(center.x, center.y - half),
-                                       ImVec2(center.x + half, center.y),
-                                       ImVec2(center.x, center.y + half),
-                                       ImVec2(center.x - half, center.y),
-                                       color,
-                                       line_thickness);
-                    break;
-                }
-                case EditorBarIcon::Scale: {
-                    const float box = IM_ROUND(half * 0.7f);
-                    const ImVec2 from(center.x - half + 1.0f, center.y + half - 1.0f);
-                    const ImVec2 to(center.x + half - 1.0f, center.y - half + 1.0f);
-
-                    draw_list->AddLine(from, to, color, line_thickness);
-                    draw_list->AddRectFilled(
-                        ImVec2(to.x - box, to.y), ImVec2(to.x, to.y + box), color, BAR_ICON_ROUNDING);
-                    draw_list->AddRect(
-                        ImVec2(from.x, from.y - box), ImVec2(from.x + box, from.y), color, BAR_ICON_ROUNDING);
-                    break;
-                }
+            ImDrawList* draw_list, const EditorIcons& icons, const ImRect& rect, EditorBarIcon icon, ImU32 color) {
+            if (!icons.is_loaded()) {
+                return;
             }
+
+            const float size = static_cast<float>(ICON_SIZE_PX);
+            const ImVec2 center(IM_ROUND(rect.GetCenter().x), IM_ROUND(rect.GetCenter().y));
+            const float half = IM_ROUND(size * 0.5f);
+            const ImVec2 min(center.x - half, center.y - half);
+
+            draw_list->AddImage(icons.get_texture(),
+                                min,
+                                ImVec2(min.x + size, min.y + size),
+                                icons.get_uv_min(icon),
+                                icons.get_uv_max(icon),
+                                color);
         }
 
         bool field_components(const char* label,
@@ -340,7 +217,7 @@ namespace hob::editor {
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
             draw_highlight(draw_list,
                            ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()),
-                           open ? COLOR_BAR_ITEM_ACTIVE : COLOR_BAR_ITEM_HOVER,
+                           open ? COLOR_ITEM_ACTIVE : COLOR_ITEM_HOVER,
                            BAR_ITEM_ROUNDING);
         }
 
@@ -392,7 +269,7 @@ namespace hob::editor {
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
             draw_highlight(draw_list,
                            inset_rect(row_min, row_max, BAR_POPUP_ITEM_INSET),
-                           open ? COLOR_BAR_ITEM_ACTIVE : COLOR_BAR_ITEM_HOVER,
+                           open ? COLOR_ITEM_ACTIVE : COLOR_ITEM_HOVER,
                            BAR_ITEM_ROUNDING);
         }
 
@@ -440,9 +317,12 @@ namespace hob::editor {
         }
 
         // A disabled row is inert, so it must not light up under the cursor either.
-        if (enabled && ImGui::IsItemHovered()) {
+        if (enabled && (ImGui::IsItemActive() || ImGui::IsItemHovered())) {
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
-            draw_highlight(draw_list, row_rect(BAR_POPUP_ITEM_INSET), COLOR_BAR_ITEM_HOVER, BAR_ITEM_ROUNDING);
+            draw_highlight(draw_list,
+                           row_rect(BAR_POPUP_ITEM_INSET),
+                           ImGui::IsItemActive() ? COLOR_ITEM_ACTIVE : COLOR_ITEM_HOVER,
+                           BAR_ITEM_ROUNDING);
         }
 
         splitter.Merge(draw_list);
@@ -485,7 +365,8 @@ namespace hob::editor {
         return clicked;
     }
 
-    bool bar_icon_button(const char* id,
+    bool bar_icon_button(const EditorIcons& icons,
+                         const char* id,
                          EditorBarIcon icon,
                          bool enabled,
                          bool active,
@@ -495,7 +376,7 @@ namespace hob::editor {
 
         const ImRect bar_rect = window->MenuBarRect();
         const float button_height = metrics.button_height(bar_rect.GetHeight());
-        const float padding_x = (metrics.button_width(bar_rect.GetHeight()) - metrics.icon_size) * 0.5f;
+        const float padding_x = (metrics.button_width(bar_rect.GetHeight()) - ICON_SIZE_PX) * 0.5f;
 
         // Selectable adds CurrLineTextBaseOffset to its own Y, which BeginMenuBar seeds with
         // AlignTextToFramePadding; cancel it so the button sits where the inset asks.
@@ -513,7 +394,7 @@ namespace hob::editor {
         ImGui::BeginDisabled(!enabled);
         ImGui::SetCursorScreenPos(ImVec2(ImGui::GetCursorScreenPos().x + BAR_ITEM_SPACING.x, button_y));
         const bool pressed = ImGui::Selectable(
-            INSPECTOR_EMPTY_LABEL, false, ImGuiSelectableFlags_None, ImVec2(metrics.icon_size, button_height));
+            INSPECTOR_EMPTY_LABEL, false, ImGuiSelectableFlags_None, ImVec2(ICON_SIZE_PX, button_height));
         ImGui::EndDisabled();
         ImGui::PopID();
 
@@ -524,12 +405,12 @@ namespace hob::editor {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
         if (ImGui::IsItemActive() || ImGui::IsItemHovered() || active) {
-            const ImVec4& background = (ImGui::IsItemActive() || active) ? COLOR_BAR_ITEM_ACTIVE : COLOR_BAR_ITEM_HOVER;
+            const ImVec4& background = (ImGui::IsItemActive() || active) ? COLOR_ITEM_ACTIVE : COLOR_ITEM_HOVER;
             draw_highlight(draw_list, rect, background, BAR_ITEM_ROUNDING);
         }
 
         const ImVec4& icon_color = active ? COLOR_BAR_ICON_ACTIVE : enabled ? COLOR_BAR_ICON : COLOR_BAR_ICON_DISABLED;
-        draw_bar_icon(draw_list, rect, icon, ImGui::GetColorU32(icon_color), metrics.icon_size);
+        draw_bar_icon(draw_list, icons, rect, icon, ImGui::GetColorU32(icon_color));
 
         if (tooltip != nullptr && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
             set_tooltip("%s", tooltip);
@@ -576,7 +457,7 @@ namespace hob::editor {
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
             draw_highlight(draw_list,
                            row_rect(HIERARCHY_ITEM_INSET),
-                           selected ? COLOR_HIERARCHY_ITEM_SELECTED : COLOR_HIERARCHY_ITEM_HOVER,
+                           selected ? COLOR_ITEM_ACTIVE : COLOR_ITEM_HOVER,
                            HIERARCHY_ITEM_ROUNDING);
         }
 

@@ -28,7 +28,7 @@ namespace hob::editor {
     } // namespace
 
     void EditorToolbar::draw(Editor& editor) {
-        const float button_width = TOOLBAR_METRICS.button_width(get_bar_height());
+        const float button_width = BAR_METRICS.button_width(get_bar_height());
         const float toolbar_width = button_width * TOOLBAR_ITEM_COUNT + BAR_ITEM_SPACING.x * (TOOLBAR_ITEM_COUNT - 1);
 
         const float cursor_x = ImGui::GetCursorPosX();

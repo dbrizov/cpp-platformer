@@ -23,7 +23,7 @@ namespace hob {
         AudioClip(MIX_Audio* handle, std::string relative_path);
 
     public:
-        ~AudioClip();
+        ~AudioClip() override;
 
         AudioClip(const AudioClip&) = delete;
         AudioClip& operator=(const AudioClip&) = delete;

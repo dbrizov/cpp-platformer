@@ -47,6 +47,7 @@ namespace hob::editor {
         m_engine.get_lua_script_system().run_engine_folder(EDITOR_SCRIPTS_FOLDER);
 
         apply_style();
+        m_icons.load(m_engine.get_renderer());
         m_engine.get_imgui_system().set_clear_color(COLOR_CLEAR);
         m_engine.get_imgui_system().set_clear_swapchain(true); // Nothing but ImGui draws to the editor window.
 
@@ -184,6 +185,10 @@ namespace hob::editor {
 
     const EditorCommandStack& Editor::get_commands() const {
         return m_commands;
+    }
+
+    const EditorIcons& Editor::get_icons() const {
+        return m_icons;
     }
 
     EditorMenuBar& Editor::get_menu_bar() {

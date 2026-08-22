@@ -123,6 +123,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE box2d::box2d)
 find_package(imgui CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE imgui::imgui)
 
+# Find and link lunasvg.
+find_package(lunasvg CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE lunasvg::lunasvg)
+
 # Find and link RmlUi.
 find_package(RmlUi CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE RmlUi::Core)

@@ -67,5 +67,5 @@ namespace hob::editor {
     bool action_bar_icon_button(Editor& editor,
                                 EditorActionId id,
                                 EditorBarIcon icon,
-                                const EditorBarMetrics& metrics = TOOLBAR_METRICS);
+                                const EditorBarMetrics& metrics = BAR_METRICS);
 } // namespace hob::editor

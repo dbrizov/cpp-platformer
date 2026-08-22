@@ -6,6 +6,7 @@
 
 #include <imgui.h>
 
+#include "editor_icons.h"
 #include "editor_inspector_entries.h"
 #include "editor_style.h"
 #include "engine/math/aabb.h"
@@ -15,19 +16,6 @@
 #include "engine/math/vector2.h"
 
 namespace hob::editor {
-    enum class EditorBarIcon : uint8_t {
-        Play,
-        Pause,
-        Step,
-        Stop,
-        TranslateRotate,
-        Translate,
-        Rotate,
-        Scale,
-        SpaceWorld,
-        SpaceLocal,
-    };
-
     struct EditorStyleColorStack {
         int32_t count = 0;
 
@@ -84,12 +72,13 @@ namespace hob::editor {
     void end_combo();
     bool combo_item(const char* label, bool selected);
 
-    bool bar_icon_button(const char* id,
+    bool bar_icon_button(const EditorIcons& icons,
+                         const char* id,
                          EditorBarIcon icon,
                          bool enabled,
                          bool active,
                          const char* tooltip,
-                         const EditorBarMetrics& metrics = TOOLBAR_METRICS);
+                         const EditorBarMetrics& metrics = BAR_METRICS);
 
     void set_tooltip(const char* fmt, ...) IM_FMTARGS(1);
 

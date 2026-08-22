@@ -33,7 +33,7 @@ namespace hob {
                 std::string relative_path);
 
     public:
-        ~Texture();
+        ~Texture() override;
 
         Texture(const Texture&) = delete;
         Texture& operator=(const Texture&) = delete;

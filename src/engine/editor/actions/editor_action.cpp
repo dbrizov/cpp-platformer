@@ -351,7 +351,8 @@ namespace hob::editor {
         }
 
         const char* button_id = action.label;
-        if (!bar_icon_button(button_id,
+        if (!bar_icon_button(editor.get_icons(),
+                             button_id,
                              icon,
                              is_action_enabled(editor, id),
                              is_action_active(editor, id),

@@ -16,6 +16,7 @@
 #include "docks/editor_dock_scene_view.h"
 #include "editor_config.h"
 #include "editor_entity_selection.h"
+#include "editor_icons.h"
 #include "engine/core/engine_hooks.h"
 
 namespace hob {
@@ -47,6 +48,8 @@ namespace hob::editor {
 
         EditorActionQueue m_actions;
         uint32_t m_active_contexts = 0;
+
+        EditorIcons m_icons;
 
         EditorMenuBar m_menu_bar;
         EditorToolbar m_toolbar;
@@ -86,6 +89,8 @@ namespace hob::editor {
 
         EditorCommandStack& get_commands();
         const EditorCommandStack& get_commands() const;
+
+        const EditorIcons& get_icons() const;
 
         EditorMenuBar& get_menu_bar();
         const EditorMenuBar& get_menu_bar() const;
