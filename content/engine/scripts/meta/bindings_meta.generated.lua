@@ -332,6 +332,18 @@ CollisionLayer = {
     Default = 1,
 }
 
+-- Asset
+---@class Asset
+local Asset = {}
+
+---@return string
+function Asset:get_name() end
+
+---@param name string
+function Asset:set_name(name) end
+
+_G.Asset = Asset
+
 -- Vector2
 ---@class Vector2
 ---@field x number
@@ -916,15 +928,9 @@ function SpriteComponent:set_pixels_per_meter(value) end
 _G.SpriteComponent = SpriteComponent
 
 -- AnimationClip
----@class AnimationClip
+---@class AnimationClip : Asset
 ---@overload fun(config: table): AnimationClip
 local AnimationClip = {}
-
----@return string
-function AnimationClip:get_name() end
-
----@param name string
-function AnimationClip:set_name(name) end
 
 ---@return number
 function AnimationClip:get_duration() end
@@ -1066,7 +1072,7 @@ function AudioComponent:set_autoplay(autoplay) end
 _G.AudioComponent = AudioComponent
 
 -- Texture
----@class Texture
+---@class Texture : Asset
 ---@overload fun(config: table): Texture
 local Texture = {}
 
@@ -1082,22 +1088,16 @@ function Texture:get_path() end
 _G.Texture = Texture
 
 -- Shader
----@class Shader
+---@class Shader : Asset
 ---@overload fun(config: table): Shader
 local Shader = {}
 
 _G.Shader = Shader
 
 -- Material
----@class Material
+---@class Material : Asset
 ---@overload fun(config: table): Material
 local Material = {}
-
----@return string
-function Material:get_name() end
-
----@param name string
-function Material:set_name(name) end
 
 ---@param name string
 ---@return any
@@ -1125,7 +1125,7 @@ local RaycastHit = {}
 _G.RaycastHit = RaycastHit
 
 -- AudioClip
----@class AudioClip
+---@class AudioClip : Asset
 ---@overload fun(config: table): AudioClip
 local AudioClip = {}
 

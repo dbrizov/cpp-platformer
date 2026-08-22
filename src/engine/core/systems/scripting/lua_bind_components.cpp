@@ -19,6 +19,7 @@
 #include "engine/components/sprite_animator_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
+#include "engine/core/asset.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
 #include "engine/core/systems/input.h"
@@ -90,7 +91,7 @@ namespace hob {
                     }
                 }
                 sort_keys(track->keys);
-                clip.tracks.push_back(std::move(track));
+                clip.add_track(std::move(track));
             }
             else if (type == "socket_rotation") {
                 auto track = std::make_unique<SocketRotationTrack>();
@@ -103,7 +104,7 @@ namespace hob {
                     }
                 }
                 sort_keys(track->keys);
-                clip.tracks.push_back(std::move(track));
+                clip.add_track(std::move(track));
             }
             else {
                 log::lua.error("Unknown animation track type '{}'", type);
@@ -581,14 +582,14 @@ namespace hob {
 
         // SpriteAnimatorComponent
         Renderer& renderer = m_engine.get_renderer();
-        bind_usertype<AnimationClip>(lua, meta)
+        bind_usertype<AnimationClip>(lua, meta, Bases<Asset>{})
             .factory_ctor(
                 [&renderer](const sol::table& animclip_t) {
                     auto clip = std::make_shared<AnimationClip>();
-                    clip->looping = animclip_t.get_or("looping", true);
+                    clip->set_looping(animclip_t.get_or("looping", true));
 
                     if (animclip_t.get<sol::optional<sol::table>>("textures")) {
-                        clip->tracks.push_back(build_texture_track(renderer, animclip_t));
+                        clip->add_track(build_texture_track(renderer, animclip_t));
                     }
 
                     if (auto tracks = animclip_t.get<sol::optional<sol::table>>("tracks")) {
@@ -599,30 +600,17 @@ namespace hob {
                         }
                     }
 
-                    clip->duration = animclip_t.get_or("duration", 0.0f);
-                    for (const AnimationTrackRef& track : clip->tracks) {
-                        clip->duration = std::max(clip->duration, track->get_duration());
+                    float duration = animclip_t.get_or("duration", 0.0f);
+                    for (const AnimationTrackRef& track : clip->get_tracks()) {
+                        duration = std::max(duration, track->get_duration());
                     }
+                    clip->set_duration(duration);
 
                     return clip;
                 },
                 {"config"})
-            .method("get_name",
-                    [](const AnimationClip& self) {
-                        return self.name;
-                    })
-            .method("set_name",
-                    [](AnimationClip& self, std::string name) {
-                        self.name = std::move(name);
-                    },
-                    {"name"})
-            .method("get_duration",
-                    [](const AnimationClip& self) {
-                        return self.duration;
-                    })
-            .method("get_looping", [](const AnimationClip& self) {
-                return self.looping;
-            });
+            .method("get_duration", &AnimationClip::get_duration)
+            .method("get_looping", &AnimationClip::get_looping);
 
         bind_asset_factory_schema<AnimationClip>(asset_factory_schemas,
                                                  "DefineAnimationClip",

@@ -9,6 +9,7 @@
 
 #include <SDL3/SDL_gpu.h>
 
+#include "engine/core/asset.h"
 #include "engine/core/string_hash.h"
 #include "engine/math/constants.h"
 #include "shader_reflection.h"
@@ -67,7 +68,7 @@ namespace hob {
 
     using ShaderParamMap = std::unordered_map<std::string, ShaderParam, StringHash, std::equal_to<>>;
 
-    class Shader {
+    class Shader : public Asset {
         SDL_GPUDevice* m_device = nullptr;
         SDL_GPUGraphicsPipeline* m_pipeline = nullptr;
         std::string m_path;

@@ -10,6 +10,5 @@ namespace hob::editor {
 
     struct EditorInspectorEntryAsset {
         std::string name;
-        std::string display_name;
     };
 } // namespace hob::editor

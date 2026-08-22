@@ -4,6 +4,7 @@
 
 #include "editor_style.h"
 #include "engine/animation/animation_clip.h"
+#include "engine/core/asset.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/audio/audio_clip.h"
 #include "engine/core/systems/renderer/material.h"
@@ -13,8 +14,17 @@
 
 namespace hob::editor {
     namespace {
+        constexpr const char* INSPECTOR_UNNAMED_LABEL = "(unnamed)";
+
         std::unordered_map<std::string, std::vector<EditorInspectorEntryAsset>> g_asset_entries;
 
+        std::string asset_display_string(const Asset& asset, std::string_view fallback) {
+            if (!asset.get_name().empty()) {
+                return asset.get_name();
+            }
+
+            return !fallback.empty() ? std::string(fallback) : INSPECTOR_UNNAMED_LABEL;
+        }
     } // namespace
 
     sol::protected_function get_editor_func(Engine& engine, const char* name) {
@@ -79,10 +89,6 @@ namespace hob::editor {
         return nullptr;
     }
 
-    bool asset_factory_identifies_by_path(std::string_view factory_name) {
-        return factory_name == asset_factory::TEXTURES || factory_name == asset_factory::AUDIO_CLIPS;
-    }
-
     void clear_asset_entry_cache() {
         g_asset_entries.clear();
     }
@@ -111,8 +117,7 @@ namespace hob::editor {
             }
 
             const sol::table entry = row.as<sol::table>();
-            entries.push_back({.name = entry.get_or<std::string>(query_key::NAME, ""),
-                               .display_name = entry.get_or<std::string>(query_key::DISPLAY_NAME, "")});
+            entries.push_back({.name = entry.get_or<std::string>(query_key::NAME, "")});
         }
 
         return g_asset_entries.emplace(factory_name, std::move(entries)).first->second;
@@ -150,26 +155,22 @@ namespace hob::editor {
 
         if (value.is<Texture>()) {
             const TextureRef& texture = value.as<TextureRef>();
-            return texture != nullptr ? texture->get_path() : INSPECTOR_NONE_LABEL;
+            return texture != nullptr ? asset_display_string(*texture, texture->get_path()) : INSPECTOR_NONE_LABEL;
         }
 
         if (value.is<AudioClip>()) {
             const AudioClipRef& clip = value.as<AudioClipRef>();
-            return clip != nullptr ? clip->get_path() : INSPECTOR_NONE_LABEL;
+            return clip != nullptr ? asset_display_string(*clip, clip->get_path()) : INSPECTOR_NONE_LABEL;
         }
 
         if (value.is<Material>()) {
             const MaterialRef& material = value.as<MaterialRef>();
-            return material != nullptr ? material->get_name() : INSPECTOR_NONE_LABEL;
+            return material != nullptr ? asset_display_string(*material, {}) : INSPECTOR_NONE_LABEL;
         }
 
         if (value.is<AnimationClip>()) {
             const AnimationClipRef& clip = value.as<AnimationClipRef>();
-            if (clip == nullptr) {
-                return INSPECTOR_NONE_LABEL;
-            }
-
-            return !clip->name.empty() ? clip->name : "(unnamed)";
+            return clip != nullptr ? asset_display_string(*clip, {}) : INSPECTOR_NONE_LABEL;
         }
 
         const sol::protected_function to_string = engine.get_lua_script_system().get_lua()["tostring"];

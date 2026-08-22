@@ -279,29 +279,6 @@ end
 -- Assets
 -- ---------------------------------------------------------------------------------------------
 
-local function object_path(object)
-    return object.get_path and object:get_path() or nil
-end
-
-local function object_name(object)
-    return object.get_name and object:get_name() or nil
-end
-
-local function def_path(_, def)
-    return def.path
-end
-
-local function def_name(name, _)
-    return name
-end
-
-local ASSET_IDENTITY = {
-    Textures = { of_object = object_path, of_def = def_path },
-    AudioClips = { of_object = object_path, of_def = def_path },
-    Materials = { of_object = object_name, of_def = def_name },
-    AnimationClips = { of_object = object_name, of_def = def_name },
-}
-
 ---@param factory_name string
 ---@return table|nil
 function Editor.get_asset_entries(factory_name)
@@ -311,14 +288,10 @@ function Editor.get_asset_entries(factory_name)
         return nil
     end
 
-    local identity = ASSET_IDENTITY[factory_name]
-
     local entries = {}
     for _, asset_name in ipairs(asset_names) do
-        local asset_def = asset_defs[asset_name]
-        if asset_def ~= nil then
-            local display_name = identity ~= nil and identity.of_def(asset_name, asset_def) or nil
-            entries[#entries + 1] = { name = asset_name, display_name = display_name or asset_name }
+        if asset_defs[asset_name] ~= nil then
+            entries[#entries + 1] = { name = asset_name }
         end
     end
 
@@ -329,30 +302,21 @@ end
 ---@param object any
 ---@return string|nil
 function Editor.get_asset_name(factory_name, object)
-    if type(object) ~= "userdata" then
+    if type(object) ~= "userdata" or object.get_name == nil then
         return nil
     end
 
-    local identity = ASSET_IDENTITY[factory_name]
-    local asset_names = _G.__asset_names[factory_name]
     local asset_defs = _G.__asset_defs[factory_name]
-    if identity == nil or asset_names == nil or asset_defs == nil then
+    if asset_defs == nil then
         return nil
     end
 
-    local key = identity.of_object(object)
-    if key == nil then
+    local asset_name = object:get_name()
+    if asset_name == nil or asset_defs[asset_name] == nil then
         return nil
     end
 
-    for _, asset_name in ipairs(asset_names) do
-        local asset_def = asset_defs[asset_name]
-        if asset_def ~= nil and identity.of_def(asset_name, asset_def) == key then
-            return asset_name
-        end
-    end
-
-    return nil
+    return asset_name
 end
 
 ---@param factory_name string

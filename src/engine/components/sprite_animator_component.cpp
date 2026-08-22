@@ -20,11 +20,11 @@ namespace hob {
             return;
         }
 
-        const float duration = m_current_clip->duration;
+        const float duration = m_current_clip->get_duration();
         m_time += delta_time;
 
         if (m_time >= duration) {
-            if (m_current_clip->looping) {
+            if (m_current_clip->get_looping()) {
                 m_time = duration > 0.0f ? std::fmod(m_time, duration) : 0.0f;
             }
             else {
@@ -42,7 +42,7 @@ namespace hob {
         }
 
         Entity& entity = get_entity();
-        for (const AnimationTrackRef& track : m_current_clip->tracks) {
+        for (const AnimationTrackRef& track : m_current_clip->get_tracks()) {
             track->apply_key_values(entity, m_time);
         }
     }

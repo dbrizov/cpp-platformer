@@ -3,6 +3,8 @@
 #include <memory>
 #include <string>
 
+#include "engine/core/asset.h"
+
 struct MIX_Audio;
 
 namespace hob {
@@ -12,7 +14,7 @@ namespace hob {
     using AudioClipRef = std::shared_ptr<AudioClip>;
     using AudioClipWeakRef = std::weak_ptr<AudioClip>;
 
-    class AudioClip {
+    class AudioClip : public Asset {
         friend class Audio;
 
         MIX_Audio* m_handle = nullptr;

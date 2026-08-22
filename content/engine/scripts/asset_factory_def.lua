@@ -38,8 +38,13 @@ local function install_asset_factory(factory_name, schema)
         end
 
         local obj = ctor(cfg)
-        if obj and obj.set_name then
-            obj:set_name(asset_name)
+        if obj then
+            if obj.set_name then
+                obj:set_name(asset_name)
+            else
+                Log.error(schema.lua_type .. " does not derive from Asset, so '" .. asset_name ..
+                    "' has no identity; the editor cannot resolve it back to its definition")
+            end
         end
         built_assets[asset_name] = obj
         return obj

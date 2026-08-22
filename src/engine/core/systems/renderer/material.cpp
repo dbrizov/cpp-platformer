@@ -9,14 +9,6 @@ namespace hob {
         : m_shader(std::move(shader))
         , m_params(m_shader ? m_shader->get_default_params() : std::vector<uint8_t>{}) {}
 
-    const std::string& Material::get_name() const {
-        return m_name;
-    }
-
-    void Material::set_name(std::string name) {
-        m_name = std::move(name);
-    }
-
     const Shader* Material::get_shader() const {
         return m_shader.get();
     }

@@ -6,6 +6,7 @@
 #include <string_view>
 #include <vector>
 
+#include "engine/core/asset.h"
 #include "shader.h"
 #include "texture.h"
 
@@ -14,8 +15,7 @@ namespace hob {
     using MaterialRef = std::shared_ptr<Material>;
     using MaterialWeakRef = std::weak_ptr<Material>;
 
-    class Material {
-        std::string m_name;
+    class Material : public Asset {
         ShaderRef m_shader;
         std::vector<uint8_t> m_params; // mirrors the shader's Material cbuffer, ready to push as-is
         std::array<TextureRef, MAX_MATERIAL_TEXTURE_SLOTS> m_textures{}; // indexed by reflected texture slot
@@ -23,9 +23,6 @@ namespace hob {
     public:
         Material() = default;
         explicit Material(ShaderRef shader);
-
-        const std::string& get_name() const;
-        void set_name(std::string name);
 
         const Shader* get_shader() const;
 

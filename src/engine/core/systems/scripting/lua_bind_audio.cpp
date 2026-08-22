@@ -1,3 +1,4 @@
+#include "engine/core/asset.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
 #include "engine/core/systems/audio/audio.h"
@@ -27,7 +28,7 @@ namespace hob {
         LuaAssetFactorySchemaRegistry& asset_factory_schemas = m_impl->asset_factory_schemas;
         Audio& audio = m_engine.get_audio();
 
-        bind_usertype<AudioClip>(lua, meta)
+        bind_usertype<AudioClip>(lua, meta, Bases<Asset>{})
             .factory_ctor(
                 [&audio](const sol::table& cfg) -> AudioClipRef {
                     const std::string path = cfg.get<sol::optional<std::string>>("path").value_or("");

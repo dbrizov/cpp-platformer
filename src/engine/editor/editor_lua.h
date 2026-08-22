@@ -24,7 +24,6 @@ namespace hob::editor {
         constexpr const char* IS_LUA = "is_lua";
         constexpr const char* INDEX = "index";
         constexpr const char* FIELDS = "fields";
-        constexpr const char* DISPLAY_NAME = "display_name";
     } // namespace query_key
 
     sol::protected_function get_editor_func(Engine& engine, const char* name);
@@ -51,8 +50,6 @@ namespace hob::editor {
 
     std::string get_asset_name(Engine& engine, const std::string& factory_name, const sol::object& object);
     const char* get_asset_factory_name_for_field_type(std::string_view type);
-
-    bool asset_factory_identifies_by_path(std::string_view factory_name);
 
     void clear_asset_entry_cache();
     const std::vector<EditorInspectorEntryAsset>& get_asset_entries(Engine& engine, const std::string& factory_name);

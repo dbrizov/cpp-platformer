@@ -9,7 +9,6 @@
 #include <sol/sol.hpp>
 
 #include "engine/core/engine.h"
-#include "engine/core/logging.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/scripting/lua_schema_keys.h"
 #include "engine/core/systems/scripting/lua_script_system.h"
@@ -224,14 +223,6 @@ namespace hob::editor {
                     EditorAssetValue old_asset;
                     old_asset.asset_name = asset_name;
                     if (asset_name.empty() && is_asset_set(value)) {
-                        if (asset_factory_identifies_by_path(factory_name)) {
-                            log::engine.error(
-                                "EditorDockInspector: no registry name for the current {} value of '{}'; its path does "
-                                "not match any definition, so undo will retain the object instead",
-                                factory_name,
-                                name);
-                        }
-
                         old_asset.inline_asset = value;
                     }
 

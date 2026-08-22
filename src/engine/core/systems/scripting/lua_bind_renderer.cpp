@@ -1,6 +1,7 @@
 #include <string>
 #include <string_view>
 
+#include "engine/core/asset.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
 #include "engine/core/systems/renderer/renderer.h"
@@ -71,7 +72,7 @@ namespace hob {
         Renderer& renderer = m_engine.get_renderer();
 
         // Texture
-        bind_usertype<Texture>(lua, meta)
+        bind_usertype<Texture>(lua, meta, Bases<Asset>{})
             .factory_ctor(
                 [&renderer](const sol::table& cfg) -> TextureRef {
                     const std::string path = cfg.get<sol::optional<std::string>>("path").value_or("");
@@ -110,37 +111,39 @@ namespace hob {
             asset_factory_schemas, "DefineTexture", asset_factory::TEXTURES, {"path", "wrap", "filter"});
 
         // Shader
-        bind_usertype<Shader>(lua, meta).factory_ctor(
-            [&renderer](const sol::table& cfg) -> ShaderRef {
-                const std::string path = cfg.get<sol::optional<std::string>>("path").value_or("");
-                if (path.empty()) {
-                    log::lua.error("DefineShader requires a 'path'");
-                    return renderer.get_default_shader();
-                }
-
-                const BlendMode blend = parse_blend(cfg.get<sol::optional<std::string>>("blend"));
-                const CullMode cull = parse_cull(cfg.get<sol::optional<std::string>>("cull"));
-
-                ShaderRef shader = renderer.get_or_build_shader(path, blend, cull);
-
-                // Skip baking when the build fell back to the shared default shader (don't clobber it).
-                if (shader && shader != renderer.get_default_shader()) {
-                    if (auto defaults = cfg.get<sol::optional<sol::table>>("defaults")) {
-                        apply_params(
-                            shader->get_params(), *defaults, [&shader](const auto& name, const float* v, uint32_t n) {
-                                shader->set_default_param(name, v, n);
-                            });
+        bind_usertype<Shader>(lua, meta, Bases<Asset>{})
+            .factory_ctor(
+                [&renderer](const sol::table& cfg) -> ShaderRef {
+                    const std::string path = cfg.get<sol::optional<std::string>>("path").value_or("");
+                    if (path.empty()) {
+                        log::lua.error("DefineShader requires a 'path'");
+                        return renderer.get_default_shader();
                     }
-                }
-                return shader;
-            },
-            {"config"});
+
+                    const BlendMode blend = parse_blend(cfg.get<sol::optional<std::string>>("blend"));
+                    const CullMode cull = parse_cull(cfg.get<sol::optional<std::string>>("cull"));
+
+                    ShaderRef shader = renderer.get_or_build_shader(path, blend, cull);
+
+                    // Skip baking when the build fell back to the shared default shader (don't clobber it).
+                    if (shader && shader != renderer.get_default_shader()) {
+                        if (auto defaults = cfg.get<sol::optional<sol::table>>("defaults")) {
+                            apply_params(shader->get_params(),
+                                         *defaults,
+                                         [&shader](const auto& name, const float* v, uint32_t n) {
+                                             shader->set_default_param(name, v, n);
+                                         });
+                        }
+                    }
+                    return shader;
+                },
+                {"config"});
 
         bind_asset_factory_schema<Shader>(
             asset_factory_schemas, "DefineShader", asset_factory::SHADERS, {"path", "blend", "cull", "defaults"});
 
         // Material
-        bind_usertype<Material>(lua, meta)
+        bind_usertype<Material>(lua, meta, Bases<Asset>{})
             .factory_ctor(
                 [&renderer](const sol::table& cfg) -> MaterialRef {
                     ShaderRef shader;
@@ -175,8 +178,6 @@ namespace hob {
                     return mat;
                 },
                 {"config"})
-            .method("get_name", &Material::get_name)
-            .method("set_name", &Material::set_name, {"name"})
             .method("get_param",
                     [&lua](const Material& self, std::string_view name) -> sol::object {
                         const Shader* shader = self.get_shader();

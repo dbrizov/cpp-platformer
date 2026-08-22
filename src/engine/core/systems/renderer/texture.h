@@ -5,6 +5,7 @@
 
 #include <SDL3/SDL_gpu.h>
 
+#include "engine/core/asset.h"
 #include "sampler.h"
 
 namespace hob {
@@ -14,7 +15,7 @@ namespace hob {
     using TextureRef = std::shared_ptr<Texture>;
     using TextureWeakRef = std::weak_ptr<Texture>;
 
-    class Texture {
+    class Texture : public Asset {
         friend class Renderer;
 
         Renderer* m_renderer = nullptr;

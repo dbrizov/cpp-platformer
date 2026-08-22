@@ -816,7 +816,7 @@ namespace hob::editor {
                 const bool is_current = entry.name == asset_name;
 
                 ImGui::PushID(i);
-                if (combo_item(entry.display_name.c_str(), is_current) && !is_current) {
+                if (combo_item(entry.name.c_str(), is_current) && !is_current) {
                     picked_asset_name = entry.name;
                     changed = true;
                 }

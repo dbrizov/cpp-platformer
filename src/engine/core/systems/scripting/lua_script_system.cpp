@@ -293,6 +293,7 @@ namespace hob {
 
     void LuaScriptSystem::register_bindings() {
         bind_schema();
+        bind_asset();
         bind_math();
         bind_entity();
         bind_components();
