@@ -181,14 +181,14 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_SCENE_VIEW_CAMERA_RECT = with_alpha(COLOR_ACCENT, 0.70f);
 
     // Gizmo
-    constexpr float GIZMO_AXIS_LENGTH_PX = 100.0f;
+    constexpr float GIZMO_AXIS_LENGTH_PX = 110.0f;
     constexpr float GIZMO_AXIS_THICKNESS = 2.0f;
     constexpr float GIZMO_ARROW_HEAD_LENGTH_PX = 15.0f;
     constexpr float GIZMO_ARROW_HEAD_WIDTH_PX = 12.0f;
     constexpr float GIZMO_SCALE_BOX_PX = 12.0f;
     constexpr float GIZMO_COMPOSITE_OFFSET_PX = 22.0f;
     constexpr float GIZMO_COMPOSITE_SIZE_PX = 16.0f;
-    constexpr float GIZMO_RING_RADIUS_PX = 80.0f;
+    constexpr float GIZMO_RING_RADIUS_PX = 86.0f;
     constexpr float GIZMO_RING_THICKNESS = 2.0f;
     constexpr int32_t GIZMO_RING_SEGMENTS = 64;
     constexpr float GIZMO_ORIGIN_RADIUS_PX = 3.0f;

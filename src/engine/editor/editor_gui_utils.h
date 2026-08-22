@@ -20,6 +20,7 @@ namespace hob::editor {
         Pause,
         Step,
         Stop,
+        TranslateRotate,
         Translate,
         Rotate,
         Scale,

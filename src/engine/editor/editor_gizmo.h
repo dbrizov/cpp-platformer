@@ -12,6 +12,7 @@ namespace hob::editor {
     class Editor;
 
     enum class EditorGizmoMode : uint8_t {
+        TranslateRotate,
         Translate,
         Rotate,
         Scale,
@@ -50,7 +51,7 @@ namespace hob::editor {
             Vector2 start_world_position;
         };
 
-        EditorGizmoMode m_mode = EditorGizmoMode::Translate;
+        EditorGizmoMode m_mode = EditorGizmoMode::TranslateRotate;
         EditorGizmoSpace m_space = EditorGizmoSpace::World;
 
         EditorGizmoHandle m_hovered_handle = EditorGizmoHandle::None;
@@ -92,7 +93,14 @@ namespace hob::editor {
 
         static Vector2 get_composite_center(const Frame& frame);
 
+        void draw_translate_handles(ImDrawList* draw_list, const Frame& frame, EditorGizmoHandle active_handle) const;
+        void draw_rotate_ring(ImDrawList* draw_list, const Frame& frame, EditorGizmoHandle active_handle) const;
+        void draw_scale_handles(ImDrawList* draw_list, const Frame& frame, EditorGizmoHandle active_handle) const;
+
         EditorGizmoHandle pick_handle(const Frame& frame, const Vector2& mouse_screen_position) const;
+
+        static EditorGizmoHandle pick_axis_handle(const Frame& frame, const Vector2& mouse_screen_position);
+        static bool is_on_ring(const Frame& frame, const Vector2& mouse_screen_position);
 
         void begin_drag(const Editor& editor,
                         const Frame& frame,

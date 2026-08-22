@@ -119,8 +119,24 @@ namespace hob::editor {
                     },
             },
             {
+                .id = EditorActionId::GizmoTranslateRotate,
+                .label = "Translate + Rotate Mode",
+                .chord = ImGuiKey_Q,
+                .context = EditorActionContext::Global,
+                .is_enabled = nullptr,
+                .is_active =
+                    [](const Editor& editor) {
+                        return editor.get_scene_view().get_gizmo_mode() == EditorGizmoMode::TranslateRotate;
+                    },
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        editor.get_scene_view().set_gizmo_mode(EditorGizmoMode::TranslateRotate);
+                    },
+            },
+            {
                 .id = EditorActionId::GizmoTranslate,
-                .label = "Translate Tool",
+                .label = "Translate Mode",
                 .chord = ImGuiKey_W,
                 .context = EditorActionContext::Global,
                 .is_enabled = nullptr,
@@ -136,7 +152,7 @@ namespace hob::editor {
             },
             {
                 .id = EditorActionId::GizmoRotate,
-                .label = "Rotate Tool",
+                .label = "Rotate Mode",
                 .chord = ImGuiKey_E,
                 .context = EditorActionContext::Global,
                 .is_enabled = nullptr,
@@ -152,7 +168,7 @@ namespace hob::editor {
             },
             {
                 .id = EditorActionId::GizmoScale,
-                .label = "Scale Tool",
+                .label = "Scale Mode",
                 .chord = ImGuiKey_R,
                 .context = EditorActionContext::Global,
                 .is_enabled = nullptr,

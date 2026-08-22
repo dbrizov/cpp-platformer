@@ -117,6 +117,17 @@ namespace hob::editor {
                                              BAR_ICON_ROUNDING);
                     break;
                 }
+                case EditorBarIcon::TranslateRotate: {
+                    const float radius = half - 1.0f;
+                    const float arm = IM_ROUND(half * 0.5f);
+
+                    draw_list->AddCircle(center, radius, color, BAR_ICON_ARC_SEGMENTS, line_thickness);
+                    draw_list->AddLine(
+                        ImVec2(center.x - arm, center.y), ImVec2(center.x + arm, center.y), color, line_thickness);
+                    draw_list->AddLine(
+                        ImVec2(center.x, center.y - arm), ImVec2(center.x, center.y + arm), color, line_thickness);
+                    break;
+                }
                 case EditorBarIcon::Translate: {
                     const float head = IM_ROUND(half * 0.55f);
 

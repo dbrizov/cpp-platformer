@@ -18,6 +18,7 @@ namespace hob::editor {
         Pause,
         Step,
         Stop,
+        GizmoTranslateRotate,
         GizmoTranslate,
         GizmoRotate,
         GizmoScale,

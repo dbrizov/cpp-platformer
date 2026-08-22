@@ -33,11 +33,29 @@ namespace hob::editor {
 
         constexpr float MIN_SCALE_REFERENCE = 0.001f;
 
-        const char* get_mode_label(EditorGizmoMode mode) {
-            switch (mode) {
-                case EditorGizmoMode::Rotate:
+        enum class GizmoOperation : uint8_t {
+            Translate,
+            Rotate,
+            Scale,
+        };
+
+        GizmoOperation get_operation(EditorGizmoMode mode, EditorGizmoHandle handle) {
+            if (handle == EditorGizmoHandle::Ring) {
+                return GizmoOperation::Rotate;
+            }
+
+            if (mode == EditorGizmoMode::Scale) {
+                return GizmoOperation::Scale;
+            }
+
+            return GizmoOperation::Translate;
+        }
+
+        const char* get_operation_label(GizmoOperation operation) {
+            switch (operation) {
+                case GizmoOperation::Rotate:
                     return LABEL_ROTATE;
-                case EditorGizmoMode::Scale:
+                case GizmoOperation::Scale:
                     return LABEL_SCALE;
                 default:
                     return LABEL_TRANSLATE;
@@ -228,59 +246,22 @@ namespace hob::editor {
 
         const EditorGizmoHandle active_handle = is_dragging() ? m_dragged_handle : m_hovered_handle;
 
-        const ImU32 highlight = ImGui::GetColorU32(COLOR_GIZMO_HIGHLIGHT);
-        const ImU32 axis_x_color =
-            (active_handle == EditorGizmoHandle::AxisX) ? highlight : ImGui::GetColorU32(COLOR_GIZMO_AXIS_X);
-        const ImU32 axis_y_color =
-            (active_handle == EditorGizmoHandle::AxisY) ? highlight : ImGui::GetColorU32(COLOR_GIZMO_AXIS_Y);
-
         switch (m_mode) {
+            case EditorGizmoMode::TranslateRotate: {
+                draw_rotate_ring(draw_list, frame, active_handle);
+                draw_translate_handles(draw_list, frame, active_handle);
+                break;
+            }
             case EditorGizmoMode::Translate: {
-                draw_box(draw_list,
-                         get_composite_center(frame),
-                         GIZMO_COMPOSITE_SIZE_PX,
-                         (active_handle == EditorGizmoHandle::Plane) ? highlight
-                                                                     : ImGui::GetColorU32(COLOR_GIZMO_COMPOSITE));
-
-                draw_arrow(draw_list, frame.pivot_screen, frame.axis_x_screen, axis_x_color);
-                draw_arrow(draw_list, frame.pivot_screen, frame.axis_y_screen, axis_y_color);
+                draw_translate_handles(draw_list, frame, active_handle);
                 break;
             }
             case EditorGizmoMode::Rotate: {
-                const bool ring_active = active_handle == EditorGizmoHandle::Ring;
-
-                draw_list->AddCircle(to_imvec(frame.pivot_screen),
-                                     GIZMO_RING_RADIUS_PX,
-                                     ring_active ? highlight : ImGui::GetColorU32(COLOR_GIZMO_RING),
-                                     GIZMO_RING_SEGMENTS,
-                                     GIZMO_RING_THICKNESS);
-
-                if (is_dragging()) {
-                    const float start_angle = m_drag_previous_angle - m_drag_total_rotation;
-                    const Vector2 start_spoke =
-                        frame.axis_x_screen * std::cos(start_angle) + frame.axis_y_screen * std::sin(start_angle);
-                    const Vector2 current_spoke = frame.axis_x_screen * std::cos(m_drag_previous_angle) +
-                                                  frame.axis_y_screen * std::sin(m_drag_previous_angle);
-
-                    draw_list->AddLine(to_imvec(frame.pivot_screen),
-                                       to_imvec(frame.pivot_screen + start_spoke * GIZMO_RING_RADIUS_PX),
-                                       ImGui::GetColorU32(COLOR_GIZMO_RING),
-                                       GIZMO_AXIS_THICKNESS);
-                    draw_list->AddLine(to_imvec(frame.pivot_screen),
-                                       to_imvec(frame.pivot_screen + current_spoke * GIZMO_RING_RADIUS_PX),
-                                       highlight,
-                                       GIZMO_AXIS_THICKNESS);
-                }
+                draw_rotate_ring(draw_list, frame, active_handle);
                 break;
             }
             case EditorGizmoMode::Scale: {
-                draw_axis_with_box(draw_list, frame.pivot_screen, frame.axis_x_screen, axis_x_color);
-                draw_axis_with_box(draw_list, frame.pivot_screen, frame.axis_y_screen, axis_y_color);
-                draw_box(draw_list,
-                         get_composite_center(frame),
-                         GIZMO_COMPOSITE_SIZE_PX,
-                         (active_handle == EditorGizmoHandle::Uniform) ? highlight
-                                                                       : ImGui::GetColorU32(COLOR_GIZMO_COMPOSITE));
+                draw_scale_handles(draw_list, frame, active_handle);
                 break;
             }
         }
@@ -342,8 +323,93 @@ namespace hob::editor {
         return frame.pivot_screen + (frame.axis_x_screen + frame.axis_y_screen) * GIZMO_COMPOSITE_OFFSET_PX;
     }
 
+    void EditorGizmo::draw_translate_handles(ImDrawList* draw_list,
+                                             const Frame& frame,
+                                             EditorGizmoHandle active_handle) const {
+        const ImU32 highlight = ImGui::GetColorU32(COLOR_GIZMO_HIGHLIGHT);
+
+        draw_box(draw_list,
+                 get_composite_center(frame),
+                 GIZMO_COMPOSITE_SIZE_PX,
+                 (active_handle == EditorGizmoHandle::Plane) ? highlight : ImGui::GetColorU32(COLOR_GIZMO_COMPOSITE));
+
+        draw_arrow(draw_list,
+                   frame.pivot_screen,
+                   frame.axis_x_screen,
+                   (active_handle == EditorGizmoHandle::AxisX) ? highlight : ImGui::GetColorU32(COLOR_GIZMO_AXIS_X));
+        draw_arrow(draw_list,
+                   frame.pivot_screen,
+                   frame.axis_y_screen,
+                   (active_handle == EditorGizmoHandle::AxisY) ? highlight : ImGui::GetColorU32(COLOR_GIZMO_AXIS_Y));
+    }
+
+    void EditorGizmo::draw_rotate_ring(ImDrawList* draw_list,
+                                       const Frame& frame,
+                                       EditorGizmoHandle active_handle) const {
+        const ImU32 highlight = ImGui::GetColorU32(COLOR_GIZMO_HIGHLIGHT);
+        const bool ring_active = active_handle == EditorGizmoHandle::Ring;
+
+        draw_list->AddCircle(to_imvec(frame.pivot_screen),
+                             GIZMO_RING_RADIUS_PX,
+                             ring_active ? highlight : ImGui::GetColorU32(COLOR_GIZMO_RING),
+                             GIZMO_RING_SEGMENTS,
+                             GIZMO_RING_THICKNESS);
+
+        if (!is_dragging() || m_dragged_handle != EditorGizmoHandle::Ring) {
+            return;
+        }
+
+        const float start_angle = m_drag_previous_angle - m_drag_total_rotation;
+        const Vector2 start_spoke =
+            frame.axis_x_screen * std::cos(start_angle) + frame.axis_y_screen * std::sin(start_angle);
+        const Vector2 current_spoke = frame.axis_x_screen * std::cos(m_drag_previous_angle) +
+                                      frame.axis_y_screen * std::sin(m_drag_previous_angle);
+
+        draw_list->AddLine(to_imvec(frame.pivot_screen),
+                           to_imvec(frame.pivot_screen + start_spoke * GIZMO_RING_RADIUS_PX),
+                           ImGui::GetColorU32(COLOR_GIZMO_RING),
+                           GIZMO_AXIS_THICKNESS);
+        draw_list->AddLine(to_imvec(frame.pivot_screen),
+                           to_imvec(frame.pivot_screen + current_spoke * GIZMO_RING_RADIUS_PX),
+                           highlight,
+                           GIZMO_AXIS_THICKNESS);
+    }
+
+    void EditorGizmo::draw_scale_handles(ImDrawList* draw_list,
+                                         const Frame& frame,
+                                         EditorGizmoHandle active_handle) const {
+        const ImU32 highlight = ImGui::GetColorU32(COLOR_GIZMO_HIGHLIGHT);
+
+        draw_axis_with_box(draw_list,
+                           frame.pivot_screen,
+                           frame.axis_x_screen,
+                           (active_handle == EditorGizmoHandle::AxisX) ? highlight
+                                                                       : ImGui::GetColorU32(COLOR_GIZMO_AXIS_X));
+        draw_axis_with_box(draw_list,
+                           frame.pivot_screen,
+                           frame.axis_y_screen,
+                           (active_handle == EditorGizmoHandle::AxisY) ? highlight
+                                                                       : ImGui::GetColorU32(COLOR_GIZMO_AXIS_Y));
+        draw_box(draw_list,
+                 get_composite_center(frame),
+                 GIZMO_COMPOSITE_SIZE_PX,
+                 (active_handle == EditorGizmoHandle::Uniform) ? highlight : ImGui::GetColorU32(COLOR_GIZMO_COMPOSITE));
+    }
+
     EditorGizmoHandle EditorGizmo::pick_handle(const Frame& frame, const Vector2& mouse_screen_position) const {
         switch (m_mode) {
+            case EditorGizmoMode::TranslateRotate: {
+                if (is_inside_box(get_composite_center(frame), GIZMO_COMPOSITE_SIZE_PX, mouse_screen_position)) {
+                    return EditorGizmoHandle::Plane;
+                }
+
+                const EditorGizmoHandle axis = pick_axis_handle(frame, mouse_screen_position);
+                if (axis != EditorGizmoHandle::None) {
+                    return axis;
+                }
+
+                return is_on_ring(frame, mouse_screen_position) ? EditorGizmoHandle::Ring : EditorGizmoHandle::None;
+            }
             case EditorGizmoMode::Translate: {
                 if (is_inside_box(get_composite_center(frame), GIZMO_COMPOSITE_SIZE_PX, mouse_screen_position)) {
                     return EditorGizmoHandle::Plane;
@@ -351,9 +417,7 @@ namespace hob::editor {
                 break;
             }
             case EditorGizmoMode::Rotate: {
-                const float distance = (mouse_screen_position - frame.pivot_screen).length();
-                return (std::abs(distance - GIZMO_RING_RADIUS_PX) <= GIZMO_PICK_TOLERANCE_PX) ? EditorGizmoHandle::Ring
-                                                                                              : EditorGizmoHandle::None;
+                return is_on_ring(frame, mouse_screen_position) ? EditorGizmoHandle::Ring : EditorGizmoHandle::None;
             }
             case EditorGizmoMode::Scale: {
                 if (is_inside_box(get_composite_center(frame), GIZMO_COMPOSITE_SIZE_PX, mouse_screen_position)) {
@@ -363,6 +427,10 @@ namespace hob::editor {
             }
         }
 
+        return pick_axis_handle(frame, mouse_screen_position);
+    }
+
+    EditorGizmoHandle EditorGizmo::pick_axis_handle(const Frame& frame, const Vector2& mouse_screen_position) {
         if (is_near_segment(frame.pivot_screen,
                             frame.axis_x_screen,
                             GIZMO_AXIS_LENGTH_PX,
@@ -380,6 +448,11 @@ namespace hob::editor {
         }
 
         return EditorGizmoHandle::None;
+    }
+
+    bool EditorGizmo::is_on_ring(const Frame& frame, const Vector2& mouse_screen_position) {
+        const float distance = (mouse_screen_position - frame.pivot_screen).length();
+        return std::abs(distance - GIZMO_RING_RADIUS_PX) <= GIZMO_PICK_TOLERANCE_PX;
     }
 
     void EditorGizmo::begin_drag(const Editor& editor,
@@ -425,11 +498,13 @@ namespace hob::editor {
         const EntitySpawner& spawner = engine.get_entity_spawner();
         sol::state& lua = engine.get_lua_script_system().get_lua();
 
+        const GizmoOperation operation = get_operation(m_mode, m_dragged_handle);
+
         Vector2 translation = Vector2::zero();
         Vector2 scale_factor = Vector2::one();
 
-        switch (m_mode) {
-            case EditorGizmoMode::Translate: {
+        switch (operation) {
+            case GizmoOperation::Translate: {
                 const Vector2 delta = mouse_world_position - m_drag_grab_world;
 
                 if (m_dragged_handle == EditorGizmoHandle::AxisX) {
@@ -443,7 +518,7 @@ namespace hob::editor {
                 }
                 break;
             }
-            case EditorGizmoMode::Rotate: {
+            case GizmoOperation::Rotate: {
                 const Vector2 offset = mouse_world_position - m_drag_pivot_world;
                 if (offset.length() <= MIN_ROTATE_RADIUS) {
                     return;
@@ -454,7 +529,7 @@ namespace hob::editor {
                 m_drag_previous_angle = angle;
                 break;
             }
-            case EditorGizmoMode::Scale: {
+            case GizmoOperation::Scale: {
                 const Vector2 start_offset = m_drag_grab_world - m_drag_pivot_world;
                 const Vector2 current_offset = mouse_world_position - m_drag_pivot_world;
 
@@ -487,8 +562,8 @@ namespace hob::editor {
 
             const bool is_on_pivot = pivot_offset.length_sqr() <= EPSILON * EPSILON;
 
-            switch (m_mode) {
-                case EditorGizmoMode::Translate: {
+            switch (operation) {
+                case GizmoOperation::Translate: {
                     const Vector2 world_position = drag.start_world_position + translation;
                     write_field(engine,
                                 lua,
@@ -497,7 +572,7 @@ namespace hob::editor {
                                 world_to_local_position(*transform, world_position));
                     break;
                 }
-                case EditorGizmoMode::Rotate: {
+                case GizmoOperation::Rotate: {
                     write_field(engine,
                                 lua,
                                 drag.entity_id,
@@ -515,7 +590,7 @@ namespace hob::editor {
                     }
                     break;
                 }
-                case EditorGizmoMode::Scale: {
+                case GizmoOperation::Scale: {
                     write_field(
                         engine,
                         lua,
@@ -544,7 +619,7 @@ namespace hob::editor {
         Engine& engine = editor.get_engine();
         const EntitySpawner& spawner = engine.get_entity_spawner();
         sol::state& lua = engine.get_lua_script_system().get_lua();
-        const char* label = get_mode_label(m_mode);
+        const char* label = get_operation_label(get_operation(m_mode, m_dragged_handle));
 
         std::vector<std::unique_ptr<EditorCommand>> commands;
         for (const DragEntity& drag : m_drag_entities) {

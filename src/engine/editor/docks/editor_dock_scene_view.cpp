@@ -28,6 +28,7 @@ namespace hob::editor {
         };
 
         constexpr EditorSceneViewToolItem SCENE_VIEW_TOOL_ITEMS[] = {
+            {EditorActionId::GizmoTranslateRotate, EditorBarIcon::TranslateRotate},
             {EditorActionId::GizmoTranslate, EditorBarIcon::Translate},
             {EditorActionId::GizmoRotate, EditorBarIcon::Rotate},
             {EditorActionId::GizmoScale, EditorBarIcon::Scale},
