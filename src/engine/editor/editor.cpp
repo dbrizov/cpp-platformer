@@ -190,7 +190,15 @@ namespace hob::editor {
         return m_menu_bar;
     }
 
+    const EditorMenuBar& Editor::get_menu_bar() const {
+        return m_menu_bar;
+    }
+
     EditorToolbar& Editor::get_toolbar() {
+        return m_toolbar;
+    }
+
+    const EditorToolbar& Editor::get_toolbar() const {
         return m_toolbar;
     }
 
@@ -198,7 +206,15 @@ namespace hob::editor {
         return m_scene_view;
     }
 
+    const EditorDockSceneView& Editor::get_scene_view() const {
+        return m_scene_view;
+    }
+
     EditorDockHierarchy& Editor::get_hierarchy() {
+        return m_hierarchy;
+    }
+
+    const EditorDockHierarchy& Editor::get_hierarchy() const {
         return m_hierarchy;
     }
 
@@ -206,7 +222,15 @@ namespace hob::editor {
         return m_inspector;
     }
 
+    const EditorDockInspector& Editor::get_inspector() const {
+        return m_inspector;
+    }
+
     EditorDockAssets& Editor::get_assets() {
+        return m_assets;
+    }
+
+    const EditorDockAssets& Editor::get_assets() const {
         return m_assets;
     }
 
@@ -341,6 +365,7 @@ namespace hob::editor {
         m_commands.clear();
         m_selection.clear();
         m_scene_view.reset_pick_cycle();
+        m_scene_view.reset_gizmo();
         m_inspector.reset_edit_state();
     }
 

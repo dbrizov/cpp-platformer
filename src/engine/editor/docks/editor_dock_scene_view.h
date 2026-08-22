@@ -6,6 +6,7 @@
 
 #include "editor_dock.h"
 #include "engine/editor/editor_camera.h"
+#include "engine/editor/editor_gizmo.h"
 #include "engine/entity/entity.h"
 #include "engine/math/vector2.h"
 
@@ -14,6 +15,7 @@ struct ImDrawList;
 namespace hob::editor {
     class EditorDockSceneView : public EditorDock {
         EditorCamera m_camera;
+        EditorGizmo m_gizmo;
 
         SDL_GPUTexture* m_color_target = nullptr;
         uint32_t m_color_target_width = 0;
@@ -35,6 +37,10 @@ namespace hob::editor {
         void render_pass(Editor& editor);
         void release_color_target(Editor& editor);
 
+        EditorGizmoMode get_gizmo_mode() const;
+        void set_gizmo_mode(EditorGizmoMode mode);
+        void reset_gizmo();
+
         void focus_on_selection(const Editor& editor);
         void reset_pick_cycle();
 
@@ -46,6 +52,7 @@ namespace hob::editor {
                                     const Vector2& world_pos,
                                     std::vector<EntityId>& out_candidates) const;
 
+        void draw_toolbar(Editor& editor);
         void draw_grid(ImDrawList* draw_list, const EditorSceneRect& scene_rect) const;
         void draw_camera_view_rect(const Editor& editor,
                                    ImDrawList* draw_list,

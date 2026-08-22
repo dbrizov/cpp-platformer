@@ -88,11 +88,22 @@ namespace hob::editor {
         const EditorCommandStack& get_commands() const;
 
         EditorMenuBar& get_menu_bar();
+        const EditorMenuBar& get_menu_bar() const;
+
         EditorToolbar& get_toolbar();
+        const EditorToolbar& get_toolbar() const;
+
         EditorDockSceneView& get_scene_view();
+        const EditorDockSceneView& get_scene_view() const;
+
         EditorDockHierarchy& get_hierarchy();
+        const EditorDockHierarchy& get_hierarchy() const;
+
         EditorDockInspector& get_inspector();
+        const EditorDockInspector& get_inspector() const;
+
         EditorDockAssets& get_assets();
+        const EditorDockAssets& get_assets() const;
 
 #pragma region EngineHooks
         void init() override;

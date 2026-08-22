@@ -20,6 +20,9 @@ namespace hob::editor {
         Pause,
         Step,
         Stop,
+        Translate,
+        Rotate,
+        Scale,
     };
 
     struct EditorStyleColorStack {
@@ -61,6 +64,8 @@ namespace hob::editor {
 
     std::string to_display_label(std::string_view name);
 
+    float get_bar_height();
+
     ImGuiID dock_space_over_viewport(ImGuiDockNodeFlags flags);
 
     bool begin_dock(const char* name, ImGuiWindowFlags flags = 0);
@@ -76,7 +81,12 @@ namespace hob::editor {
     void end_combo();
     bool combo_item(const char* label, bool selected);
 
-    bool bar_icon_button(const char* id, EditorBarIcon icon, bool enabled, bool active, const char* tooltip);
+    bool bar_icon_button(const char* id,
+                         EditorBarIcon icon,
+                         bool enabled,
+                         bool active,
+                         const char* tooltip,
+                         const EditorBarMetrics& metrics = TOOLBAR_METRICS);
 
     void set_tooltip(const char* fmt, ...) IM_FMTARGS(1);
 

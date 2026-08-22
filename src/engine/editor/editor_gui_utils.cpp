@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <concepts>
 #include <cstdarg>
 #include <cstdio>
@@ -71,11 +72,13 @@ namespace hob::editor {
             draw_list->AddRectFilled(rect.Min, rect.Max, ImGui::GetColorU32(color), rounding);
         }
 
-        void draw_bar_icon(ImDrawList* draw_list, const ImRect& rect, EditorBarIcon icon, ImU32 color) {
+        void draw_bar_icon(
+            ImDrawList* draw_list, const ImRect& rect, EditorBarIcon icon, ImU32 color, float icon_size) {
             const ImVec2 center(IM_ROUND(rect.GetCenter().x), IM_ROUND(rect.GetCenter().y));
-            const float half = IM_ROUND(TOOLBAR_ICON_SIZE * 0.5f);
-            const float bar = IM_ROUND(TOOLBAR_ICON_BAR_WIDTH);
-            const float spacing = IM_ROUND(TOOLBAR_ICON_SPACING_X);
+            const float half = IM_ROUND(icon_size * 0.5f);
+            const float bar = IM_ROUND(icon_size * BAR_ICON_BAR_WIDTH_RATIO);
+            const float spacing = IM_ROUND(icon_size * BAR_ICON_SPACING_RATIO);
+            const float line_thickness = icon_size * BAR_ICON_LINE_THICKNESS_RATIO;
 
             switch (icon) {
                 case EditorBarIcon::Play: {
@@ -89,11 +92,11 @@ namespace hob::editor {
                     draw_list->AddRectFilled(ImVec2(center.x - spacing - bar, center.y - half),
                                              ImVec2(center.x - spacing, center.y + half),
                                              color,
-                                             TOOLBAR_ICON_ROUNDING);
+                                             BAR_ICON_ROUNDING);
                     draw_list->AddRectFilled(ImVec2(center.x + spacing, center.y - half),
                                              ImVec2(center.x + spacing + bar, center.y + half),
                                              color,
-                                             TOOLBAR_ICON_ROUNDING);
+                                             BAR_ICON_ROUNDING);
                     break;
                 }
                 case EditorBarIcon::Step: {
@@ -104,14 +107,71 @@ namespace hob::editor {
                     draw_list->AddRectFilled(ImVec2(center.x + half - bar, center.y - half),
                                              ImVec2(center.x + half, center.y + half),
                                              color,
-                                             TOOLBAR_ICON_ROUNDING);
+                                             BAR_ICON_ROUNDING);
                     break;
                 }
                 case EditorBarIcon::Stop: {
                     draw_list->AddRectFilled(ImVec2(center.x - half + 1.0f, center.y - half + 1.0f),
                                              ImVec2(center.x + half - 1.0f, center.y + half - 1.0f),
                                              color,
-                                             TOOLBAR_ICON_ROUNDING);
+                                             BAR_ICON_ROUNDING);
+                    break;
+                }
+                case EditorBarIcon::Translate: {
+                    const float head = IM_ROUND(half * 0.55f);
+
+                    draw_list->AddLine(
+                        ImVec2(center.x - half, center.y), ImVec2(center.x + half, center.y), color, line_thickness);
+                    draw_list->AddLine(
+                        ImVec2(center.x, center.y - half), ImVec2(center.x, center.y + half), color, line_thickness);
+
+                    draw_list->AddTriangleFilled(ImVec2(center.x + half, center.y),
+                                                 ImVec2(center.x + half - head, center.y - head),
+                                                 ImVec2(center.x + half - head, center.y + head),
+                                                 color);
+                    draw_list->AddTriangleFilled(ImVec2(center.x - half, center.y),
+                                                 ImVec2(center.x - half + head, center.y + head),
+                                                 ImVec2(center.x - half + head, center.y - head),
+                                                 color);
+                    draw_list->AddTriangleFilled(ImVec2(center.x, center.y - half),
+                                                 ImVec2(center.x + head, center.y - half + head),
+                                                 ImVec2(center.x - head, center.y - half + head),
+                                                 color);
+                    draw_list->AddTriangleFilled(ImVec2(center.x, center.y + half),
+                                                 ImVec2(center.x - head, center.y + half - head),
+                                                 ImVec2(center.x + head, center.y + half - head),
+                                                 color);
+                    break;
+                }
+                case EditorBarIcon::Rotate: {
+                    const float radius = half - 1.0f;
+                    const float head = IM_ROUND(half * 0.6f);
+                    const float end_angle = PI * 0.25f;
+
+                    draw_list->PathArcTo(center, radius, end_angle, end_angle + PI * 1.5f, BAR_ICON_ARC_SEGMENTS);
+                    draw_list->PathStroke(color, ImDrawFlags_None, line_thickness);
+
+                    const ImVec2 radial(std::cos(end_angle), std::sin(end_angle));
+                    const ImVec2 tangent(radial.y, -radial.x);
+                    const ImVec2 base(center.x + radial.x * radius, center.y + radial.y * radius);
+
+                    draw_list->AddTriangleFilled(
+                        ImVec2(base.x + tangent.x * head, base.y + tangent.y * head),
+                        ImVec2(base.x + radial.x * head * 0.8f, base.y + radial.y * head * 0.8f),
+                        ImVec2(base.x - radial.x * head * 0.8f, base.y - radial.y * head * 0.8f),
+                        color);
+                    break;
+                }
+                case EditorBarIcon::Scale: {
+                    const float box = IM_ROUND(half * 0.7f);
+                    const ImVec2 from(center.x - half + 1.0f, center.y + half - 1.0f);
+                    const ImVec2 to(center.x + half - 1.0f, center.y - half + 1.0f);
+
+                    draw_list->AddLine(from, to, color, line_thickness);
+                    draw_list->AddRectFilled(
+                        ImVec2(to.x - box, to.y), ImVec2(to.x, to.y + box), color, BAR_ICON_ROUNDING);
+                    draw_list->AddRect(
+                        ImVec2(from.x, from.y - box), ImVec2(from.x + box, from.y), color, BAR_ICON_ROUNDING);
                     break;
                 }
             }
@@ -182,12 +242,16 @@ namespace hob::editor {
         return label;
     }
 
+    float get_bar_height() {
+        return ImGui::GetCurrentWindow()->MenuBarRect().GetHeight();
+    }
+
     ImGuiID dock_space_over_viewport(ImGuiDockNodeFlags flags) {
         const ImGuiStyle& style = ImGui::GetStyle();
 
         EditorStyleVarStack vars;
-        vars.push(ImGuiStyleVar_ItemInnerSpacing, ImVec2(DOCK_TAB_SPACING_X, style.ItemInnerSpacing.y));
-        vars.push(ImGuiStyleVar_FramePadding, ImVec2(DOCK_TAB_PADDING_X, style.FramePadding.y));
+        vars.push(ImGuiStyleVar_ItemInnerSpacing, DOCK_TAB_SPACING);
+        vars.push(ImGuiStyleVar_FramePadding, DOCK_TAB_PADDING);
 
         const ImGuiID dock_space_id = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), flags);
 
@@ -227,10 +291,10 @@ namespace hob::editor {
         colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
 
         EditorStyleVarStack vars;
-        vars.push(ImGuiStyleVar_ItemSpacing, ImVec2(MENU_BAR_ITEM_PADDING_X, style.ItemSpacing.y));
-        vars.push(ImGuiStyleVar_WindowPadding, MENU_BAR_POPUP_PADDING);
+        vars.push(ImGuiStyleVar_ItemSpacing, ImVec2(MENU_BAR_ITEM_PADDING.x * 2.0f, style.ItemSpacing.y));
+        vars.push(ImGuiStyleVar_WindowPadding, BAR_POPUP_PADDING);
 
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + MENU_BAR_ITEM_SPACING_X);
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + BAR_ITEM_SPACING.x);
         const bool open = ImGui::BeginMenu(label);
 
         vars.pop();
@@ -240,14 +304,14 @@ namespace hob::editor {
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
             draw_highlight(draw_list,
                            ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()),
-                           open ? COLOR_MENU_BAR_ITEM_ACTIVE : COLOR_MENU_BAR_ITEM_HOVER,
-                           MENU_BAR_ITEM_ROUNDING);
+                           open ? COLOR_BAR_ITEM_ACTIVE : COLOR_BAR_ITEM_HOVER,
+                           BAR_ITEM_ROUNDING);
         }
 
         splitter.Merge(draw_list);
 
         if (open) {
-            ImGui::PushStyleColor(ImGuiCol_Separator, COLOR_MENU_BAR_SEPARATOR);
+            ImGui::PushStyleColor(ImGuiCol_Separator, COLOR_BAR_SEPARATOR);
         }
 
         return open;
@@ -272,7 +336,7 @@ namespace hob::editor {
         colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
 
         EditorStyleVarStack vars;
-        vars.push(ImGuiStyleVar_WindowPadding, MENU_BAR_POPUP_PADDING);
+        vars.push(ImGuiStyleVar_WindowPadding, BAR_POPUP_PADDING);
 
         const bool open = ImGui::BeginMenu(label, enabled);
 
@@ -291,15 +355,15 @@ namespace hob::editor {
 
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
             draw_highlight(draw_list,
-                           inset_rect(row_min, row_max, MENU_BAR_POPUP_ITEM_INSET),
-                           open ? COLOR_MENU_BAR_ITEM_ACTIVE : COLOR_MENU_BAR_ITEM_HOVER,
-                           MENU_BAR_ITEM_ROUNDING);
+                           inset_rect(row_min, row_max, BAR_POPUP_ITEM_INSET),
+                           open ? COLOR_BAR_ITEM_ACTIVE : COLOR_BAR_ITEM_HOVER,
+                           BAR_ITEM_ROUNDING);
         }
 
         splitter.Merge(draw_list);
 
         if (open) {
-            ImGui::PushStyleColor(ImGuiCol_Separator, COLOR_MENU_BAR_SEPARATOR);
+            ImGui::PushStyleColor(ImGuiCol_Separator, COLOR_BAR_SEPARATOR);
         }
 
         return open;
@@ -342,8 +406,7 @@ namespace hob::editor {
         // A disabled row is inert, so it must not light up under the cursor either.
         if (enabled && ImGui::IsItemHovered()) {
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
-            draw_highlight(
-                draw_list, row_rect(MENU_BAR_POPUP_ITEM_INSET), COLOR_MENU_BAR_ITEM_HOVER, MENU_BAR_ITEM_ROUNDING);
+            draw_highlight(draw_list, row_rect(BAR_POPUP_ITEM_INSET), COLOR_BAR_ITEM_HOVER, BAR_ITEM_ROUNDING);
         }
 
         splitter.Merge(draw_list);
@@ -386,8 +449,21 @@ namespace hob::editor {
         return clicked;
     }
 
-    bool bar_icon_button(const char* id, EditorBarIcon icon, bool enabled, bool active, const char* tooltip) {
-        const ImGuiStyle& style = ImGui::GetStyle();
+    bool bar_icon_button(const char* id,
+                         EditorBarIcon icon,
+                         bool enabled,
+                         bool active,
+                         const char* tooltip,
+                         const EditorBarMetrics& metrics) {
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+        const ImRect bar_rect = window->MenuBarRect();
+        const float button_height = metrics.button_height(bar_rect.GetHeight());
+        const float padding_x = (metrics.button_width(bar_rect.GetHeight()) - metrics.icon_size) * 0.5f;
+
+        // Selectable adds CurrLineTextBaseOffset to its own Y, which BeginMenuBar seeds with
+        // AlignTextToFramePadding; cancel it so the button sits where the inset asks.
+        const float button_y = bar_rect.Min.y + metrics.button_inset.y - window->DC.CurrLineTextBaseOffset;
 
         EditorStyleColorStack colors;
         colors.push(ImGuiCol_Header, COLOR_TRANSPARENT);
@@ -395,15 +471,13 @@ namespace hob::editor {
         colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
 
         EditorStyleVarStack vars;
-        vars.push(ImGuiStyleVar_ItemSpacing, ImVec2(TOOLBAR_BUTTON_PADDING_X * 2.0f, style.ItemSpacing.y));
+        vars.push(ImGuiStyleVar_ItemSpacing, ImVec2(padding_x * 2.0f, 0.0f));
 
         ImGui::PushID(id);
         ImGui::BeginDisabled(!enabled);
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + TOOLBAR_BUTTON_SPACING_X);
-        const bool pressed = ImGui::Selectable(INSPECTOR_EMPTY_LABEL,
-                                               false,
-                                               ImGuiSelectableFlags_None,
-                                               ImVec2(TOOLBAR_ICON_SIZE, ImGui::GetTextLineHeight()));
+        ImGui::SetCursorScreenPos(ImVec2(ImGui::GetCursorScreenPos().x + BAR_ITEM_SPACING.x, button_y));
+        const bool pressed = ImGui::Selectable(
+            INSPECTOR_EMPTY_LABEL, false, ImGuiSelectableFlags_None, ImVec2(metrics.icon_size, button_height));
         ImGui::EndDisabled();
         ImGui::PopID();
 
@@ -414,15 +488,12 @@ namespace hob::editor {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
         if (ImGui::IsItemActive() || ImGui::IsItemHovered() || active) {
-            const ImVec4& background =
-                (ImGui::IsItemActive() || active) ? COLOR_TOOLBAR_BUTTON_ACTIVE : COLOR_TOOLBAR_BUTTON_HOVER;
-            draw_highlight(draw_list, rect, background, TOOLBAR_BUTTON_ROUNDING);
+            const ImVec4& background = (ImGui::IsItemActive() || active) ? COLOR_BAR_ITEM_ACTIVE : COLOR_BAR_ITEM_HOVER;
+            draw_highlight(draw_list, rect, background, BAR_ITEM_ROUNDING);
         }
 
-        const ImVec4& icon_color = active    ? COLOR_TOOLBAR_ICON_ACTIVE
-                                   : enabled ? COLOR_TOOLBAR_ICON
-                                             : COLOR_TOOLBAR_ICON_DISABLED;
-        draw_bar_icon(draw_list, rect, icon, ImGui::GetColorU32(icon_color));
+        const ImVec4& icon_color = active ? COLOR_BAR_ICON_ACTIVE : enabled ? COLOR_BAR_ICON : COLOR_BAR_ICON_DISABLED;
+        draw_bar_icon(draw_list, rect, icon, ImGui::GetColorU32(icon_color), metrics.icon_size);
 
         if (tooltip != nullptr && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
             set_tooltip("%s", tooltip);

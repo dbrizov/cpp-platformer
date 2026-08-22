@@ -119,6 +119,54 @@ namespace hob::editor {
                     },
             },
             {
+                .id = EditorActionId::GizmoTranslate,
+                .label = "Translate Tool",
+                .chord = ImGuiKey_W,
+                .context = EditorActionContext::Global,
+                .is_enabled = nullptr,
+                .is_active =
+                    [](const Editor& editor) {
+                        return editor.get_scene_view().get_gizmo_mode() == EditorGizmoMode::Translate;
+                    },
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        editor.get_scene_view().set_gizmo_mode(EditorGizmoMode::Translate);
+                    },
+            },
+            {
+                .id = EditorActionId::GizmoRotate,
+                .label = "Rotate Tool",
+                .chord = ImGuiKey_E,
+                .context = EditorActionContext::Global,
+                .is_enabled = nullptr,
+                .is_active =
+                    [](const Editor& editor) {
+                        return editor.get_scene_view().get_gizmo_mode() == EditorGizmoMode::Rotate;
+                    },
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        editor.get_scene_view().set_gizmo_mode(EditorGizmoMode::Rotate);
+                    },
+            },
+            {
+                .id = EditorActionId::GizmoScale,
+                .label = "Scale Tool",
+                .chord = ImGuiKey_R,
+                .context = EditorActionContext::Global,
+                .is_enabled = nullptr,
+                .is_active =
+                    [](const Editor& editor) {
+                        return editor.get_scene_view().get_gizmo_mode() == EditorGizmoMode::Scale;
+                    },
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        editor.get_scene_view().set_gizmo_mode(EditorGizmoMode::Scale);
+                    },
+            },
+            {
                 .id = EditorActionId::FocusSelection,
                 .label = "Focus Selection",
                 .chord = ImGuiKey_F,
@@ -258,7 +306,10 @@ namespace hob::editor {
         return true;
     }
 
-    bool action_bar_icon_button(Editor& editor, EditorActionId id, EditorBarIcon icon) {
+    bool action_bar_icon_button(Editor& editor,
+                                EditorActionId id,
+                                EditorBarIcon icon,
+                                const EditorBarMetrics& metrics) {
         const EditorAction& action = get_action(id);
         const std::string shortcut = format_shortcut(action.chord);
 
@@ -268,8 +319,12 @@ namespace hob::editor {
         }
 
         const char* button_id = action.label;
-        if (!bar_icon_button(
-                button_id, icon, is_action_enabled(editor, id), is_action_active(editor, id), tooltip.c_str())) {
+        if (!bar_icon_button(button_id,
+                             icon,
+                             is_action_enabled(editor, id),
+                             is_action_active(editor, id),
+                             tooltip.c_str(),
+                             metrics)) {
             return false;
         }
 

@@ -5,6 +5,8 @@
 
 #include <imgui.h>
 
+#include "engine/editor/editor_style.h"
+
 namespace hob::editor {
     class Editor;
     enum class EditorBarIcon : uint8_t;
@@ -16,6 +18,9 @@ namespace hob::editor {
         Pause,
         Step,
         Stop,
+        GizmoTranslate,
+        GizmoRotate,
+        GizmoScale,
         FocusSelection,
         ResetLayout,
         OpenScene,
@@ -57,5 +62,8 @@ namespace hob::editor {
     bool is_chord_pressed(ImGuiKeyChord chord);
 
     bool action_menu_item(Editor& editor, EditorActionId id);
-    bool action_bar_icon_button(Editor& editor, EditorActionId id, EditorBarIcon icon);
+    bool action_bar_icon_button(Editor& editor,
+                                EditorActionId id,
+                                EditorBarIcon icon,
+                                const EditorBarMetrics& metrics = TOOLBAR_METRICS);
 } // namespace hob::editor

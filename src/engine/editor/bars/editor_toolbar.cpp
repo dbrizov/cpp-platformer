@@ -28,11 +28,11 @@ namespace hob::editor {
     } // namespace
 
     void EditorToolbar::draw(Editor& editor) {
-        const float toolbar_width =
-            TOOLBAR_BUTTON_WIDTH * TOOLBAR_ITEM_COUNT + TOOLBAR_BUTTON_SPACING_X * (TOOLBAR_ITEM_COUNT - 1);
+        const float button_width = TOOLBAR_METRICS.button_width(get_bar_height());
+        const float toolbar_width = button_width * TOOLBAR_ITEM_COUNT + BAR_ITEM_SPACING.x * (TOOLBAR_ITEM_COUNT - 1);
 
         const float cursor_x = ImGui::GetCursorPosX();
-        const float centered_x = (ImGui::GetWindowWidth() - toolbar_width) * 0.5f - TOOLBAR_BUTTON_SPACING_X;
+        const float centered_x = (ImGui::GetWindowWidth() - toolbar_width) * 0.5f - BAR_ITEM_SPACING.x;
         ImGui::SetCursorPosX(std::max(cursor_x, centered_x));
 
         for (const EditorToolbarItem& item : TOOLBAR_ITEMS) {

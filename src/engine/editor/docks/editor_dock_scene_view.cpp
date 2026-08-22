@@ -12,6 +12,7 @@
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/renderer/renderer.h"
+#include "engine/editor/actions/editor_action.h"
 #include "engine/editor/editor.h"
 #include "engine/editor/editor_gui_utils.h"
 #include "engine/editor/editor_style.h"
@@ -21,6 +22,17 @@
 
 namespace hob::editor {
     namespace {
+        struct EditorSceneViewToolItem {
+            EditorActionId id;
+            EditorBarIcon icon;
+        };
+
+        constexpr EditorSceneViewToolItem SCENE_VIEW_TOOL_ITEMS[] = {
+            {EditorActionId::GizmoTranslate, EditorBarIcon::Translate},
+            {EditorActionId::GizmoRotate, EditorBarIcon::Rotate},
+            {EditorActionId::GizmoScale, EditorBarIcon::Scale},
+        };
+
         constexpr float MIN_SCENE_RECT_SIZE_PX = 8.0f;
         constexpr uint32_t MIN_COLOR_TARGET_SIZE_PX = 1;
 
@@ -115,12 +127,18 @@ namespace hob::editor {
         : EditorDock(" Scene ###Scene", EditorActionContext::SceneView) {}
 
     void EditorDockSceneView::update_input(Editor& editor) {
-        if (!m_rect_valid || !m_hovered) {
+        const bool dragging = m_gizmo.is_dragging();
+        if (!dragging && (!m_rect_valid || !m_hovered)) {
+            m_gizmo.clear_hover();
             return;
         }
 
         const ImGuiIO& io = ImGui::GetIO();
         const Vector2 mouse_screen_pos(io.MousePos.x, io.MousePos.y);
+
+        if (m_gizmo.update_input(editor, mouse_screen_pos, m_camera, m_rect)) {
+            return;
+        }
 
         if (io.MouseWheel != 0.0f) {
             m_camera.zoom_at(mouse_screen_pos, m_rect, io.MouseWheel);
@@ -138,16 +156,22 @@ namespace hob::editor {
     void EditorDockSceneView::draw(Editor& editor) {
         m_rect_valid = false;
 
+        EditorStyleColorStack colors;
+        colors.push(ImGuiCol_MenuBarBg, COLOR_DOCK_TOOLBAR_BG);
+
         EditorStyleVarStack vars;
         vars.push(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
-        const bool visible = begin(ImGuiWindowFlags_NoScrollbar);
+        const bool visible = begin(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar);
 
         vars.pop();
+        colors.pop();
 
         if (visible) {
             // The image fills the dock, so hovering it is what counts -- not the tab bar above it.
             m_hovered = false;
+
+            draw_toolbar(editor);
 
             const ImVec2 avail = ImGui::GetContentRegionAvail();
             if (avail.x > MIN_SCENE_RECT_SIZE_PX && avail.y > MIN_SCENE_RECT_SIZE_PX) {
@@ -173,6 +197,7 @@ namespace hob::editor {
                     draw_grid(draw_list, scene_rect);
                     draw_camera_view_rect(editor, draw_list, scene_rect);
                     draw_selection_overlay(editor, draw_list, scene_rect);
+                    m_gizmo.draw(editor, draw_list, m_camera, scene_rect);
                     draw_list->PopClipRect();
                 }
             }
@@ -200,6 +225,41 @@ namespace hob::editor {
         m_color_target = nullptr;
         m_color_target_width = 0;
         m_color_target_height = 0;
+    }
+
+    EditorGizmoMode EditorDockSceneView::get_gizmo_mode() const {
+        return m_gizmo.get_mode();
+    }
+
+    void EditorDockSceneView::set_gizmo_mode(EditorGizmoMode mode) {
+        m_gizmo.set_mode(mode);
+    }
+
+    void EditorDockSceneView::reset_gizmo() {
+        m_gizmo.reset();
+    }
+
+    void EditorDockSceneView::focus_on_selection(const Editor& editor) {
+        if (!m_rect_valid) {
+            return;
+        }
+
+        const EntitySpawner& spawner = editor.get_engine().get_entity_spawner();
+
+        std::optional<AABB> world_bounds;
+        for (EntityId id : editor.get_selection().ids) {
+            const Entity* entity = spawner.get_entity(id);
+            if (entity == nullptr) {
+                continue;
+            }
+
+            const AABB entity_bounds = compute_entity_world_bounds(*entity);
+            world_bounds = world_bounds.has_value() ? AABB::combine(*world_bounds, entity_bounds) : entity_bounds;
+        }
+
+        if (world_bounds.has_value()) {
+            m_camera.focus_on(*world_bounds, m_rect);
+        }
     }
 
     void EditorDockSceneView::reset_pick_cycle() {
@@ -329,27 +389,16 @@ namespace hob::editor {
         }
     }
 
-    void EditorDockSceneView::focus_on_selection(const Editor& editor) {
-        if (!m_rect_valid) {
+    void EditorDockSceneView::draw_toolbar(Editor& editor) {
+        if (!ImGui::BeginMenuBar()) {
             return;
         }
 
-        const EntitySpawner& spawner = editor.get_engine().get_entity_spawner();
-
-        std::optional<AABB> world_bounds;
-        for (EntityId id : editor.get_selection().ids) {
-            const Entity* entity = spawner.get_entity(id);
-            if (entity == nullptr) {
-                continue;
-            }
-
-            const AABB entity_bounds = compute_entity_world_bounds(*entity);
-            world_bounds = world_bounds.has_value() ? AABB::combine(*world_bounds, entity_bounds) : entity_bounds;
+        for (const EditorSceneViewToolItem& item : SCENE_VIEW_TOOL_ITEMS) {
+            action_bar_icon_button(editor, item.id, item.icon);
         }
 
-        if (world_bounds.has_value()) {
-            m_camera.focus_on(*world_bounds, m_rect);
-        }
+        ImGui::EndMenuBar();
     }
 
     void EditorDockSceneView::draw_grid(ImDrawList* draw_list, const EditorSceneRect& scene_rect) const {
