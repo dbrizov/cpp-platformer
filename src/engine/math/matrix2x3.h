@@ -6,61 +6,65 @@
 
 namespace hob {
     struct Matrix2x3 {
-        Vector2 x; // basis X axis (rotation + scale X)
-        Vector2 y; // basis Y axis (rotation + scale Y)
-        Vector2 origin; // translation (position)
+        Vector2 basis_x;
+        Vector2 basis_y;
+        Vector2 origin;
+
+        float determinant() const {
+            return basis_x.x * basis_y.y - basis_y.x * basis_x.y;
+        }
+
+        bool is_reflected() const {
+            return determinant() < 0.0f;
+        }
 
         float get_rotation() const {
-            return std::atan2(x.y, x.x);
+            return is_reflected() ? std::atan2(-basis_y.x, basis_y.y) : std::atan2(basis_x.y, basis_x.x);
         }
 
         Vector2 get_scale() const {
-            // A reflection (negative determinant) can't be split into unique per-axis signs, so by
-            // convention attach the flip to Y. Combined with get_rotation() this still reconstructs the
-            // matrix, which is what lets a mirrored parent flip its children.
-            const float det = x.x * y.y - y.x * x.y;
-            const float sign_y = (det < 0.0f) ? -1.0f : 1.0f;
-            return Vector2(x.length(), sign_y * y.length());
+            const float sign_x = is_reflected() ? -1.0f : 1.0f;
+            return Vector2(sign_x * basis_x.length(), basis_y.length());
         }
 
         Vector2 transform_point(const Vector2& p) const {
-            return origin + x * p.x + y * p.y;
+            return origin + basis_x * p.x + basis_y * p.y;
         }
 
         Matrix2x3 inverse() const {
-            const float det = x.x * y.y - y.x * x.y;
+            const float det = determinant();
             if (std::abs(det) <= EPSILON) {
                 return Matrix2x3::identity();
             }
 
             const float inv_det = 1.0f / det;
             Matrix2x3 out;
-            out.x = Vector2(y.y * inv_det, -x.y * inv_det);
-            out.y = Vector2(-y.x * inv_det, x.x * inv_det);
-            out.origin = -(out.x * origin.x + out.y * origin.y);
+            out.basis_x = Vector2(basis_y.y * inv_det, -basis_x.y * inv_det);
+            out.basis_y = Vector2(-basis_y.x * inv_det, basis_x.x * inv_det);
+            out.origin = -(out.basis_x * origin.x + out.basis_y * origin.y);
             return out;
         }
 
         static Matrix2x3 identity() {
             Matrix2x3 out;
-            out.x = Vector2::right();
-            out.y = Vector2::up();
+            out.basis_x = Vector2::right();
+            out.basis_y = Vector2::up();
             out.origin = Vector2::zero();
             return out;
         }
 
         static Matrix2x3 multiply(const Matrix2x3& a, const Matrix2x3& b) {
             Matrix2x3 out;
-            out.x = a.x * b.x.x + a.y * b.x.y;
-            out.y = a.x * b.y.x + a.y * b.y.y;
-            out.origin = a.origin + a.x * b.origin.x + a.y * b.origin.y;
+            out.basis_x = a.basis_x * b.basis_x.x + a.basis_y * b.basis_x.y;
+            out.basis_y = a.basis_x * b.basis_y.x + a.basis_y * b.basis_y.y;
+            out.origin = a.origin + a.basis_x * b.origin.x + a.basis_y * b.origin.y;
             return out;
         }
 
         static Matrix2x3 lerp(const Matrix2x3& a, const Matrix2x3& b, float t) {
             Matrix2x3 out;
-            out.x = a.x * (1.0f - t) + b.x * t;
-            out.y = a.y * (1.0f - t) + b.y * t;
+            out.basis_x = a.basis_x * (1.0f - t) + b.basis_x * t;
+            out.basis_y = a.basis_y * (1.0f - t) + b.basis_y * t;
             out.origin = a.origin * (1.0f - t) + b.origin * t;
             return out;
         }
@@ -70,9 +74,9 @@ namespace hob {
             const float sin = std::sin(radians);
 
             Matrix2x3 out;
-            out.x = Vector2(cos, sin);
-            out.y = Vector2(-sin, cos);
-            out.origin = pivot - (out.x * pivot.x + out.y * pivot.y);
+            out.basis_x = Vector2(cos, sin);
+            out.basis_y = Vector2(-sin, cos);
+            out.origin = pivot - (out.basis_x * pivot.x + out.basis_y * pivot.y);
             return out;
         }
     };

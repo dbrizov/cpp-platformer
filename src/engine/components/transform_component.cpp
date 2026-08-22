@@ -226,8 +226,8 @@ namespace hob {
         const float cos = std::cos(m_local_rotation);
         const float sin = std::sin(m_local_rotation);
 
-        m_local_matrix.x = Vector2(cos * m_local_scale.x, sin * m_local_scale.x);
-        m_local_matrix.y = Vector2(-sin * m_local_scale.y, cos * m_local_scale.y);
+        m_local_matrix.basis_x = Vector2(cos * m_local_scale.x, sin * m_local_scale.x);
+        m_local_matrix.basis_y = Vector2(-sin * m_local_scale.y, cos * m_local_scale.y);
         m_local_matrix.origin = m_local_position;
 
         if (!get_entity().is_in_play()) {

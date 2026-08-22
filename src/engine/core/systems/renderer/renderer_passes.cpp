@@ -15,11 +15,10 @@ namespace hob {
         // HLSL rounds the cbuffer size up to a 16-byte boundary.
         struct SpriteVSUniforms {
             float proj[16]; // 0..64
-            float position[2]; // 64..72
-            float size[2]; // 72..80
-            float pivot[2]; // 80..88
-            float rotation; // 88..92
-            float _pad; // 92..96
+            float basis_x[2]; // 64..72
+            float basis_y[2]; // 72..80
+            float origin[2]; // 80..88
+            float pivot[2]; // 88..96
         };
 
         static_assert(sizeof(SpriteVSUniforms) == 96);
@@ -308,15 +307,19 @@ namespace hob {
             bound_shader = shader;
         }
 
+        const Vector2 basis_x = draw.world_matrix.basis_x * draw.local_size.x;
+        const Vector2 basis_y = draw.world_matrix.basis_y * draw.local_size.y;
+
         SpriteVSUniforms vsu{};
         std::memcpy(vsu.proj, view_proj.data(), sizeof(vsu.proj));
-        vsu.position[0] = draw.world_pos.x;
-        vsu.position[1] = draw.world_pos.y;
-        vsu.size[0] = draw.size.x;
-        vsu.size[1] = draw.size.y;
+        vsu.basis_x[0] = basis_x.x;
+        vsu.basis_x[1] = basis_x.y;
+        vsu.basis_y[0] = basis_y.x;
+        vsu.basis_y[1] = basis_y.y;
+        vsu.origin[0] = draw.world_matrix.origin.x;
+        vsu.origin[1] = draw.world_matrix.origin.y;
         vsu.pivot[0] = draw.pivot.x;
         vsu.pivot[1] = draw.pivot.y;
-        vsu.rotation = draw.rotation;
         SDL_PushGPUVertexUniformData(m_command_buffer, 0, &vsu, sizeof(vsu));
 
         push_sprite_fragment_uniforms(*draw.texture, material);

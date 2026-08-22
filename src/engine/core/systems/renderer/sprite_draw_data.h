@@ -3,6 +3,7 @@
 #include <limits>
 #include <memory>
 
+#include "engine/math/matrix2x3.h"
 #include "engine/math/vector2.h"
 #include "material.h"
 #include "texture.h"
@@ -17,10 +18,9 @@ namespace hob {
     struct SpriteDrawData {
         const Texture* texture = nullptr;
         const Material* material = nullptr;
-        Vector2 world_pos; // pivot point, world meters
-        Vector2 size; // quad size, world meters (texture/ppm * scale)
+        Matrix2x3 world_matrix = Matrix2x3::identity();
+        Vector2 local_size; // meters (texture/ppm * sprite scale)
         Vector2 pivot = Vector2(0.5f, 0.5f); // pivot as a 0..1 fraction of the quad
-        float rotation = 0.0f; // world rotation, radians (y-up CCW)
         int32_t z_index = 0;
 
         const Shader* get_shader() const {

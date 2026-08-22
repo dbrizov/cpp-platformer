@@ -1,5 +1,7 @@
 #include "sprite_component.h"
 
+#include <cmath>
+
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/renderer/renderer.h"
@@ -113,15 +115,22 @@ namespace hob {
         m_render_dirty = true;
     }
 
-    Vector2 SpriteComponent::get_world_size() const {
+    Vector2 SpriteComponent::get_local_size() const {
         if (m_texture == nullptr) {
             return Vector2::zero();
         }
 
-        const Vector2 transform_scale = get_entity().get_transform()->get_scale();
         const float ppm = get_pixels_per_meter_f();
 
-        return Vector2((static_cast<float>(m_texture->get_width()) / ppm) * transform_scale.x * m_scale.x,
-                       (static_cast<float>(m_texture->get_height()) / ppm) * transform_scale.y * m_scale.y);
+        return Vector2((static_cast<float>(m_texture->get_width()) / ppm) * m_scale.x,
+                       (static_cast<float>(m_texture->get_height()) / ppm) * m_scale.y);
+    }
+
+    AABB SpriteComponent::get_local_rect() const {
+        const Vector2 size = get_local_size();
+        const Vector2 center((0.5f - m_pivot.x) * size.x, (m_pivot.y - 0.5f) * size.y);
+        const Vector2 extents(std::abs(size.x) * 0.5f, std::abs(size.y) * 0.5f);
+
+        return AABB(center, extents);
     }
 } // namespace hob

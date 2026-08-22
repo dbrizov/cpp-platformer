@@ -425,9 +425,8 @@ namespace hob {
             draw_data.material = material.get();
             draw_data.z_index = sprite_comp->get_z_index();
             draw_data.pivot = sprite_comp->get_pivot();
-            draw_data.world_pos = matrix.origin;
-            draw_data.rotation = matrix.get_rotation();
-            draw_data.size = sprite_comp->get_world_size();
+            draw_data.world_matrix = matrix;
+            draw_data.local_size = sprite_comp->get_local_size();
 
             m_renderer.update_sprite_draw(sprite_comp->get_sprite_draw_id(), std::move(draw_data));
         }

@@ -54,10 +54,8 @@ namespace hob::editor {
         }
 
         struct EditorSpriteRect {
-            Vector2 origin;
-            float rotation = 0.0f;
-            Vector2 min;
-            Vector2 max;
+            Matrix2x3 world_matrix = Matrix2x3::identity();
+            AABB local_rect;
         };
 
         bool compute_sprite_rect(const SpriteComponent& sprite, EditorSpriteRect& out_rect) {
@@ -65,27 +63,28 @@ namespace hob::editor {
                 return false;
             }
 
-            const Matrix2x3& world_matrix = sprite.get_entity().get_transform()->get_world_matrix();
-            const Vector2 world_size = sprite.get_world_size();
-            const Vector2 pivot = sprite.get_pivot();
-
-            out_rect.origin = world_matrix.origin;
-            out_rect.rotation = world_matrix.get_rotation();
-            out_rect.min = Vector2(-pivot.x * world_size.x, -pivot.y * world_size.y);
-            out_rect.max = Vector2((1.0f - pivot.x) * world_size.x, (1.0f - pivot.y) * world_size.y);
+            out_rect.world_matrix = sprite.get_entity().get_transform()->get_world_matrix();
+            out_rect.local_rect = sprite.get_local_rect();
 
             return true;
         }
 
         bool is_point_inside_sprite_rect(const EditorSpriteRect& rect, const Vector2& world_pos) {
-            const Vector2 world_delta = world_pos - rect.origin;
-            const float cos = std::cos(-rect.rotation);
-            const float sin = std::sin(-rect.rotation);
-            const Vector2 local_pos(world_delta.x * cos - world_delta.y * sin,
-                                    world_delta.x * sin + world_delta.y * cos);
+            const Vector2 local_pos = rect.world_matrix.inverse().transform_point(world_pos);
+            const Vector2 min = rect.local_rect.min();
+            const Vector2 max = rect.local_rect.max();
 
-            return local_pos.x >= rect.min.x && local_pos.x <= rect.max.x && local_pos.y >= rect.min.y &&
-                   local_pos.y <= rect.max.y;
+            return local_pos.x >= min.x && local_pos.x <= max.x && local_pos.y >= min.y && local_pos.y <= max.y;
+        }
+
+        void compute_sprite_rect_corners(const EditorSpriteRect& rect, Vector2 (&out_corners)[4]) {
+            const Vector2 min = rect.local_rect.min();
+            const Vector2 max = rect.local_rect.max();
+
+            out_corners[0] = rect.world_matrix.transform_point(Vector2(min.x, min.y));
+            out_corners[1] = rect.world_matrix.transform_point(Vector2(max.x, min.y));
+            out_corners[2] = rect.world_matrix.transform_point(Vector2(max.x, max.y));
+            out_corners[3] = rect.world_matrix.transform_point(Vector2(min.x, max.y));
         }
 
         AABB compute_entity_world_bounds(const Entity& entity) {
@@ -93,17 +92,8 @@ namespace hob::editor {
 
             EditorSpriteRect rect;
             if (sprite != nullptr && compute_sprite_rect(*sprite, rect)) {
-                const Vector2 origin = rect.origin;
-                const float rotation = rect.rotation;
-                const Vector2 min = rect.min;
-                const Vector2 max = rect.max;
-
-                const Vector2 bottom_left = Vector2::rotate_around(origin + Vector2(min.x, min.y), origin, rotation);
-                const Vector2 bottom_right = Vector2::rotate_around(origin + Vector2(max.x, min.y), origin, rotation);
-                const Vector2 top_right = Vector2::rotate_around(origin + Vector2(max.x, max.y), origin, rotation);
-                const Vector2 top_left = Vector2::rotate_around(origin + Vector2(min.x, max.y), origin, rotation);
-
-                const Vector2 world_corners[4] = {bottom_left, bottom_right, top_right, top_left};
+                Vector2 world_corners[4];
+                compute_sprite_rect_corners(rect, world_corners);
 
                 Vector2 world_min = world_corners[0];
                 Vector2 world_max = world_corners[0];
@@ -469,21 +459,14 @@ namespace hob::editor {
 
             EditorSpriteRect rect;
             if (sprite != nullptr && compute_sprite_rect(*sprite, rect)) {
-                const Vector2 origin = rect.origin;
-                const float rotation = rect.rotation;
-                const Vector2 min = rect.min;
-                const Vector2 max = rect.max;
-
-                const Vector2 bottom_left = Vector2::rotate_around(origin + Vector2(min.x, min.y), origin, rotation);
-                const Vector2 bottom_right = Vector2::rotate_around(origin + Vector2(max.x, min.y), origin, rotation);
-                const Vector2 top_right = Vector2::rotate_around(origin + Vector2(max.x, max.y), origin, rotation);
-                const Vector2 top_left = Vector2::rotate_around(origin + Vector2(min.x, max.y), origin, rotation);
+                Vector2 world_corners[4];
+                compute_sprite_rect_corners(rect, world_corners);
 
                 const ImVec2 screen_corners[4] = {
-                    to_imvec(m_camera.world_to_screen(bottom_left, scene_rect)),
-                    to_imvec(m_camera.world_to_screen(bottom_right, scene_rect)),
-                    to_imvec(m_camera.world_to_screen(top_right, scene_rect)),
-                    to_imvec(m_camera.world_to_screen(top_left, scene_rect)),
+                    to_imvec(m_camera.world_to_screen(world_corners[0], scene_rect)),
+                    to_imvec(m_camera.world_to_screen(world_corners[1], scene_rect)),
+                    to_imvec(m_camera.world_to_screen(world_corners[2], scene_rect)),
+                    to_imvec(m_camera.world_to_screen(world_corners[3], scene_rect)),
                 };
 
                 draw_list->AddPolyline(

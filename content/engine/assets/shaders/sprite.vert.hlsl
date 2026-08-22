@@ -1,10 +1,10 @@
 cbuffer SpriteVS : register(b0, space1)
 {
     float4x4 view_proj;
-    float2 world_pos;
-    float2 size;
+    float2 basis_x;
+    float2 basis_y;
+    float2 origin;
     float2 pivot;
-    float rotation;
 };
 
 struct VSInput
@@ -22,13 +22,8 @@ struct VSOutput
 VSOutput main(VSInput input)
 {
     float2 q = input.pos - pivot;
-    float2 local = float2(size.x * q.x, -size.y * q.y);
-
-    float c = cos(rotation);
-    float s = sin(rotation);
-    float2 r = float2(c * local.x - s * local.y, s * local.x + c * local.y);
-
-    float2 world = world_pos + r;
+    float2 local = float2(q.x, -q.y);
+    float2 world = origin + basis_x * local.x + basis_y * local.y;
 
     VSOutput o;
     o.pos = mul(view_proj, float4(world, 0.0, 1.0));

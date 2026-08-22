@@ -9,6 +9,7 @@
 #include "engine/core/systems/renderer/material.h"
 #include "engine/core/systems/renderer/sprite_draw_data.h"
 #include "engine/core/systems/renderer/texture.h"
+#include "engine/math/aabb.h"
 #include "engine/math/vector2.h"
 
 namespace hob {
@@ -69,6 +70,7 @@ namespace hob {
         float get_pixels_per_meter_f() const;
         void set_pixels_per_meter(uint32_t value);
 
-        Vector2 get_world_size() const;
+        Vector2 get_local_size() const;
+        AABB get_local_rect() const;
     };
 } // namespace hob
