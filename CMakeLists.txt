@@ -23,6 +23,11 @@ add_executable(${PROJECT_NAME} ${CPP_FILES} ${HEADER_FILES})
 # Since the headers are also in /src we are adding it as an include directory.
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
+# Embed the icon into the executable.
+if (WIN32)
+    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/platform/windows/hob2d.rc)
+endif ()
+
 # Place the executable and its synced files in a per-config subfolder, ready to distribute.
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIG>")
 

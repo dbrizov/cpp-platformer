@@ -1,7 +1,7 @@
 {
   "graphics": {
     "window_title": "Hob2D",
-    "window_icon": "icons/hob_icon.svg",
+    "window_icon": "icons/hob_icon.ico",
     "window_width": 1152,
     "window_height": 648,
     "reference_width": 1920,

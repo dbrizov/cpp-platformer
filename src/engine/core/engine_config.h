@@ -12,7 +12,7 @@
 namespace hob {
     struct GraphicsConfig {
         std::string window_title = "Hob2D";
-        std::string window_icon = "icons/hob_icon.svg";
+        std::string window_icon = "icons/hob_icon.ico";
         uint32_t window_width = 1152;
         uint32_t window_height = 648;
         uint32_t reference_width = 1920;
