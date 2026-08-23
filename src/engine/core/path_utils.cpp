@@ -74,7 +74,19 @@ namespace hob {
                 is_bare_name ? (root_dir() / "content" / "projects" / project_path) : (root_dir() / project_path);
         }
 
-        return project_path.lexically_normal();
+        project_path = project_path.lexically_normal();
+
+        // clang-format off
+
+        // lexically_normal keeps a trailing separator, and adds one for a path ending in "..", which leaves filename() empty.
+        // - i.e. "root/dir/" stays "root/dir/", "/root/dir/.." becomes "/root/dir/../".
+        // In this case the project root is the parent directory.
+        if (!project_path.has_filename()) {
+            project_path = project_path.parent_path();
+        }
+        // clang-format on
+
+        return project_path;
     }
 
     void PathUtils::set_project_root(const std::filesystem::path& project_root) {

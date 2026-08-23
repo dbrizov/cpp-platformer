@@ -1,5 +1,7 @@
 #include "editor_dock.h"
 
+#include <format>
+
 #include "engine/editor/editor_gui_utils.h"
 
 namespace hob::editor {

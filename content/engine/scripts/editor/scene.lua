@@ -51,16 +51,21 @@ end
 
 local function set_pose_field(inst, field, value)
     if field == TransformKey.POSITION then
+        local changed = inst.position ~= value
         inst.position = value
+        return changed
     elseif field == TransformKey.ROTATION then
-        inst.rotation_deg = value * Math.RAD_TO_DEG
+        local rotation_deg = value * Math.RAD_TO_DEG
+        local changed = inst.rotation_deg ~= rotation_deg
+        inst.rotation_deg = rotation_deg
+        return changed
     elseif field == TransformKey.SCALE then
+        local changed = inst.scale ~= value
         inst.scale = value
-    else
-        return false
+        return changed
     end
 
-    return true
+    return nil
 end
 
 local function set_override_field(inst, entity_id, component_key, field, value)
@@ -76,8 +81,16 @@ local function set_override_field(inst, entity_id, component_key, field, value)
         overrides[component_key] = section
     end
 
-    section[field] = value
+    local stored = value
+    if stored == nil then
+        stored = None
+    end
+
+    local changed = section[field] ~= stored
+    section[field] = stored
     _G.__scene_overrides_by_entity_id[entity_id] = overrides
+
+    return changed
 end
 
 function Editor.set_instance_field(entity_id, component_key, field, value)
@@ -87,11 +100,18 @@ function Editor.set_instance_field(entity_id, component_key, field, value)
         return
     end
 
-    if component_key ~= TransformKey.SECTION or not set_pose_field(inst, field, value) then
-        set_override_field(inst, entity_id, component_key, field, value)
+    local changed
+    if component_key == TransformKey.SECTION then
+        changed = set_pose_field(inst, field, value)
     end
 
-    Editor.mark_scene_dirty()
+    if changed == nil then
+        changed = set_override_field(inst, entity_id, component_key, field, value)
+    end
+
+    if changed then
+        Editor.mark_scene_dirty()
+    end
 end
 
 function Editor.clear_world()

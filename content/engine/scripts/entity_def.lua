@@ -93,20 +93,13 @@ local function apply_prefab(entity, prefab)
     end
 end
 
--- Sentinel so a captured default of `nil` survives in a table, where a raw nil value would just remove the key.
-local NIL_DEFAULT = {}
-
 local function resolve_field_value(section, field, defaults)
     local value = section[field]
     if value ~= nil then
         return unwrap_def(value)
     end
 
-    value = defaults[field]
-    if value == NIL_DEFAULT then
-        return nil
-    end
-    return value
+    return unwrap_def(defaults[field])
 end
 
 local function reapply_prefab(entity, prefab, get_defaults)
@@ -147,7 +140,7 @@ function _G.__reapply_prefabs_to_spawned_entities()
             for field, getter in pairs(schema.getters) do
                 local v = component[getter](component)
                 if v == nil then
-                    v = NIL_DEFAULT
+                    v = None
                 end
                 defaults[field] = v
             end
