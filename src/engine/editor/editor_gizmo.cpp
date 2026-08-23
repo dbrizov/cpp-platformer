@@ -94,17 +94,27 @@ namespace hob::editor {
             };
         }
 
-        template<typename T>
-        void write_field(Editor& editor, sol::state& lua, EntityId entity_id, const char* field, const T& value) {
-            EditorCommandSetField::apply(editor, make_target(entity_id, field), sol::make_object(lua, value));
-        }
-
         bool is_changed(float a, float b) {
             return std::abs(a - b) > EPSILON;
         }
 
         bool is_changed(const Vector2& a, const Vector2& b) {
             return a != b;
+        }
+
+        template<typename T>
+        bool try_set_field(Editor& editor,
+                           sol::state& lua,
+                           EntityId entity_id,
+                           const char* field,
+                           const T& current_value,
+                           const T& value) {
+            if (!is_changed(current_value, value)) {
+                return false;
+            }
+
+            EditorCommandSetField::apply(editor, make_target(entity_id, field), sol::make_object(lua, value));
+            return true;
         }
 
         template<typename T>
@@ -581,37 +591,41 @@ namespace hob::editor {
             switch (operation) {
                 case GizmoOperation::Translate: {
                     const Vector2 world_position = drag.start_world_position + translation;
-                    write_field(editor,
-                                lua,
-                                drag.entity_id,
-                                transform_key::POSITION,
-                                world_to_local_position(*transform, world_position));
+                    try_set_field(editor,
+                                  lua,
+                                  drag.entity_id,
+                                  transform_key::POSITION,
+                                  transform->get_local_position(),
+                                  world_to_local_position(*transform, world_position));
                     break;
                 }
                 case GizmoOperation::Rotate: {
-                    write_field(editor,
-                                lua,
-                                drag.entity_id,
-                                transform_key::ROTATION,
-                                drag.start_local_rotation + m_drag_total_rotation);
+                    try_set_field(editor,
+                                  lua,
+                                  drag.entity_id,
+                                  transform_key::ROTATION,
+                                  transform->get_local_rotation(),
+                                  drag.start_local_rotation + m_drag_total_rotation);
 
                     if (!is_on_pivot) {
                         const Vector2 world_position = Vector2::rotate_around(
                             drag.start_world_position, m_drag_pivot_world, m_drag_total_rotation);
-                        write_field(editor,
-                                    lua,
-                                    drag.entity_id,
-                                    transform_key::POSITION,
-                                    world_to_local_position(*transform, world_position));
+                        try_set_field(editor,
+                                      lua,
+                                      drag.entity_id,
+                                      transform_key::POSITION,
+                                      transform->get_local_position(),
+                                      world_to_local_position(*transform, world_position));
                     }
                     break;
                 }
                 case GizmoOperation::Scale: {
-                    write_field(
+                    try_set_field(
                         editor,
                         lua,
                         drag.entity_id,
                         transform_key::SCALE,
+                        transform->get_local_scale(),
                         Vector2(drag.start_local_scale.x * scale_factor.x, drag.start_local_scale.y * scale_factor.y));
 
                     if (!is_on_pivot) {
@@ -619,11 +633,12 @@ namespace hob::editor {
                         const float along_y = Vector2::dot(pivot_offset, m_drag_axis_y_world) * scale_factor.y;
                         const Vector2 world_position =
                             m_drag_pivot_world + m_drag_axis_x_world * along_x + m_drag_axis_y_world * along_y;
-                        write_field(editor,
-                                    lua,
-                                    drag.entity_id,
-                                    transform_key::POSITION,
-                                    world_to_local_position(*transform, world_position));
+                        try_set_field(editor,
+                                      lua,
+                                      drag.entity_id,
+                                      transform_key::POSITION,
+                                      transform->get_local_position(),
+                                      world_to_local_position(*transform, world_position));
                     }
                     break;
                 }

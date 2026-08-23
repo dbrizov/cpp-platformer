@@ -36,6 +36,7 @@ namespace hob::editor {
         Hierarchy,
         Inspector,
         Assets,
+        Output,
         Count,
     };
 

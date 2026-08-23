@@ -25,7 +25,8 @@ namespace hob::editor {
 
         constexpr float LAYOUT_RIGHT_COLUMNS_RATIO = 0.46f;
         constexpr float LAYOUT_INSPECTOR_RATIO = 0.50f;
-        constexpr float LAYOUT_ASSETS_RATIO = 0.30f;
+        constexpr float LAYOUT_ASSETS_RATIO = 0.50f;
+        constexpr float LAYOUT_OUTPUT_RATIO = 0.30f;
     } // namespace
 
     Editor::Editor(Engine& engine)
@@ -239,6 +240,14 @@ namespace hob::editor {
         return m_assets;
     }
 
+    EditorDockOutput& Editor::get_output() {
+        return m_output;
+    }
+
+    const EditorDockOutput& Editor::get_output() const {
+        return m_output;
+    }
+
     void Editor::init() {
         const std::vector<std::string> names = get_scene_names();
         if (names.empty()) {
@@ -323,7 +332,7 @@ namespace hob::editor {
     }
 
     std::array<EditorDock*, Editor::DOCK_COUNT> Editor::get_docks() {
-        return {&m_scene_view, &m_hierarchy, &m_inspector, &m_assets};
+        return {&m_scene_view, &m_hierarchy, &m_inspector, &m_assets, &m_output};
     }
 
     void Editor::update_window_title() {
@@ -412,16 +421,19 @@ namespace hob::editor {
         ImGui::DockBuilderSetNodeSize(dock_space_id, ImGui::GetMainViewport()->Size);
 
         ImGuiID center = dock_space_id;
-        ImGuiID right =
+        ImGuiID hierarchy =
             ImGui::DockBuilderSplitNode(center, ImGuiDir_Right, LAYOUT_RIGHT_COLUMNS_RATIO, nullptr, &center);
         const ImGuiID inspector =
-            ImGui::DockBuilderSplitNode(right, ImGuiDir_Right, LAYOUT_INSPECTOR_RATIO, nullptr, &right);
+            ImGui::DockBuilderSplitNode(hierarchy, ImGuiDir_Right, LAYOUT_INSPECTOR_RATIO, nullptr, &hierarchy);
         const ImGuiID assets =
-            ImGui::DockBuilderSplitNode(center, ImGuiDir_Down, LAYOUT_ASSETS_RATIO, nullptr, &center);
+            ImGui::DockBuilderSplitNode(hierarchy, ImGuiDir_Down, LAYOUT_ASSETS_RATIO, nullptr, &hierarchy);
+        const ImGuiID output =
+            ImGui::DockBuilderSplitNode(center, ImGuiDir_Down, LAYOUT_OUTPUT_RATIO, nullptr, &center);
 
-        ImGui::DockBuilderDockWindow(m_hierarchy.get_name().c_str(), right);
+        ImGui::DockBuilderDockWindow(m_hierarchy.get_name().c_str(), hierarchy);
         ImGui::DockBuilderDockWindow(m_inspector.get_name().c_str(), inspector);
         ImGui::DockBuilderDockWindow(m_assets.get_name().c_str(), assets);
+        ImGui::DockBuilderDockWindow(m_output.get_name().c_str(), output);
         ImGui::DockBuilderDockWindow(m_scene_view.get_name().c_str(), center);
 
         ImGui::DockBuilderFinish(dock_space_id);

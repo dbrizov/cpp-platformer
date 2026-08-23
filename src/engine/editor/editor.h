@@ -13,6 +13,7 @@
 #include "docks/editor_dock_assets.h"
 #include "docks/editor_dock_hierarchy.h"
 #include "docks/editor_dock_inspector.h"
+#include "docks/editor_dock_output.h"
 #include "docks/editor_dock_scene_view.h"
 #include "editor_config.h"
 #include "editor_entity_selection.h"
@@ -58,6 +59,7 @@ namespace hob::editor {
         EditorDockHierarchy m_hierarchy;
         EditorDockInspector m_inspector;
         EditorDockAssets m_assets;
+        EditorDockOutput m_output;
 
     public:
         explicit Editor(Engine& engine);
@@ -111,6 +113,9 @@ namespace hob::editor {
         EditorDockAssets& get_assets();
         const EditorDockAssets& get_assets() const;
 
+        EditorDockOutput& get_output();
+        const EditorDockOutput& get_output() const;
+
 #pragma region EngineHooks
         void init() override;
         void end_frame() override;
@@ -123,7 +128,7 @@ namespace hob::editor {
 #pragma endregion
 
     private:
-        static constexpr size_t DOCK_COUNT = 4;
+        static constexpr size_t DOCK_COUNT = 5;
 
         std::array<EditorDock*, DOCK_COUNT> get_docks();
 
