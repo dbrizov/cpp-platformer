@@ -15,6 +15,7 @@
 #include "editor_style.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
+#include "engine/core/path_utils.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/window.h"
 
@@ -258,6 +259,7 @@ namespace hob::editor {
 
     void Editor::tick(float delta_time) {
         update_input();
+        update_window_title();
 
         const bool simulate = (m_state == EditorState::Play) || (m_state == EditorState::Paused && m_step_requested);
         m_step_requested = false;
@@ -322,6 +324,26 @@ namespace hob::editor {
 
     std::array<EditorDock*, Editor::DOCK_COUNT> Editor::get_docks() {
         return {&m_scene_view, &m_hierarchy, &m_inspector, &m_assets};
+    }
+
+    void Editor::update_window_title() {
+        const std::string project = PathUtils::get_project_root().filename().string();
+
+        std::string title;
+        if (!m_current_scene.empty()) {
+            title = is_scene_dirty() ? "(*) " : "";
+            title += m_current_scene;
+            title += " - ";
+        }
+
+        title += project;
+        title += " - ";
+        title += EDITOR_WINDOW_TITLE;
+
+        if (title != m_window_title) {
+            m_window_title = title;
+            m_engine.get_main_window().set_title(m_window_title);
+        }
     }
 
     void Editor::update_input() {
@@ -397,10 +419,10 @@ namespace hob::editor {
         const ImGuiID assets =
             ImGui::DockBuilderSplitNode(center, ImGuiDir_Down, LAYOUT_ASSETS_RATIO, nullptr, &center);
 
-        ImGui::DockBuilderDockWindow(m_hierarchy.get_name(), right);
-        ImGui::DockBuilderDockWindow(m_inspector.get_name(), inspector);
-        ImGui::DockBuilderDockWindow(m_assets.get_name(), assets);
-        ImGui::DockBuilderDockWindow(m_scene_view.get_name(), center);
+        ImGui::DockBuilderDockWindow(m_hierarchy.get_name().c_str(), right);
+        ImGui::DockBuilderDockWindow(m_inspector.get_name().c_str(), inspector);
+        ImGui::DockBuilderDockWindow(m_assets.get_name().c_str(), assets);
+        ImGui::DockBuilderDockWindow(m_scene_view.get_name().c_str(), center);
 
         ImGui::DockBuilderFinish(dock_space_id);
     }

@@ -39,6 +39,7 @@ namespace hob::editor {
         EditorState m_state = EditorState::Edit;
         bool m_step_requested = false;
 
+        std::string m_window_title;
         std::string m_current_scene;
         std::string m_pending_scene_open;
 
@@ -127,6 +128,7 @@ namespace hob::editor {
         std::array<EditorDock*, DOCK_COUNT> get_docks();
 
         void update_input();
+        void update_window_title();
         bool is_context_active(EditorActionContext context) const;
         void prune_selection();
 

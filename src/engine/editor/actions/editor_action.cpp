@@ -26,7 +26,7 @@ namespace hob::editor {
                     },
                 .run =
                     [](Editor& editor) {
-                        editor.get_commands().undo(editor.get_engine());
+                        editor.get_commands().undo(editor);
                     },
             },
             {
@@ -44,7 +44,7 @@ namespace hob::editor {
                     },
                 .run =
                     [](Editor& editor) {
-                        editor.get_commands().redo(editor.get_engine());
+                        editor.get_commands().redo(editor);
                     },
             },
             {

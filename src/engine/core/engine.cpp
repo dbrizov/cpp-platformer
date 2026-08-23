@@ -281,6 +281,10 @@ namespace hob {
         return m_lua_script_system;
     }
 
+    Window& Engine::get_main_window() {
+        return m_main_window;
+    }
+
     const Window& Engine::get_main_window() const {
         return m_main_window;
     }

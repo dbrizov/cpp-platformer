@@ -4,7 +4,7 @@
 
 namespace hob::editor {
     EditorDockAssets::EditorDockAssets()
-        : EditorDock(" Assets ###Assets", EditorActionContext::Assets) {}
+        : EditorDock("Assets", EditorActionContext::Assets) {}
 
     void EditorDockAssets::draw(Editor&) {
         if (begin()) {

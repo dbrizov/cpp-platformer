@@ -36,6 +36,8 @@ namespace hob {
         SDL_Window* get_window() const;
         SDL_WindowID get_id() const;
 
+        void set_title(const std::string& title);
+
         Vector2 get_size() const;
         void get_size(int32_t& width, int32_t& height) const;
         void get_size_px(int32_t& width, int32_t& height) const;

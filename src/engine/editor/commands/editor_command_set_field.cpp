@@ -8,6 +8,7 @@
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/scripting/lua_schema_keys.h"
+#include "engine/editor/editor.h"
 #include "engine/editor/editor_lua.h"
 
 namespace hob::editor {
@@ -38,21 +39,32 @@ namespace hob::editor {
         , m_old_value(std::move(old_value))
         , m_new_value(std::move(new_value)) {}
 
-    void EditorCommandSetField::undo(Engine& engine) {
-        apply(engine, m_target, m_old_value);
+    void EditorCommandSetField::undo(Editor& editor) {
+        apply(editor, m_target, m_old_value);
     }
 
-    void EditorCommandSetField::redo(Engine& engine) {
-        apply(engine, m_target, m_new_value);
+    void EditorCommandSetField::redo(Editor& editor) {
+        apply(editor, m_target, m_new_value);
     }
 
-    void EditorCommandSetField::apply(Engine& engine, const EditorFieldTarget& target, const sol::object& value) {
+    void EditorCommandSetField::apply(Editor& editor, const EditorFieldTarget& target, const sol::object& value) {
+        Engine& engine = editor.get_engine();
+
         if (target.is_lua) {
-            editor_call(engine, "set_live_lua_field", target.entity_id, target.component_index, target.field, value);
+            editor_call(
+                engine, "set_lua_component_field", target.entity_id, target.component_index, target.field, value);
             return;
         }
 
-        editor_call(engine, "set_live_field", target.entity_id, target.component_key, target.field, value);
+        const sol::object set_successful =
+            editor_call(engine, "set_component_field", target.entity_id, target.component_key, target.field, value);
+        if (!set_successful.is<bool>() || !set_successful.as<bool>()) {
+            return;
+        }
+
+        if (editor.get_state() == EditorState::Edit) {
+            editor_call(engine, "set_instance_field", target.entity_id, target.component_key, target.field, value);
+        }
 
         if (target.component_key == transform_key::SECTION) {
             sync_transform_to_physics(engine, target.entity_id);

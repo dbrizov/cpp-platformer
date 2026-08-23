@@ -126,7 +126,7 @@ namespace hob::editor {
             main_window_config.maximized = true;
         }
 
-        main_window_config.title = "Hob2D Editor";
+        main_window_config.title = EDITOR_WINDOW_TITLE;
         main_window_config.vsync = graphics_config.vsync_enabled;
 
         HostConfig host_config;

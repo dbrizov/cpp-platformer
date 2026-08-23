@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <string_view>
+
 #include <imgui.h>
 
 #include "engine/editor/actions/editor_action.h"
@@ -8,18 +11,22 @@ namespace hob::editor {
     class Editor;
 
     class EditorDock {
-        const char* m_name;
+        std::string m_id;
+        std::string m_label;
+        std::string m_name; // The actual key name used for the ImGui widget
         EditorActionContext m_context;
 
     protected:
         bool m_hovered = false;
         bool m_focused = false;
 
+        void set_label(std::string_view label);
+
         bool begin(ImGuiWindowFlags flags = 0);
         void end();
 
     public:
-        EditorDock(const char* name, EditorActionContext context);
+        EditorDock(std::string_view id, EditorActionContext context);
         virtual ~EditorDock() = default;
 
         EditorDock(const EditorDock&) = delete;
@@ -30,10 +37,13 @@ namespace hob::editor {
 
         virtual void draw(Editor& editor) = 0;
 
-        const char* get_name() const;
+        const std::string& get_name() const;
         EditorActionContext get_context() const;
 
         bool is_hovered() const;
         bool is_focused() const;
+
+    private:
+        void update_name();
     };
 } // namespace hob::editor

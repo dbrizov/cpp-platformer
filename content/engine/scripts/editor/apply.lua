@@ -17,30 +17,31 @@ end
 ---@param component_key string Schema key, e.g. "sprite", "box_collider"
 ---@param field string
 ---@param value any
-function Editor.set_live_field(entity_id, component_key, field, value)
+function Editor.set_component_field(entity_id, component_key, field, value)
     local entity = resolve_entity(entity_id)
     if entity == nil then
-        return
+        return false
     end
 
     local schema = _G.__component_schemas[component_key]
     if schema == nil or schema.map_setter then
-        Log.error("Editor.set_live_field: '" .. tostring(component_key) .. "' has no per-field setters")
-        return
+        Log.error("Editor.set_component_field: '" .. tostring(component_key) .. "' has no per-field setters")
+        return false
     end
 
     local setter = schema.setters[field]
     if setter == nil then
-        Log.error("Editor.set_live_field: unknown field '" .. tostring(field) .. "' on '" .. component_key .. "'")
-        return
+        Log.error("Editor.set_component_field: unknown field '" .. tostring(field) .. "' on '" .. component_key .. "'")
+        return false
     end
 
     local component = entity[schema.get](entity)
     if component == nil then
-        return
+        return false
     end
 
     _G.__call_component_setter(component, setter, unwrap_def(value))
+    return true
 end
 
 --- Write a field of a Lua component.
@@ -48,22 +49,23 @@ end
 ---@param component_index integer Index into entity:get_lua_components()
 ---@param field string
 ---@param value any
-function Editor.set_live_lua_field(entity_id, component_index, field, value)
+function Editor.set_lua_component_field(entity_id, component_index, field, value)
     local entity = resolve_entity(entity_id)
     if entity == nil then
-        return
+        return false
     end
 
     local instance = entity:get_lua_components()[component_index]
     if instance == nil then
-        Log.error("Editor.set_live_lua_field: no lua component at index " .. tostring(component_index))
-        return
+        Log.error("Editor.set_lua_component_field: no lua component at index " .. tostring(component_index))
+        return false
     end
 
     if not Editor.is_public_lua_field(field, instance[field]) then
-        Log.error("Editor.set_live_lua_field: '" .. tostring(field) .. "' is not an editable field")
-        return
+        Log.error("Editor.set_lua_component_field: '" .. tostring(field) .. "' is not an editable field")
+        return false
     end
 
     instance[field] = unwrap_def(value)
+    return true
 end

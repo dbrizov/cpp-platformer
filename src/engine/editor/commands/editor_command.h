@@ -2,11 +2,9 @@
 
 #include <string>
 
-namespace hob {
-    class Engine;
-} // namespace hob
-
 namespace hob::editor {
+    class Editor;
+
     class EditorCommand {
         std::string m_label;
 
@@ -18,7 +16,7 @@ namespace hob::editor {
 
         const std::string& get_label() const;
 
-        virtual void undo(Engine& engine) = 0;
-        virtual void redo(Engine& engine) = 0;
+        virtual void undo(Editor& editor) = 0;
+        virtual void redo(Editor& editor) = 0;
     };
 } // namespace hob::editor

@@ -5,6 +5,7 @@
 #include "editor_command_set_field.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/scripting/lua_script_system.h"
+#include "engine/editor/editor.h"
 #include "engine/editor/editor_lua.h"
 
 namespace hob::editor {
@@ -33,11 +34,11 @@ namespace hob::editor {
         , m_old_value(std::move(old_value))
         , m_new_value(std::move(new_value)) {}
 
-    void EditorCommandSetAssetField::undo(Engine& engine) {
-        EditorCommandSetField::apply(engine, m_target, resolve(engine, m_factory_name, m_old_value));
+    void EditorCommandSetAssetField::undo(Editor& editor) {
+        EditorCommandSetField::apply(editor, m_target, resolve(editor.get_engine(), m_factory_name, m_old_value));
     }
 
-    void EditorCommandSetAssetField::redo(Engine& engine) {
-        EditorCommandSetField::apply(engine, m_target, resolve(engine, m_factory_name, m_new_value));
+    void EditorCommandSetAssetField::redo(Editor& editor) {
+        EditorCommandSetField::apply(editor, m_target, resolve(editor.get_engine(), m_factory_name, m_new_value));
     }
 } // namespace hob::editor

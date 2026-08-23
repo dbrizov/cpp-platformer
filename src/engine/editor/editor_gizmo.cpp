@@ -95,8 +95,8 @@ namespace hob::editor {
         }
 
         template<typename T>
-        void write_field(Engine& engine, sol::state& lua, EntityId entity_id, const char* field, const T& value) {
-            EditorCommandSetField::apply(engine, make_target(entity_id, field), sol::make_object(lua, value));
+        void write_field(Editor& editor, sol::state& lua, EntityId entity_id, const char* field, const T& value) {
+            EditorCommandSetField::apply(editor, make_target(entity_id, field), sol::make_object(lua, value));
         }
 
         bool is_changed(float a, float b) {
@@ -581,7 +581,7 @@ namespace hob::editor {
             switch (operation) {
                 case GizmoOperation::Translate: {
                     const Vector2 world_position = drag.start_world_position + translation;
-                    write_field(engine,
+                    write_field(editor,
                                 lua,
                                 drag.entity_id,
                                 transform_key::POSITION,
@@ -589,7 +589,7 @@ namespace hob::editor {
                     break;
                 }
                 case GizmoOperation::Rotate: {
-                    write_field(engine,
+                    write_field(editor,
                                 lua,
                                 drag.entity_id,
                                 transform_key::ROTATION,
@@ -598,7 +598,7 @@ namespace hob::editor {
                     if (!is_on_pivot) {
                         const Vector2 world_position = Vector2::rotate_around(
                             drag.start_world_position, m_drag_pivot_world, m_drag_total_rotation);
-                        write_field(engine,
+                        write_field(editor,
                                     lua,
                                     drag.entity_id,
                                     transform_key::POSITION,
@@ -608,7 +608,7 @@ namespace hob::editor {
                 }
                 case GizmoOperation::Scale: {
                     write_field(
-                        engine,
+                        editor,
                         lua,
                         drag.entity_id,
                         transform_key::SCALE,
@@ -619,7 +619,7 @@ namespace hob::editor {
                         const float along_y = Vector2::dot(pivot_offset, m_drag_axis_y_world) * scale_factor.y;
                         const Vector2 world_position =
                             m_drag_pivot_world + m_drag_axis_x_world * along_x + m_drag_axis_y_world * along_y;
-                        write_field(engine,
+                        write_field(editor,
                                     lua,
                                     drag.entity_id,
                                     transform_key::POSITION,
@@ -681,6 +681,6 @@ namespace hob::editor {
             (commands.size() == 1) ? std::move(commands.front())
                                    : std::make_unique<EditorCommandComposite>(label, std::move(commands));
 
-        editor.get_commands().push(engine, std::move(command));
+        editor.get_commands().push(editor, std::move(command));
     }
 } // namespace hob::editor

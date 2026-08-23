@@ -6,21 +6,19 @@
 
 #include "editor_command.h"
 
-namespace hob {
-    class Engine;
-} // namespace hob
-
 namespace hob::editor {
+    class Editor;
+
     class EditorCommandStack {
         std::vector<std::unique_ptr<EditorCommand>> m_commands;
         uint32_t m_top = 0;
 
     public:
         // Drops the redo tail, then executes the command.
-        void push(Engine& engine, std::unique_ptr<EditorCommand> command);
+        void push(Editor& editor, std::unique_ptr<EditorCommand> command);
 
-        void undo(Engine& engine);
-        void redo(Engine& engine);
+        void undo(Editor& editor);
+        void redo(Editor& editor);
 
         bool can_undo() const;
         bool can_redo() const;

@@ -67,6 +67,7 @@ namespace hob {
         EntitySpawner& get_entity_spawner();
         LuaScriptSystem& get_lua_script_system();
 
+        Window& get_main_window();
         const Window& get_main_window() const;
         const Window& get_play_window() const;
         const Window* get_game_window() const;

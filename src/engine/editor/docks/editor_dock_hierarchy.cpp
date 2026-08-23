@@ -13,7 +13,7 @@
 
 namespace hob::editor {
     EditorDockHierarchy::EditorDockHierarchy()
-        : EditorDock(" Hierarchy ###Hierarchy", EditorActionContext::Hierarchy) {}
+        : EditorDock("Hierarchy", EditorActionContext::Hierarchy) {}
 
     void EditorDockHierarchy::draw(Editor& editor) {
         if (begin()) {

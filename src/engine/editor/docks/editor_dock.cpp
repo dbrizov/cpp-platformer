@@ -3,15 +3,23 @@
 #include "engine/editor/editor_gui_utils.h"
 
 namespace hob::editor {
-    EditorDock::EditorDock(const char* name, EditorActionContext context)
-        : m_name(name)
-        , m_context(context) {}
+    EditorDock::EditorDock(std::string_view id, EditorActionContext context)
+        : m_id(id)
+        , m_label(id)
+        , m_context(context) {
+        update_name();
+    }
+
+    void EditorDock::set_label(std::string_view label) {
+        m_label = label;
+        update_name();
+    }
 
     bool EditorDock::begin(ImGuiWindowFlags flags) {
         m_hovered = false;
         m_focused = false;
 
-        const bool visible = begin_dock(m_name, flags);
+        const bool visible = begin_dock(m_name.c_str(), flags);
         if (visible) {
             m_hovered = ImGui::IsWindowHovered();
             m_focused = ImGui::IsWindowFocused();
@@ -24,7 +32,7 @@ namespace hob::editor {
         end_dock();
     }
 
-    const char* EditorDock::get_name() const {
+    const std::string& EditorDock::get_name() const {
         return m_name;
     }
 
@@ -38,5 +46,9 @@ namespace hob::editor {
 
     bool EditorDock::is_focused() const {
         return m_focused;
+    }
+
+    void EditorDock::update_name() {
+        m_name = std::format(" {} ###{}", m_label, m_id);
     }
 } // namespace hob::editor

@@ -49,6 +49,51 @@ function Editor.mark_scene_saved()
     scene_state.is_dirty = false
 end
 
+local function set_pose_field(inst, field, value)
+    if field == TransformKey.POSITION then
+        inst.position = value
+    elseif field == TransformKey.ROTATION then
+        inst.rotation_deg = value * Math.RAD_TO_DEG
+    elseif field == TransformKey.SCALE then
+        inst.scale = value
+    else
+        return false
+    end
+
+    return true
+end
+
+local function set_override_field(inst, entity_id, component_key, field, value)
+    local overrides = inst.overrides
+    if overrides == nil then
+        overrides = {}
+        inst.overrides = overrides
+    end
+
+    local section = overrides[component_key]
+    if section == nil then
+        section = {}
+        overrides[component_key] = section
+    end
+
+    section[field] = value
+    _G.__scene_overrides_by_entity_id[entity_id] = overrides
+end
+
+function Editor.set_instance_field(entity_id, component_key, field, value)
+    local instance_id = scene_state.instance_id_by_entity_id[entity_id]
+    local inst = instance_id and scene_state.entity_def_by_instance_id[instance_id]
+    if inst == nil then
+        return
+    end
+
+    if component_key ~= TransformKey.SECTION or not set_pose_field(inst, field, value) then
+        set_override_field(inst, entity_id, component_key, field, value)
+    end
+
+    Editor.mark_scene_dirty()
+end
+
 function Editor.clear_world()
     scene_state.instance_count = 0
     scene_state.instance_id_by_index = {}
@@ -161,6 +206,15 @@ function Editor.rebind_instance_defs()
 
     for index, inst in ipairs(fresh) do
         local instance_id = scene_state.instance_id_by_index[index]
+        local old = scene_state.entity_def_by_instance_id[instance_id]
+
+        if scene_state.is_dirty then
+            inst.position = old.position
+            inst.rotation_deg = old.rotation_deg
+            inst.scale = old.scale
+            inst.overrides = old.overrides
+        end
+
         inst.__instance_id = instance_id
         scene_state.entity_def_by_instance_id[instance_id] = inst
     end

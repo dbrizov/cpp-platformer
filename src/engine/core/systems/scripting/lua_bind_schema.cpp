@@ -9,6 +9,12 @@ namespace hob {
         sol::state& lua = m_impl->lua;
         LuaMetaRegistry& meta = m_impl->meta;
 
+        bind_table(lua, meta, "TransformKey")
+            .constant("SECTION", transform_key::SECTION)
+            .constant("POSITION", transform_key::POSITION)
+            .constant("ROTATION", transform_key::ROTATION)
+            .constant("SCALE", transform_key::SCALE);
+
         bind_table(lua, meta, "FieldType")
             .constant("INT", field_type::INT)
             .constant("FLOAT", field_type::FLOAT)

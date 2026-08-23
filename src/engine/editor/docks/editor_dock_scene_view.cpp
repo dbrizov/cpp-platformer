@@ -34,6 +34,9 @@ namespace hob::editor {
             {EditorActionId::GizmoScale, EditorBarIcon::Scale},
         };
 
+        constexpr const char* DOCK_LABEL = "Scene";
+        constexpr const char* DOCK_LABEL_DIRTY = "Scene (*)";
+
         constexpr float MIN_SCENE_RECT_SIZE_PX = 8.0f;
         constexpr uint32_t MIN_COLOR_TARGET_SIZE_PX = 1;
 
@@ -125,7 +128,7 @@ namespace hob::editor {
     } // namespace
 
     EditorDockSceneView::EditorDockSceneView()
-        : EditorDock(" Scene ###Scene", EditorActionContext::SceneView) {}
+        : EditorDock("Scene", EditorActionContext::SceneView) {}
 
     void EditorDockSceneView::update_input(Editor& editor) {
         const bool dragging = m_gizmo.is_dragging();
@@ -156,6 +159,8 @@ namespace hob::editor {
 
     void EditorDockSceneView::draw(Editor& editor) {
         m_rect_valid = false;
+
+        set_label(editor.is_scene_dirty() ? DOCK_LABEL_DIRTY : DOCK_LABEL);
 
         EditorStyleColorStack colors;
         colors.push(ImGuiCol_MenuBarBg, COLOR_DOCK_TOOLBAR_BG);

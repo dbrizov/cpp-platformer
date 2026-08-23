@@ -10,6 +10,8 @@ namespace hob {
 } // namespace hob
 
 namespace hob::editor {
+    constexpr const char* EDITOR_WINDOW_TITLE = "Hob2D Editor";
+
     struct EditorWindowConfig {
         int32_t x = 0;
         int32_t y = 0;

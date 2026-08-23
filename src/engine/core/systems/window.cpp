@@ -76,6 +76,10 @@ namespace hob {
         return SDL_GetWindowID(m_window);
     }
 
+    void Window::set_title(const std::string& title) {
+        SDL_SetWindowTitle(m_window, title.c_str());
+    }
+
     Vector2 Window::get_size() const {
         int32_t width = 0;
         int32_t height = 0;

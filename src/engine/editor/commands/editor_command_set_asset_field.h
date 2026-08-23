@@ -8,10 +8,6 @@
 #include "engine/editor/editor_asset_value.h"
 #include "engine/editor/editor_field_target.h"
 
-namespace hob {
-    class Engine;
-} // namespace hob
-
 namespace hob::editor {
     class EditorCommandSetAssetField : public EditorCommand {
         EditorFieldTarget m_target;
@@ -26,7 +22,7 @@ namespace hob::editor {
                                    EditorAssetValue old_value,
                                    EditorAssetValue new_value);
 
-        void undo(Engine& engine) override;
-        void redo(Engine& engine) override;
+        void undo(Editor& editor) override;
+        void redo(Editor& editor) override;
     };
 } // namespace hob::editor

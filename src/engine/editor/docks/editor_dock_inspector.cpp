@@ -71,14 +71,12 @@ namespace hob::editor {
                                const sol::object& old_value,
                                const sol::object& new_value,
                                bool changed) {
-            Engine& engine = editor.get_engine();
-
             if (changed) {
                 if (!pending.active || !(pending.target == target)) {
                     begin_pending_edit(pending, target, old_value);
                 }
 
-                EditorCommandSetField::apply(engine, target, new_value);
+                EditorCommandSetField::apply(editor, target, new_value);
             }
 
             if (!pending.active || !(pending.target == target)) {
@@ -90,7 +88,7 @@ namespace hob::editor {
             // deactivation -- hence the second condition: nothing anywhere is being dragged any more.
             if (ImGui::IsItemDeactivatedAfterEdit() || !ImGui::IsAnyItemActive()) {
                 const sol::object final_value = changed ? new_value : old_value;
-                editor.get_commands().push(engine,
+                editor.get_commands().push(editor,
                                            std::make_unique<EditorCommandSetField>(
                                                command_label, pending.target, pending.old_value, final_value));
                 clear_pending_edit(pending);
@@ -200,7 +198,7 @@ namespace hob::editor {
                     discrete_target.field = name;
 
                     editor.get_commands().push(
-                        engine,
+                        editor,
                         std::make_unique<EditorCommandSetField>("Set " + component_label + " " + label,
                                                                 discrete_target,
                                                                 value,
@@ -230,7 +228,7 @@ namespace hob::editor {
                     new_asset.asset_name = picked_asset_name;
 
                     editor.get_commands().push(
-                        engine,
+                        editor,
                         std::make_unique<EditorCommandSetAssetField>("Set " + component_label + " " + label,
                                                                      asset_target,
                                                                      factory_name,
@@ -310,7 +308,7 @@ namespace hob::editor {
     } // namespace
 
     EditorDockInspector::EditorDockInspector()
-        : EditorDock(" Inspector ###Inspector", EditorActionContext::Inspector)
+        : EditorDock("Inspector", EditorActionContext::Inspector)
         , m_pending(std::make_unique<EditorDockInspectorPendingEdit>()) {}
 
     EditorDockInspector::~EditorDockInspector() = default;

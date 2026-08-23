@@ -3,28 +3,28 @@
 #include <utility>
 
 namespace hob::editor {
-    void EditorCommandStack::push(Engine& engine, std::unique_ptr<EditorCommand> command) {
+    void EditorCommandStack::push(Editor& editor, std::unique_ptr<EditorCommand> command) {
         m_commands.resize(m_top);
         m_commands.push_back(std::move(command));
-        m_commands.back()->redo(engine);
+        m_commands.back()->redo(editor);
         m_top = static_cast<uint32_t>(m_commands.size());
     }
 
-    void EditorCommandStack::undo(Engine& engine) {
+    void EditorCommandStack::undo(Editor& editor) {
         if (!can_undo()) {
             return;
         }
 
         m_top -= 1;
-        m_commands[m_top]->undo(engine);
+        m_commands[m_top]->undo(editor);
     }
 
-    void EditorCommandStack::redo(Engine& engine) {
+    void EditorCommandStack::redo(Editor& editor) {
         if (!can_redo()) {
             return;
         }
 
-        m_commands[m_top]->redo(engine);
+        m_commands[m_top]->redo(editor);
         m_top += 1;
     }
 
