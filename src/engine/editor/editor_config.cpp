@@ -83,7 +83,7 @@ namespace hob::editor {
         out << json.dump(JSON_INDENT) << '\n';
     }
 
-    EditorWindowConfig window_to_editor_window_config(const Window& window) {
+    EditorWindowConfig create_editor_window_config_from_window(const Window& window) {
         EditorWindowConfig config;
         window.get_position(config.x, config.y);
         window.get_size(config.width, config.height);
@@ -91,7 +91,7 @@ namespace hob::editor {
         return config;
     }
 
-    EditorWindowConfig window_config_to_editor_window_config(const WindowConfig& window_config) {
+    EditorWindowConfig create_editor_window_config_from_window_config(const WindowConfig& window_config) {
         EditorWindowConfig editor_window_config;
         editor_window_config.x = window_config.x;
         editor_window_config.y = window_config.y;
@@ -101,14 +101,12 @@ namespace hob::editor {
         return editor_window_config;
     }
 
-    WindowConfig editor_window_config_to_window_config(const EditorWindowConfig& editor_window_config) {
-        WindowConfig window_config;
-        window_config.x = editor_window_config.x;
-        window_config.y = editor_window_config.y;
-        window_config.width = editor_window_config.width;
-        window_config.height = editor_window_config.height;
-        window_config.maximized = editor_window_config.maximized;
-        return window_config;
+    void apply_editor_window_config(const EditorWindowConfig& editor_window_config, WindowConfig& out_window_config) {
+        out_window_config.x = editor_window_config.x;
+        out_window_config.y = editor_window_config.y;
+        out_window_config.width = editor_window_config.width;
+        out_window_config.height = editor_window_config.height;
+        out_window_config.maximized = editor_window_config.maximized;
     }
 
     std::filesystem::path get_editor_config_file_path() {
@@ -122,7 +120,7 @@ namespace hob::editor {
     HostConfig make_editor_host_config(const GraphicsConfig& graphics_config, const EditorConfig& editor_config) {
         WindowConfig main_window_config;
         if (editor_config.main_window.has_size()) {
-            main_window_config = editor_window_config_to_window_config(editor_config.main_window);
+            apply_editor_window_config(editor_config.main_window, main_window_config);
         }
         else {
             main_window_config.maximized = true;

@@ -10,6 +10,7 @@
 namespace hob {
     struct WindowConfig {
         std::string title = "Hob2D";
+        std::string icon = "icons/hob_icon.svg";
         int32_t width = 1152;
         int32_t height = 648;
         int32_t x = SDL_WINDOWPOS_CENTERED;

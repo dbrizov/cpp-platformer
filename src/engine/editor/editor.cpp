@@ -38,9 +38,8 @@ namespace hob::editor {
         m_pending_scene_open = editor_config.last_open_scene;
 
         if (editor_config.game_window.has_size()) {
-            WindowConfig game_window_config = editor_window_config_to_window_config(editor_config.game_window);
-            game_window_config.title = m_engine.get_game_window_config().title;
-            game_window_config.vsync = m_engine.get_game_window_config().vsync;
+            WindowConfig game_window_config = m_engine.get_game_window_config();
+            apply_editor_window_config(editor_config.game_window, game_window_config);
             m_engine.set_game_window_config(game_window_config);
         }
 
@@ -408,8 +407,8 @@ namespace hob::editor {
 
     void Editor::save_layout() {
         EditorConfig editor_config;
-        editor_config.main_window = window_to_editor_window_config(m_engine.get_main_window());
-        editor_config.game_window = window_config_to_editor_window_config(m_engine.get_game_window_config());
+        editor_config.main_window = create_editor_window_config_from_window(m_engine.get_main_window());
+        editor_config.game_window = create_editor_window_config_from_window_config(m_engine.get_game_window_config());
         editor_config.last_open_scene = m_current_scene;
         editor_config.save(get_editor_config_file_path());
     }

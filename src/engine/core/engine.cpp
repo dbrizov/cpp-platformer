@@ -23,6 +23,7 @@ namespace hob {
         WindowConfig make_window_config(const GraphicsConfig& graphics_config) {
             WindowConfig config;
             config.title = graphics_config.window_title;
+            config.icon = graphics_config.window_icon;
             config.width = static_cast<int32_t>(graphics_config.window_width);
             config.height = static_cast<int32_t>(graphics_config.window_height);
             config.vsync = graphics_config.vsync_enabled;

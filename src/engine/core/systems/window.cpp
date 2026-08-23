@@ -1,11 +1,77 @@
 #include "window.h"
 
+#include <iterator>
+#include <memory>
+#include <vector>
+
 #include <SDL3/SDL.h>
+#include <lunasvg.h>
 
 #include "engine/core/assert.h"
 #include "engine/core/logging.h"
+#include "engine/core/path_utils.h"
 
 namespace hob {
+    namespace {
+        constexpr int32_t ICON_SIZES[] = {256, 128, 64, 48, 32, 16};
+
+        void apply_window_icon(SDL_Window* window, const std::string& relative_path) {
+            if (relative_path.empty()) {
+                return;
+            }
+
+            const std::filesystem::path path = PathUtils::resolve_asset_path(relative_path);
+
+            std::unique_ptr<lunasvg::Document> document = lunasvg::Document::loadFromFile(path.string());
+            if (!document) {
+                log::sdl.error("Window icon failed to load: '{}'", path.string());
+                return;
+            }
+
+            // SDL_CreateSurfaceFrom wraps the pixels instead of copying them, so every bitmap has to
+            // stay alive until SDL_SetWindowIcon has taken its own copy.
+            std::vector<lunasvg::Bitmap> bitmaps;
+            std::vector<SDL_Surface*> surfaces;
+            bitmaps.reserve(std::size(ICON_SIZES));
+            surfaces.reserve(std::size(ICON_SIZES));
+
+            for (const int32_t size : ICON_SIZES) {
+                lunasvg::Bitmap bitmap = document->renderToBitmap(size, size);
+                if (bitmap.isNull()) {
+                    continue;
+                }
+
+                bitmap.convertToRGBA();
+                bitmaps.push_back(std::move(bitmap));
+
+                lunasvg::Bitmap& stored = bitmaps.back();
+                SDL_Surface* surface = SDL_CreateSurfaceFrom(
+                    size, size, SDL_PIXELFORMAT_RGBA32, stored.data(), static_cast<int32_t>(stored.stride()));
+
+                if (surface) {
+                    surfaces.push_back(surface);
+                }
+            }
+
+            if (surfaces.empty()) {
+                log::sdl.error("Window icon failed to rasterise: '{}'", path.string());
+                return;
+            }
+
+            for (int32_t index = 1; index < surfaces.size(); ++index) {
+                SDL_AddSurfaceAlternateImage(surfaces[0], surfaces[index]);
+            }
+
+            if (!SDL_SetWindowIcon(window, surfaces[0])) {
+                log::sdl.error("Window icon SDL_SetWindowIcon failed: {}", SDL_GetError());
+            }
+
+            for (SDL_Surface* surface : surfaces) {
+                SDL_DestroySurface(surface);
+            }
+        }
+    } // namespace
+
     Window::Window(SDL_GPUDevice* gpu_device, const WindowConfig& config)
         : m_gpu_device(gpu_device) {
         HOB_CHECK(m_gpu_device, "Window init failed: GPU device is null");
@@ -16,6 +82,8 @@ namespace hob {
 
         m_window = SDL_CreateWindow(config.title.c_str(), config.width, config.height, window_flags);
         HOB_CHECK(m_window, "Window SDL_CreateWindow failed: {}", SDL_GetError());
+
+        apply_window_icon(m_window, config.icon);
 
         if (config.x != SDL_WINDOWPOS_UNDEFINED && config.y != SDL_WINDOWPOS_UNDEFINED) {
             SDL_SetWindowPosition(m_window, config.x, config.y);

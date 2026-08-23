@@ -12,7 +12,7 @@ namespace hob::editor {
     // Palette
     constexpr ImVec4 COLOR_TRANSPARENT{0.0f, 0.0f, 0.0f, 0.0f};
     constexpr ImVec4 COLOR_CLEAR{0.078f, 0.078f, 0.078f, 1.0f};
-    constexpr ImVec4 COLOR_ACCENT{0.337f, 0.620f, 1.000f, 1.0f};
+    constexpr ImVec4 COLOR_ACCENT{1.0f, 0.63f, 0.12f, 1.0f};
 
     constexpr ImVec4 COLOR_BG_DARK{0.078f, 0.078f, 0.078f, 1.0f};
     constexpr ImVec4 COLOR_BG_BASE{0.161f, 0.161f, 0.161f, 1.0f};
@@ -172,9 +172,9 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_SCENE_VIEW_GRID_AXIS_Y = with_alpha(COLOR_AXIS_Y, 0.70f);
     constexpr ImVec4 COLOR_SCENE_VIEW_GRID_MINOR{1.0f, 1.0f, 1.0f, 0.094f};
     constexpr ImVec4 COLOR_SCENE_VIEW_GRID_MAJOR{1.0f, 1.0f, 1.0f, 0.20f};
-    constexpr ImVec4 COLOR_SCENE_VIEW_SELECTION_PRIMARY{1.0f, 0.68f, 0.20f, 1.0f};
+    constexpr ImVec4 COLOR_SCENE_VIEW_SELECTION_PRIMARY{1.00f, 0.63f, 0.12f, 1.0f};
     constexpr ImVec4 COLOR_SCENE_VIEW_SELECTION = with_alpha(COLOR_SCENE_VIEW_SELECTION_PRIMARY, 0.55f);
-    constexpr ImVec4 COLOR_SCENE_VIEW_CAMERA_RECT = with_alpha(COLOR_ACCENT, 0.70f);
+    constexpr ImVec4 COLOR_SCENE_VIEW_CAMERA_RECT = with_alpha(COLOR_AXIS_Z, 0.70f);
 
     // Gizmo
     constexpr float GIZMO_AXIS_LENGTH_PX = 110.0f;

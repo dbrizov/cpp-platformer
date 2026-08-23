@@ -32,9 +32,9 @@ namespace hob::editor {
         void save(const std::filesystem::path& json_path) const;
     };
 
-    EditorWindowConfig window_to_editor_window_config(const Window& window);
-    EditorWindowConfig window_config_to_editor_window_config(const WindowConfig& window_config);
-    WindowConfig editor_window_config_to_window_config(const EditorWindowConfig& editor_window_config);
+    EditorWindowConfig create_editor_window_config_from_window(const Window& window);
+    EditorWindowConfig create_editor_window_config_from_window_config(const WindowConfig& window_config);
+    void apply_editor_window_config(const EditorWindowConfig& editor_window_config, WindowConfig& out_window_config);
 
     std::filesystem::path get_editor_config_file_path();
     std::filesystem::path get_editor_imgui_ini_file_path();
