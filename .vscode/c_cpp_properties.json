@@ -5,7 +5,8 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/src/**",
-                "${workspaceFolder}/build/debug/windows-msvc/vcpkg_installed/x64-windows/include"
+                "${workspaceFolder}/build/debug/windows-msvc/vcpkg_installed/x64-windows/include",
+                "${workspaceFolder}/build/debug/windows-msvc-editor/vcpkg_installed/x64-windows/include"
             ],
             "compilerPath": "cl.exe",
             "compilerArgs": [
@@ -13,13 +14,15 @@
             ],
             "cStandard": "c17",
             "cppStandard": "c++20",
-            "intelliSenseMode": "windows-msvc-x64"
+            "intelliSenseMode": "windows-msvc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
         },
         {
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/src/**",
-                "${workspaceFolder}/build/debug/linux-gcc/vcpkg_installed/x64-linux/include"
+                "${workspaceFolder}/build/debug/linux-gcc/vcpkg_installed/x64-linux/include",
+                "${workspaceFolder}/build/debug/linux-gcc-editor/vcpkg_installed/x64-linux/include"
             ],
             "compilerPath": "/usr/bin/g++",
             "compilerArgs": [
@@ -28,13 +31,15 @@
             ],
             "cStandard": "c17",
             "cppStandard": "c++20",
-            "intelliSenseMode": "linux-gcc-x64"
+            "intelliSenseMode": "linux-gcc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
         },
         {
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/src/**",
-                "${workspaceFolder}/build/debug/macos-clang/vcpkg_installed/arm64-osx/include"
+                "${workspaceFolder}/build/debug/macos-clang/vcpkg_installed/arm64-osx/include",
+                "${workspaceFolder}/build/debug/macos-clang-editor/vcpkg_installed/arm64-osx/include"
             ],
             "compilerPath": "/usr/bin/clang++",
             "compilerArgs": [
@@ -43,7 +48,8 @@
             ],
             "cStandard": "c17",
             "cppStandard": "c++20",
-            "intelliSenseMode": "macos-clang-arm64"
+            "intelliSenseMode": "macos-clang-arm64",
+            "configurationProvider": "ms-vscode.cmake-tools"
         }
     ]
 }

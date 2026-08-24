@@ -130,7 +130,8 @@ namespace hob {
     template<NonLuaComponentType T, typename... Args>
     T* Entity::add_component(Args&&... args) {
         for (const auto& c : m_components) {
-            if (typeid(*c) == typeid(T)) {
+            const Component& comp = *c;
+            if (typeid(comp) == typeid(T)) {
                 T* existing = static_cast<T*>(c.get());
                 log_duplicate_component(*existing);
 
