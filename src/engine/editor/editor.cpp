@@ -88,18 +88,20 @@ namespace hob::editor {
         const bool leaving_play = (state == EditorState::Edit);
 
         if (entering_play || leaving_play) {
-            reset_edit_session();
-        }
+            const EditorSelectionInstanceIds captured = capture_selection_instance_ids();
 
-        if (entering_play) {
+            reset_edit_session();
             clear_world();
-            m_engine.open_game_window();
+
+            if (entering_play) {
+                m_engine.open_game_window();
+            }
+            else {
+                m_engine.close_game_window();
+            }
+
             load_scene();
-        }
-        else if (leaving_play) {
-            clear_world();
-            m_engine.close_game_window();
-            load_scene();
+            restore_selection(captured);
         }
 
         m_state = state;
@@ -131,7 +133,7 @@ namespace hob::editor {
     std::vector<std::string> Editor::get_scene_names() const {
         std::vector<std::string> names;
 
-        const sol::object result = editor_call(m_engine, "get_scene_names");
+        const sol::object result = editor_call(m_engine, editor_func::GET_SCENE_NAMES);
         if (result.is<sol::table>()) {
             const sol::table table = result.as<sol::table>();
             names.reserve(table.size());
@@ -148,7 +150,7 @@ namespace hob::editor {
     }
 
     bool Editor::is_scene_dirty() const {
-        const sol::object result = editor_call(m_engine, "is_scene_dirty");
+        const sol::object result = editor_call(m_engine, editor_func::IS_SCENE_DIRTY);
         return result.is<bool>() && result.as<bool>();
     }
 
@@ -160,7 +162,7 @@ namespace hob::editor {
         const std::string name = std::move(m_pending_scene_open);
         m_pending_scene_open.clear();
 
-        const sol::object result = editor_call(m_engine, "open_scene", name);
+        const sol::object result = editor_call(m_engine, editor_func::OPEN_SCENE, name);
         if (!result.is<bool>() || !result.as<bool>()) {
             clear_world();
             m_current_scene.clear();
@@ -305,7 +307,7 @@ namespace hob::editor {
         m_engine.get_lua_script_system().run_engine_folder(EDITOR_SCRIPTS_FOLDER);
         clear_asset_entry_cache();
 
-        const sol::object rebound = editor_call(m_engine, "rebind_instance_defs");
+        const sol::object rebound = editor_call(m_engine, editor_func::REBIND_INSTANCE_DEFS);
         if (rebound.is<bool>() && !rebound.as<bool>()) {
             request_open_scene(m_current_scene);
         }
@@ -396,6 +398,43 @@ namespace hob::editor {
         }
     }
 
+    EditorSelectionInstanceIds Editor::capture_selection_instance_ids() const {
+        EditorSelectionInstanceIds captured;
+        captured.ids.reserve(m_selection.ids.size());
+
+        for (EntityId entity_id : m_selection.ids) {
+            const sol::object instance_id = editor_call(m_engine, editor_func::GET_INSTANCE_ID, entity_id);
+            if (instance_id.is<EditorInstanceId>()) {
+                captured.ids.push_back(instance_id.as<EditorInstanceId>());
+            }
+        }
+
+        if (m_selection.range_anchor != INVALID_ENTITY_ID) {
+            const sol::object anchor = editor_call(m_engine, editor_func::GET_INSTANCE_ID, m_selection.range_anchor);
+            if (anchor.is<EditorInstanceId>()) {
+                captured.range_anchor = anchor.as<EditorInstanceId>();
+            }
+        }
+
+        return captured;
+    }
+
+    void Editor::restore_selection(const EditorSelectionInstanceIds& captured) {
+        for (EditorInstanceId instance_id : captured.ids) {
+            const sol::object entity_id = editor_call(m_engine, editor_func::GET_ENTITY_ID, instance_id);
+            if (entity_id.is<EntityId>()) {
+                m_selection.add(entity_id.as<EntityId>());
+            }
+        }
+
+        if (captured.range_anchor != INVALID_EDITOR_INSTANCE_ID) {
+            const sol::object anchor = editor_call(m_engine, editor_func::GET_ENTITY_ID, captured.range_anchor);
+            if (anchor.is<EntityId>()) {
+                m_selection.range_anchor = anchor.as<EntityId>();
+            }
+        }
+    }
+
     void Editor::reset_edit_session() {
         m_commands.clear();
         m_selection.clear();
@@ -405,11 +444,11 @@ namespace hob::editor {
     }
 
     void Editor::clear_world() {
-        editor_call(m_engine, "clear_world");
+        editor_call(m_engine, editor_func::CLEAR_WORLD);
     }
 
     void Editor::load_scene() {
-        editor_call(m_engine, "load_scene");
+        editor_call(m_engine, editor_func::LOAD_SCENE);
     }
 
     void Editor::build_default_layout(ImGuiID dock_space_id) {

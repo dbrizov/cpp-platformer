@@ -135,7 +135,10 @@ namespace hob::editor {
         void update_input();
         void update_window_title();
         bool is_context_active(EditorActionContext context) const;
+
         void prune_selection();
+        EditorSelectionInstanceIds capture_selection_instance_ids() const;
+        void restore_selection(const EditorSelectionInstanceIds& captured);
 
         void reset_edit_session();
         void clear_world();

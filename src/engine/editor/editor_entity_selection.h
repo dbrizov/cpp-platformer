@@ -6,6 +6,9 @@
 #include "engine/entity/entity.h"
 
 namespace hob::editor {
+    using EditorInstanceId = int64_t;
+    constexpr EditorInstanceId INVALID_EDITOR_INSTANCE_ID = -1;
+
     struct EditorSelectionClick {
         EntityId entity_id = INVALID_ENTITY_ID;
         bool additive = false; // Ctrl
@@ -58,5 +61,10 @@ namespace hob::editor {
 
         // visible_order is the rows a range select may span, and is empty where ranges make no sense.
         void apply_click(const EditorSelectionClick& click, const std::vector<EntityId>& visible_order);
+    };
+
+    struct EditorSelectionInstanceIds {
+        std::vector<EditorInstanceId> ids;
+        EditorInstanceId range_anchor = INVALID_EDITOR_INSTANCE_ID;
     };
 } // namespace hob::editor

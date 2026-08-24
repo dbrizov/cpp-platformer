@@ -291,7 +291,7 @@ namespace hob::editor {
 
             Engine& engine = editor.get_engine();
 
-            const sol::object components = editor_call(engine, "get_components", entity_id);
+            const sol::object components = editor_call(engine, editor_func::GET_COMPONENTS, entity_id);
             if (!components.is<sol::table>()) {
                 ImGui::TextDisabled("Editor.get_components is unavailable");
                 return;

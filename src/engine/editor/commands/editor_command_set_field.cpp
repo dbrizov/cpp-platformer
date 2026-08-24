@@ -51,19 +51,24 @@ namespace hob::editor {
         Engine& engine = editor.get_engine();
 
         if (target.is_lua) {
-            editor_call(
-                engine, "set_lua_component_field", target.entity_id, target.component_index, target.field, value);
+            editor_call(engine,
+                        editor_func::SET_LUA_COMPONENT_FIELD,
+                        target.entity_id,
+                        target.component_index,
+                        target.field,
+                        value);
             return;
         }
 
-        const sol::object set_successful =
-            editor_call(engine, "set_component_field", target.entity_id, target.component_key, target.field, value);
+        const sol::object set_successful = editor_call(
+            engine, editor_func::SET_COMPONENT_FIELD, target.entity_id, target.component_key, target.field, value);
         if (!set_successful.is<bool>() || !set_successful.as<bool>()) {
             return;
         }
 
         if (editor.get_state() == EditorState::Edit) {
-            editor_call(engine, "set_instance_field", target.entity_id, target.component_key, target.field, value);
+            editor_call(
+                engine, editor_func::SET_INSTANCE_FIELD, target.entity_id, target.component_key, target.field, value);
         }
 
         if (target.component_key == transform_key::SECTION) {

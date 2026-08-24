@@ -12,7 +12,7 @@ namespace hob::editor {
     namespace {
         sol::object resolve(Engine& engine, const std::string& factory_name, const EditorAssetValue& value) {
             if (!value.asset_name.empty()) {
-                return editor_call(engine, "get_asset_ref", factory_name, value.asset_name);
+                return editor_call(engine, editor_func::GET_ASSET_REF, factory_name, value.asset_name);
             }
 
             if (value.inline_asset.valid()) {

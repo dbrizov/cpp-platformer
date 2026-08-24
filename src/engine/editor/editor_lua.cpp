@@ -41,7 +41,7 @@ namespace hob::editor {
             return {};
         }
 
-        const sol::object result = editor_call(engine, "get_asset_name", factory_name, object);
+        const sol::object result = editor_call(engine, editor_func::GET_ASSET_NAME, factory_name, object);
         return result.is<std::string>() ? result.as<std::string>() : std::string();
     }
 
@@ -75,7 +75,7 @@ namespace hob::editor {
             return cached->second;
         }
 
-        const sol::object result = editor_call(engine, "get_asset_entries", factory_name);
+        const sol::object result = editor_call(engine, editor_func::GET_ASSET_ENTRIES, factory_name);
         if (!result.is<sol::table>()) {
             static const std::vector<EditorInspectorEntryAsset> empty;
             return empty;
@@ -102,7 +102,7 @@ namespace hob::editor {
     std::vector<EditorInspectorEntryEnum> get_enum_entries(Engine& engine, const std::string& name) {
         std::vector<EditorInspectorEntryEnum> entries;
 
-        const sol::object result = editor_call(engine, "get_enum_entries", name);
+        const sol::object result = editor_call(engine, editor_func::GET_ENUM_ENTRIES, name);
         if (!result.is<sol::table>()) {
             return entries;
         }
