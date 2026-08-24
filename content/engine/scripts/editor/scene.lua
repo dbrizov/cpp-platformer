@@ -49,46 +49,46 @@ function Editor.mark_scene_saved()
     scene_state.is_dirty = false
 end
 
-local function set_pose_field(inst, field, value)
-    if field == TransformKey.POSITION then
-        local changed = inst.position ~= value
-        inst.position = value
-        return changed
-    elseif field == TransformKey.ROTATION then
-        local rotation_deg = value * Math.RAD_TO_DEG
-        local changed = inst.rotation_deg ~= rotation_deg
-        inst.rotation_deg = rotation_deg
-        return changed
-    elseif field == TransformKey.SCALE then
-        local changed = inst.scale ~= value
-        inst.scale = value
-        return changed
+local function get_or_create(owner, key)
+    local existing = owner[key]
+    if existing == nil then
+        existing = {}
+        owner[key] = existing
     end
 
-    return nil
+    return existing
 end
 
-local function set_override_field(inst, entity_id, component_key, field, value)
-    local overrides = inst.overrides
-    if overrides == nil then
-        overrides = {}
-        inst.overrides = overrides
+local function set_pose_field(inst, field, value)
+    if field ~= TransformKey.POSITION and field ~= TransformKey.ROTATION and field ~= TransformKey.SCALE then
+        return nil
     end
 
-    local section = overrides[component_key]
-    if section == nil then
-        section = {}
-        overrides[component_key] = section
+    local pose = get_or_create(inst, SceneKey.POSE_OVERRIDES)
+
+    if field == TransformKey.ROTATION then
+        local rotation_deg = value * Math.RAD_TO_DEG
+        local changed = pose.rotation_deg ~= rotation_deg
+        pose.rotation_deg = rotation_deg
+        return changed
     end
+
+    local changed = pose[field] ~= value
+    pose[field] = value
+
+    return changed
+end
+
+local function set_override_field(inst, overrides_key, component_key, field, value)
+    local overrides = get_or_create(get_or_create(inst, overrides_key), component_key)
 
     local stored = value
     if stored == nil then
         stored = None
     end
 
-    local changed = section[field] ~= stored
-    section[field] = stored
-    _G.__scene_overrides_by_entity_id[entity_id] = overrides
+    local changed = overrides[field] ~= stored
+    overrides[field] = stored
 
     return changed
 end
@@ -106,10 +106,22 @@ function Editor.set_instance_field(entity_id, component_key, field, value)
     end
 
     if changed == nil then
-        changed = set_override_field(inst, entity_id, component_key, field, value)
+        changed = set_override_field(inst, SceneKey.CPP_OVERRIDES, component_key, field, value)
     end
 
     if changed then
+        Editor.mark_scene_dirty()
+    end
+end
+
+function Editor.set_lua_instance_field(entity_id, class_name, field, value)
+    local instance_id = scene_state.instance_id_by_entity_id[entity_id]
+    local inst = instance_id and scene_state.entity_def_by_instance_id[instance_id]
+    if inst == nil then
+        return
+    end
+
+    if set_override_field(inst, SceneKey.LUA_OVERRIDES, class_name, field, value) then
         Editor.mark_scene_dirty()
     end
 end
@@ -121,7 +133,7 @@ function Editor.clear_world()
     scene_state.entity_id_by_instance_id = {}
     scene_state.entity_def_by_instance_id = {}
 
-    _G.__scene_overrides_by_entity_id = {}
+    _G.__scene_instance_by_entity_id = {}
     EntitySpawner.clear()
 end
 
@@ -229,14 +241,18 @@ function Editor.rebind_instance_defs()
         local old = scene_state.entity_def_by_instance_id[instance_id]
 
         if scene_state.is_dirty then
-            inst.position = old.position
-            inst.rotation_deg = old.rotation_deg
-            inst.scale = old.scale
-            inst.overrides = old.overrides
+            inst[SceneKey.POSE_OVERRIDES] = old[SceneKey.POSE_OVERRIDES]
+            inst[SceneKey.CPP_OVERRIDES] = old[SceneKey.CPP_OVERRIDES]
+            inst[SceneKey.LUA_OVERRIDES] = old[SceneKey.LUA_OVERRIDES]
         end
 
         inst.__instance_id = instance_id
         scene_state.entity_def_by_instance_id[instance_id] = inst
+
+        local entity_id = scene_state.entity_id_by_instance_id[instance_id]
+        if entity_id then
+            _G.__scene_instance_by_entity_id[entity_id] = inst
+        end
     end
 
     return true

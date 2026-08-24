@@ -67,38 +67,38 @@ namespace hob {
         out << "local schemas = {\n";
         for (const auto& s : m_schemas) {
             out << "    " << s.key << " = {\n";
-            out << "        " << schema_key::ADD << " = \"" << s.add_method << "\",\n";
-            out << "        " << schema_key::GET << " = \"" << s.get_method << "\",\n";
+            out << "        " << component_schema_key::ADD << " = \"" << s.add_method << "\",\n";
+            out << "        " << component_schema_key::GET << " = \"" << s.get_method << "\",\n";
 
             if (!s.map_setter.empty()) {
-                out << "        " << schema_key::MAP_SETTER << " = \"" << s.map_setter << "\",\n";
+                out << "        " << component_schema_key::MAP_SETTER << " = \"" << s.map_setter << "\",\n";
             }
             else if (s.fields.empty()) {
-                out << "        " << schema_key::GETTERS << " = {},\n";
-                out << "        " << schema_key::SETTERS << " = {},\n";
-                out << "        " << schema_key::ORDER << " = {},\n";
+                out << "        " << component_schema_key::GETTERS << " = {},\n";
+                out << "        " << component_schema_key::SETTERS << " = {},\n";
+                out << "        " << component_schema_key::ORDER << " = {},\n";
             }
             else {
-                out << "        " << schema_key::GETTERS << " = {\n";
+                out << "        " << component_schema_key::GETTERS << " = {\n";
                 for (const auto& f : s.fields) {
                     out << "            " << f.name << " = \"" << f.get_method << "\",\n";
                 }
                 out << "        },\n";
 
-                out << "        " << schema_key::SETTERS << " = {\n";
+                out << "        " << component_schema_key::SETTERS << " = {\n";
                 for (const auto& f : s.fields) {
                     out << "            " << f.name << " = \"" << f.set_method << "\",\n";
                 }
                 out << "        },\n";
 
-                out << "        " << schema_key::ORDER << " = {\n";
+                out << "        " << component_schema_key::ORDER << " = {\n";
                 for (const auto& f : s.fields) {
                     out << "            \"" << f.name << "\",\n";
                 }
                 out << "        },\n";
 
                 if (fields_have_metadata(s.fields)) {
-                    out << "        " << schema_key::TYPES << " = {\n";
+                    out << "        " << component_schema_key::TYPES << " = {\n";
                     for (const auto& f : s.fields) {
                         if (!field_has_metadata(f)) {
                             continue;
@@ -106,23 +106,23 @@ namespace hob {
 
                         out << "            " << f.name << " = {";
                         if (!f.type.empty()) {
-                            out << " " << schema_key::TYPE << " = \"" << f.type << "\",";
+                            out << " " << component_schema_key::TYPE << " = \"" << f.type << "\",";
                         }
 
                         if (!f.enum_name.empty()) {
-                            out << " " << schema_key::ENUM << " = \"" << f.enum_name << "\",";
+                            out << " " << component_schema_key::ENUM << " = \"" << f.enum_name << "\",";
                         }
 
                         if (f.min != f.max) {
-                            out << " " << schema_key::MIN << " = ";
+                            out << " " << component_schema_key::MIN << " = ";
                             write_number(out, f.min);
-                            out << ", " << schema_key::MAX << " = ";
+                            out << ", " << component_schema_key::MAX << " = ";
                             write_number(out, f.max);
                             out << ",";
                         }
 
                         if (f.hide_in_inspector) {
-                            out << " " << schema_key::HIDDEN << " = true,";
+                            out << " " << component_schema_key::HIDDEN << " = true,";
                         }
 
                         out << " },\n";
@@ -131,7 +131,7 @@ namespace hob {
                 }
 
                 if (fields_have_reapply_exclusions(s.fields)) {
-                    out << "        " << schema_key::REAPPLY_ON_HOT_RELOAD << " = {\n";
+                    out << "        " << component_schema_key::REAPPLY_ON_HOT_RELOAD << " = {\n";
                     for (const auto& f : s.fields) {
                         if (!f.reapply_on_hot_reload) {
                             out << "            " << f.name << " = false,\n";
@@ -145,13 +145,13 @@ namespace hob {
         }
         out << "}\n\n";
 
-        out << "schemas." << schema_key::ORDER << " = {\n";
+        out << "schemas." << component_schema_key::ORDER << " = {\n";
         for (const auto& s : m_schemas) {
             out << "    \"" << s.key << "\",\n";
         }
         out << "}\n\n";
 
-        out << "_G." << schema_key::COMPONENT_SCHEMAS << " = schemas\n";
+        out << "_G.__component_schemas = schemas\n";
 
         std::error_code ec;
         std::filesystem::create_directories(full_path.parent_path(), ec);

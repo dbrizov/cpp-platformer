@@ -1,10 +1,7 @@
 #pragma once
 
 namespace hob {
-    namespace schema_key {
-        // Global the component schema file assigns itself to.
-        constexpr const char* COMPONENT_SCHEMAS = "__component_schemas";
-
+    namespace component_schema_key {
         // Component schema section.
         constexpr const char* ADD = "add";
         constexpr const char* GET = "get";
@@ -21,7 +18,13 @@ namespace hob {
         constexpr const char* MIN = "min";
         constexpr const char* MAX = "max";
         constexpr const char* HIDDEN = "hidden";
-    } // namespace schema_key
+    } // namespace component_schema_key
+
+    namespace scene_key {
+        constexpr const char* POSE_OVERRIDES = "pose_overrides";
+        constexpr const char* CPP_OVERRIDES = "cpp_overrides";
+        constexpr const char* LUA_OVERRIDES = "lua_overrides";
+    } // namespace scene_key
 
     namespace transform_key {
         constexpr const char* SECTION = "transform";

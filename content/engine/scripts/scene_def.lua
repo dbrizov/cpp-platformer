@@ -1,7 +1,7 @@
 -- DefineScene: a level as data.
 
 _G.__scene_registry = _G.__scene_registry or {}
-_G.__scene_overrides_by_entity_id = _G.__scene_overrides_by_entity_id or {}
+_G.__scene_instance_by_entity_id = _G.__scene_instance_by_entity_id or {}
 
 ---@class DefineScene
 _G.DefineScene = setmetatable({}, {
@@ -27,25 +27,25 @@ _G.Scenes = setmetatable({}, {
 _G.Scene = _G.Scene or {}
 
 ---@param entity Entity
----@param overrides table
-function Scene.apply_overrides(entity, overrides)
+---@param cpp_overrides table
+function Scene.apply_cpp_overrides(entity, cpp_overrides)
     local schemas = _G.__component_schemas
     local call_setter = _G.__call_component_setter
 
     for _, key in ipairs(schemas.__order) do
-        local section = overrides[key]
-        if section ~= nil then
+        local overrides = cpp_overrides[key]
+        if overrides ~= nil then
             local schema = schemas[key]
             local component = entity[schema.get](entity)
             if component == nil then
                 Log.error("Scene override: entity has no '" .. key .. "' component")
             elseif schema.map_setter then
-                call_setter(component, schema.map_setter, unwrap_def(section))
+                call_setter(component, schema.map_setter, unwrap_def(overrides))
             else
-                for prop, value in pairs(section) do
-                    local setter = schema.setters[prop]
+                for field, value in pairs(overrides) do
+                    local setter = schema.setters[field]
                     if setter == nil then
-                        Log.error("Scene override: unknown property '" .. tostring(prop) .. "' for '" .. key .. "'")
+                        Log.error("Scene override: unknown field '" .. tostring(field) .. "' for '" .. key .. "'")
                     else
                         call_setter(component, setter, unwrap_def(value))
                     end
@@ -54,6 +54,35 @@ function Scene.apply_overrides(entity, overrides)
         end
     end
 end
+
+---@param entity Entity
+---@param lua_overrides table
+function Scene.apply_lua_overrides(entity, lua_overrides)
+    for class_name, overrides in pairs(lua_overrides) do
+        local instance = entity:get_lua_component(class_name)
+        if instance == nil then
+            Log.error("Scene override: entity has no '" .. tostring(class_name) .. "' lua component")
+        else
+            for field, value in pairs(overrides) do
+                instance[field] = unwrap_def(value)
+            end
+        end
+    end
+end
+
+local function apply_overrides(entity, inst)
+    local cpp_overrides = inst[SceneKey.CPP_OVERRIDES]
+    if cpp_overrides then
+        Scene.apply_cpp_overrides(entity, cpp_overrides)
+    end
+
+    local lua_overrides = inst[SceneKey.LUA_OVERRIDES]
+    if lua_overrides then
+        Scene.apply_lua_overrides(entity, lua_overrides)
+    end
+end
+
+local NO_POSE = {}
 
 ---@param name string
 ---@return { index: integer, entity: Entity }[]|nil
@@ -66,13 +95,12 @@ function Scene.load(name)
 
     local spawned = {}
     for index, inst in ipairs(def.entities) do
-        local entity = EntitySpawner.spawn_entity(inst.prefab, inst.position, inst.rotation_deg, inst.scale)
+        local pose = inst[SceneKey.POSE_OVERRIDES] or NO_POSE
+        local entity = EntitySpawner.spawn_entity(inst.prefab, pose.position, pose.rotation_deg, pose.scale)
 
         if entity then
-            if inst.overrides then
-                Scene.apply_overrides(entity, inst.overrides)
-                _G.__scene_overrides_by_entity_id[entity:get_id()] = inst.overrides
-            end
+            apply_overrides(entity, inst)
+            _G.__scene_instance_by_entity_id[entity:get_id()] = inst
 
             spawned[#spawned + 1] = { index = index, entity = entity }
         end
@@ -86,12 +114,12 @@ function _G.__reapply_scene_overrides_to_spawned_entities()
 
     EntitySpawner.for_each_entity(function(entity)
         local id = entity:get_id()
-        local overrides = _G.__scene_overrides_by_entity_id[id]
-        if overrides then
-            live[id] = overrides
-            Scene.apply_overrides(entity, overrides)
+        local inst = _G.__scene_instance_by_entity_id[id]
+        if inst then
+            live[id] = inst
+            apply_overrides(entity, inst)
         end
     end)
 
-    _G.__scene_overrides_by_entity_id = live
+    _G.__scene_instance_by_entity_id = live
 end

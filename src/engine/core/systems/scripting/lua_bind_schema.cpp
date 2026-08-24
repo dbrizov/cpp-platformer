@@ -9,6 +9,11 @@ namespace hob {
         sol::state& lua = m_impl->lua;
         LuaMetaRegistry& meta = m_impl->meta;
 
+        bind_table(lua, meta, "SceneKey")
+            .constant("POSE_OVERRIDES", scene_key::POSE_OVERRIDES)
+            .constant("CPP_OVERRIDES", scene_key::CPP_OVERRIDES)
+            .constant("LUA_OVERRIDES", scene_key::LUA_OVERRIDES);
+
         bind_table(lua, meta, "TransformKey")
             .constant("SECTION", transform_key::SECTION)
             .constant("POSITION", transform_key::POSITION)

@@ -33,6 +33,7 @@ namespace hob::editor {
         constexpr const char* GET_INSTANCE_ID = "get_instance_id";
         constexpr const char* REBIND_INSTANCE_DEFS = "rebind_instance_defs";
         constexpr const char* SET_INSTANCE_FIELD = "set_instance_field";
+        constexpr const char* SET_LUA_INSTANCE_FIELD = "set_lua_instance_field";
 
         constexpr const char* GET_COMPONENTS = "get_components";
         constexpr const char* GET_ENUM_ENTRIES = "get_enum_entries";

@@ -50,28 +50,23 @@ namespace hob::editor {
     void EditorCommandSetField::apply(Editor& editor, const EditorFieldTarget& target, const sol::object& value) {
         Engine& engine = editor.get_engine();
 
-        if (target.is_lua) {
-            editor_call(engine,
-                        editor_func::SET_LUA_COMPONENT_FIELD,
-                        target.entity_id,
-                        target.component_key,
-                        target.field,
-                        value);
-            return;
-        }
+        const char* set_component_field =
+            target.is_lua ? editor_func::SET_LUA_COMPONENT_FIELD : editor_func::SET_COMPONENT_FIELD;
 
-        const sol::object set_successful = editor_call(
-            engine, editor_func::SET_COMPONENT_FIELD, target.entity_id, target.component_key, target.field, value);
+        const sol::object set_successful =
+            editor_call(engine, set_component_field, target.entity_id, target.component_key, target.field, value);
         if (!set_successful.is<bool>() || !set_successful.as<bool>()) {
             return;
         }
 
         if (editor.get_state() == EditorState::Edit) {
-            editor_call(
-                engine, editor_func::SET_INSTANCE_FIELD, target.entity_id, target.component_key, target.field, value);
+            const char* set_instance_field =
+                target.is_lua ? editor_func::SET_LUA_INSTANCE_FIELD : editor_func::SET_INSTANCE_FIELD;
+
+            editor_call(engine, set_instance_field, target.entity_id, target.component_key, target.field, value);
         }
 
-        if (target.component_key == transform_key::SECTION) {
+        if (!target.is_lua && target.component_key == transform_key::SECTION) {
             sync_transform_to_physics(engine, target.entity_id);
         }
     }

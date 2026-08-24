@@ -106,9 +106,9 @@ namespace hob::editor {
             const sol::object value = field[query_key::VALUE];
 
             // min == max means unbounded.
-            const std::string enum_name = field.get_or<std::string>(schema_key::ENUM, "");
-            const float min = field.get_or(schema_key::MIN, 0.0f);
-            const float max = field.get_or(schema_key::MAX, 0.0f);
+            const std::string enum_name = field.get_or<std::string>(component_schema_key::ENUM, "");
+            const float min = field.get_or(component_schema_key::MIN, 0.0f);
+            const float max = field.get_or(component_schema_key::MAX, 0.0f);
 
             Engine& engine = editor.get_engine();
             sol::state& lua = engine.get_lua_script_system().get_lua();
