@@ -4,9 +4,9 @@
 
 #include <sol/sol.hpp>
 
+#include "editor/editor_asset_value.h"
+#include "editor/editor_field_target.h"
 #include "editor_command.h"
-#include "engine/editor/editor_asset_value.h"
-#include "engine/editor/editor_field_target.h"
 
 namespace hob::editor {
     class EditorCommandSetAssetField : public EditorCommand {

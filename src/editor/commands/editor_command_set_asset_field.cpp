@@ -2,11 +2,11 @@
 
 #include <utility>
 
+#include "editor/editor.h"
+#include "editor/editor_lua.h"
 #include "editor_command_set_field.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/scripting/lua_script_system.h"
-#include "engine/editor/editor.h"
-#include "engine/editor/editor_lua.h"
 
 namespace hob::editor {
     namespace {

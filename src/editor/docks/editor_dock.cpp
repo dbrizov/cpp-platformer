@@ -2,7 +2,7 @@
 
 #include <format>
 
-#include "engine/editor/editor_gui_utils.h"
+#include "editor/editor_gui_utils.h"
 
 namespace hob::editor {
     EditorDock::EditorDock(std::string_view id, EditorActionContext context)

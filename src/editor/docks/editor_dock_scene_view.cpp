@@ -6,16 +6,16 @@
 
 #include <imgui.h>
 
+#include "editor/actions/editor_action.h"
+#include "editor/editor.h"
+#include "editor/editor_gui_utils.h"
+#include "editor/editor_style.h"
 #include "engine/components/camera_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/renderer/renderer.h"
-#include "engine/editor/actions/editor_action.h"
-#include "engine/editor/editor.h"
-#include "engine/editor/editor_gui_utils.h"
-#include "engine/editor/editor_style.h"
 #include "engine/math/aabb.h"
 #include "engine/math/constants.h"
 #include "engine/math/matrix2x3.h"

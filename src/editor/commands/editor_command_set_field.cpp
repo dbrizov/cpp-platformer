@@ -3,13 +3,13 @@
 #include <string>
 #include <utility>
 
+#include "editor/editor.h"
+#include "editor/editor_lua.h"
 #include "engine/components/physics/rigidbody_component.h"
 #include "engine/components/transform_component.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/scripting/lua_schema_keys.h"
-#include "engine/editor/editor.h"
-#include "engine/editor/editor_lua.h"
 
 namespace hob::editor {
     namespace {

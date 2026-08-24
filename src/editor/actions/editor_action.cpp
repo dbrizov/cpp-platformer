@@ -4,9 +4,9 @@
 
 #include <imgui_internal.h>
 
+#include "editor/editor.h"
+#include "editor/editor_gui_utils.h"
 #include "engine/core/assert.h"
-#include "engine/editor/editor.h"
-#include "engine/editor/editor_gui_utils.h"
 
 namespace hob::editor {
     namespace {

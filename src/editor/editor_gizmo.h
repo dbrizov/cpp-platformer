@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "engine/editor/editor_camera.h"
+#include "editor/editor_camera.h"
 #include "engine/entity/entity.h"
 #include "engine/math/vector2.h"
 

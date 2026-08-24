@@ -5,7 +5,7 @@
 
 #include <imgui.h>
 
-#include "engine/editor/actions/editor_action.h"
+#include "editor/actions/editor_action.h"
 
 namespace hob::editor {
     class Editor;

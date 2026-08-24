@@ -5,10 +5,10 @@
 
 #include <imgui.h>
 
-#include "engine/editor/actions/editor_action.h"
-#include "engine/editor/editor.h"
-#include "engine/editor/editor_gui_utils.h"
-#include "engine/editor/editor_style.h"
+#include "editor/actions/editor_action.h"
+#include "editor/editor.h"
+#include "editor/editor_gui_utils.h"
+#include "editor/editor_style.h"
 
 namespace hob::editor {
     namespace {

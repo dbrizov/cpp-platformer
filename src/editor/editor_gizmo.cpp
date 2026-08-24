@@ -7,17 +7,17 @@
 #include <imgui.h>
 #include <sol/sol.hpp>
 
+#include "editor/commands/editor_command_composite.h"
+#include "editor/commands/editor_command_set_field.h"
+#include "editor/editor.h"
+#include "editor/editor_field_target.h"
+#include "editor/editor_gui_utils.h"
+#include "editor/editor_style.h"
 #include "engine/components/transform_component.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/scripting/lua_schema_keys.h"
 #include "engine/core/systems/scripting/lua_script_system.h"
-#include "engine/editor/commands/editor_command_composite.h"
-#include "engine/editor/commands/editor_command_set_field.h"
-#include "engine/editor/editor.h"
-#include "engine/editor/editor_field_target.h"
-#include "engine/editor/editor_gui_utils.h"
-#include "engine/editor/editor_style.h"
 #include "engine/math/constants.h"
 #include "engine/math/mathf.h"
 #include "engine/math/matrix2x3.h"

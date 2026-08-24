@@ -4,9 +4,9 @@
 
 #include <SDL3/SDL_gpu.h>
 
+#include "editor/editor_camera.h"
+#include "editor/editor_gizmo.h"
 #include "editor_dock.h"
-#include "engine/editor/editor_camera.h"
-#include "engine/editor/editor_gizmo.h"
 #include "engine/entity/entity.h"
 #include "engine/math/vector2.h"
 

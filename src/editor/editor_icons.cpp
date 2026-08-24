@@ -7,10 +7,10 @@
 
 #include <lunasvg.h>
 
+#include "editor/editor_style.h"
 #include "engine/core/assert.h"
 #include "engine/core/path_utils.h"
 #include "engine/core/systems/renderer/renderer.h"
-#include "engine/editor/editor_style.h"
 
 namespace hob::editor {
     namespace {

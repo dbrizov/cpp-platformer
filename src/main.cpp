@@ -1,12 +1,12 @@
 #include <cstring>
 #include <memory>
 
+#include "editor/editor.h"
+#include "editor/editor_config.h"
 #include "engine/core/assert.h"
 #include "engine/core/engine.h"
 #include "engine/core/engine_config.h"
 #include "engine/core/path_utils.h"
-#include "engine/editor/editor.h"
-#include "engine/editor/editor_config.h"
 
 int main(int argc, char* argv[]) {
     const std::filesystem::path project_root = hob::PathUtils::resolve_project_root(argc, argv);

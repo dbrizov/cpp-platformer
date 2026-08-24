@@ -4,12 +4,12 @@
 
 #include <imgui.h>
 
+#include "editor/editor.h"
+#include "editor/editor_gui_utils.h"
+#include "editor/editor_style.h"
 #include "engine/components/transform_component.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
-#include "engine/editor/editor.h"
-#include "engine/editor/editor_gui_utils.h"
-#include "engine/editor/editor_style.h"
 
 namespace hob::editor {
     EditorDockHierarchy::EditorDockHierarchy()
