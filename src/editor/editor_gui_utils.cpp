@@ -175,12 +175,19 @@ namespace hob::editor {
 
     bool begin_dock(const char* name, ImGuiWindowFlags flags) {
         const ImGuiWindow* window = ImGui::FindWindowByName(name);
-        const bool is_selected_tab = window && window->DockTabIsVisible;
+        const bool is_tab_selected = window && window->DockTabIsVisible;
+        const bool is_floating = window && window->DockNode == nullptr;
 
         EditorStyleColorStack colors;
-        colors.push(ImGuiCol_TabHovered, is_selected_tab ? COLOR_BG_BASE : COLOR_BG_HOVER);
+        colors.push(ImGuiCol_TabHovered, is_tab_selected ? COLOR_BG_BASE : COLOR_BG_HOVER);
+        colors.push(ImGuiCol_Border, is_floating ? COLOR_DOCK_BORDER_FLOATING : COLOR_DOCK_BORDER);
+
+        EditorStyleVarStack vars;
+        vars.push(ImGuiStyleVar_WindowBorderSize, is_floating ? DOCK_BORDER_SIZE_FLOATING : DOCK_BORDER_SIZE);
 
         const bool visible = ImGui::Begin(name, nullptr, flags);
+
+        vars.pop();
         colors.pop();
 
         return visible;

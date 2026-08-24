@@ -50,7 +50,7 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_AXIS_W{0.75f, 0.75f, 0.75f, 1.0f};
 
     // Rounding
-    constexpr float ROUNDING = 3.0f;
+    constexpr float ROUNDING = 4.0f;
     constexpr float IMAGE_ROUNDING = 0.0f;
 
     // ImGuiStyle metrics
@@ -111,6 +111,11 @@ namespace hob::editor {
     // Dock
     constexpr ImVec2 DOCK_TAB_PADDING{0.0f, FRAME_PADDING.y};
     constexpr ImVec2 DOCK_TAB_SPACING{0.0f, ITEM_INNER_SPACING.y};
+    constexpr float DOCK_BORDER_SIZE = 0.0f;
+    constexpr float DOCK_BORDER_SIZE_FLOATING = 1.0f;
+
+    constexpr ImVec4 COLOR_DOCK_BORDER = COLOR_BORDER;
+    constexpr ImVec4 COLOR_DOCK_BORDER_FLOATING = COLOR_MAIN_LIGHTEST;
 
     // Bar (shared by the menu bar, the main toolbar and the dock toolbars)
     struct EditorBarMetrics {
