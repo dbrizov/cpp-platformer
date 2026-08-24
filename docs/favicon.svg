@@ -5,8 +5,8 @@
       <stop offset="1" stop-color="#ff8214"/>
     </linearGradient>
   </defs>
-  <g transform="translate(32 32) scale(2.1) translate(-32 -28.25)">
-    <path fill="url(#flame)" d="M43.5 31C43.5 23.35 41.25 19.44 39 14C38.12 20.38 34.62 24.12 32 25C29.38 24.6 25.88 22.9 25 20C22.75 23.52 20.5 26.05 20.5 31A11.5 11.5 0 0 0 43.5 31Z"/>
+  <g transform="translate(32 32) scale(1.95) translate(-32 -26.75)">
+    <path fill="url(#flame)" d="M32 11c4 7.5 11.5 11 11.5 20a11.5 11.5 0 0 1-23 0c0-5 2.5-7.5 5-11 .5 3.5 2.5 5.5 4 6 1-5-.5-10 2.5-15z"/>
     <g fill="#000000">
       <ellipse cx="27.3" cy="33.5" rx="2.8" ry="4.6" transform="rotate(-15 27.3 33.5)"/>
       <ellipse cx="36.7" cy="33.5" rx="2.8" ry="4.6" transform="rotate(15 36.7 33.5)"/>
