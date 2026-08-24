@@ -89,7 +89,6 @@ namespace hob::editor {
                 .entity_id = entity_id,
                 .is_lua = false,
                 .component_key = transform_key::SECTION,
-                .component_index = 0,
                 .field = field,
             };
         }

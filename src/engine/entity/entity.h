@@ -4,6 +4,8 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <string_view>
+#include <typeinfo>
 #include <utility>
 #include <vector>
 
@@ -12,6 +14,7 @@
 namespace hob {
     class Engine;
     class ColliderComponent;
+    class LuaScriptComponent;
     class RigidbodyComponent;
     class TransformComponent;
 
@@ -23,6 +26,9 @@ namespace hob {
 
     template<typename T>
     concept ComponentType = std::derived_from<T, Component>;
+
+    template<typename T>
+    concept NonLuaComponentType = ComponentType<T> && !std::same_as<T, LuaScriptComponent>;
 
     template<typename Func, typename T>
     concept ComponentInvocable = std::invocable<Func, T*>;
@@ -91,8 +97,11 @@ namespace hob {
         TransformComponent* get_transform() const;
         RigidbodyComponent* get_rigidbody() const;
 
-        template<ComponentType T, typename... Args>
+        template<NonLuaComponentType T, typename... Args>
         T* add_component(Args&&... args);
+
+        LuaScriptComponent* add_lua_component(std::string class_name);
+        LuaScriptComponent* get_lua_component(std::string_view class_name) const;
 
         template<ComponentType T>
         T* get_component() const;
@@ -110,10 +119,30 @@ namespace hob {
         void for_each_component(Func&& func, Until&& until) const;
 
         void sort_components();
+
+    private:
+        template<ComponentType T, typename... Args>
+        T* emplace_component(Args&&... args);
+
+        void log_duplicate_component(const Component& comp) const;
     };
 
-    template<ComponentType T, typename... Args>
+    template<NonLuaComponentType T, typename... Args>
     T* Entity::add_component(Args&&... args) {
+        for (const auto& c : m_components) {
+            if (typeid(*c) == typeid(T)) {
+                T* existing = static_cast<T*>(c.get());
+                log_duplicate_component(*existing);
+
+                return existing;
+            }
+        }
+
+        return emplace_component<T>(std::forward<Args>(args)...);
+    }
+
+    template<ComponentType T, typename... Args>
+    T* Entity::emplace_component(Args&&... args) {
         std::unique_ptr<T> component = std::make_unique<T>(*this, std::forward<Args>(args)...);
 
         component->init();

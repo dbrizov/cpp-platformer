@@ -82,7 +82,7 @@ namespace hob {
                         return sol::lua_nil;
                     }
 
-                    LuaScriptComponent* lua_comp = e->add_component<LuaScriptComponent>(std::move(class_name));
+                    LuaScriptComponent* lua_comp = e->add_lua_component(std::move(class_name));
                     if (lua_comp == nullptr) {
                         return sol::lua_nil;
                     }
@@ -158,11 +158,7 @@ namespace hob {
                         return sol::lua_nil;
                     }
 
-                    LuaScriptComponent* found =
-                        e->get_component<LuaScriptComponent>([class_name](const LuaScriptComponent* lua_comp) {
-                            return lua_comp->get_class_name() == class_name;
-                        });
-
+                    LuaScriptComponent* found = e->get_lua_component(class_name);
                     if (found != nullptr) {
                         return found->impl().lua_instance;
                     }

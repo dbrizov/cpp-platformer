@@ -46,18 +46,18 @@ end
 
 --- Write a field of a Lua component.
 ---@param entity_id integer
----@param component_index integer Index into entity:get_lua_components()
+---@param class_name string Lua component class, e.g. "Player"
 ---@param field string
 ---@param value any
-function Editor.set_lua_component_field(entity_id, component_index, field, value)
+function Editor.set_lua_component_field(entity_id, class_name, field, value)
     local entity = resolve_entity(entity_id)
     if entity == nil then
         return false
     end
 
-    local instance = entity:get_lua_components()[component_index]
+    local instance = entity:get_lua_component(class_name)
     if instance == nil then
-        Log.error("Editor.set_lua_component_field: no lua component at index " .. tostring(component_index))
+        Log.error("Editor.set_lua_component_field: no lua component of class '" .. tostring(class_name) .. "'")
         return false
     end
 

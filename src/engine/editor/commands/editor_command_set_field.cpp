@@ -54,7 +54,7 @@ namespace hob::editor {
             editor_call(engine,
                         editor_func::SET_LUA_COMPONENT_FIELD,
                         target.entity_id,
-                        target.component_index,
+                        target.component_key,
                         target.field,
                         value);
             return;

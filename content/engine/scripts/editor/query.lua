@@ -362,11 +362,10 @@ function Editor.get_components(entity_id)
         end
     end
 
-    for index, instance in ipairs(entity:get_lua_components()) do
+    for _, instance in ipairs(entity:get_lua_components()) do
         out[#out + 1] = {
             name = instance.class_name or "?",
             is_lua = true,
-            index = index,
             fields = get_lua_component_fields(instance),
         }
     end

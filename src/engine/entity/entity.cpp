@@ -3,9 +3,11 @@
 #include <algorithm>
 #include <format>
 
+#include "engine/components/lua_script_component.h"
 #include "engine/components/physics/rigidbody_component.h"
 #include "engine/components/transform_component.h"
 #include "engine/core/engine.h"
+#include "engine/core/logging.h"
 #include "engine/core/systems/entity_spawner.h"
 
 namespace hob {
@@ -182,9 +184,31 @@ namespace hob {
         return m_rigidbody;
     }
 
+    LuaScriptComponent* Entity::add_lua_component(std::string class_name) {
+        if (LuaScriptComponent* existing = get_lua_component(class_name)) {
+            log_duplicate_component(*existing);
+            return existing;
+        }
+
+        return emplace_component<LuaScriptComponent>(std::move(class_name));
+    }
+
+    LuaScriptComponent* Entity::get_lua_component(std::string_view class_name) const {
+        return get_component<LuaScriptComponent>([class_name](const LuaScriptComponent* comp) {
+            return comp->get_class_name() == class_name;
+        });
+    }
+
     void Entity::sort_components() {
-        std::sort(m_components.begin(), m_components.end(), [](const auto& a, const auto& b) {
+        std::stable_sort(m_components.begin(), m_components.end(), [](const auto& a, const auto& b) {
             return a->get_priority() < b->get_priority();
         });
+    }
+
+    void Entity::log_duplicate_component(const Component& comp) const {
+        log::engine.error("Entity(name = {}, id = {}) already has {}; returning the existing one",
+                          get_display_name(),
+                          get_id(),
+                          comp.to_string());
     }
 } // namespace hob

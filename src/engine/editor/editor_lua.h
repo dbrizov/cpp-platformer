@@ -20,7 +20,6 @@ namespace hob::editor {
         constexpr const char* VALUE = "value";
         constexpr const char* TYPE = "type";
         constexpr const char* IS_LUA = "is_lua";
-        constexpr const char* INDEX = "index";
         constexpr const char* FIELDS = "fields";
     } // namespace query_key
 

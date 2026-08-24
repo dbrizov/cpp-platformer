@@ -263,8 +263,7 @@ namespace hob::editor {
             EditorFieldTarget target;
             target.entity_id = entity_id;
             target.is_lua = is_lua;
-            target.component_key = is_lua ? "" : name;
-            target.component_index = is_lua ? component.get_or(query_key::INDEX, 0) : 0;
+            target.component_key = name;
 
             ImGui::PushID(index);
 
