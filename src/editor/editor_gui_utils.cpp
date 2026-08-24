@@ -218,7 +218,7 @@ namespace hob::editor {
             draw_highlight(draw_list,
                            ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()),
                            open ? COLOR_ITEM_ACTIVE : COLOR_ITEM_HOVER,
-                           BAR_ITEM_ROUNDING);
+                           ROUNDING);
         }
 
         splitter.Merge(draw_list);
@@ -270,7 +270,7 @@ namespace hob::editor {
             draw_highlight(draw_list,
                            inset_rect(row_min, row_max, BAR_POPUP_ITEM_INSET),
                            open ? COLOR_ITEM_ACTIVE : COLOR_ITEM_HOVER,
-                           BAR_ITEM_ROUNDING);
+                           ROUNDING);
         }
 
         splitter.Merge(draw_list);
@@ -322,7 +322,7 @@ namespace hob::editor {
             draw_highlight(draw_list,
                            row_rect(BAR_POPUP_ITEM_INSET),
                            ImGui::IsItemActive() ? COLOR_ITEM_ACTIVE : COLOR_ITEM_HOVER,
-                           BAR_ITEM_ROUNDING);
+                           ROUNDING);
         }
 
         splitter.Merge(draw_list);
@@ -337,8 +337,8 @@ namespace hob::editor {
 
         EditorStyleColorStack colors;
         if (open || held) {
-            colors.push(ImGuiCol_FrameBg, COLOR_BG_PRESSED);
-            colors.push(ImGuiCol_FrameBgHovered, COLOR_BG_PRESSED);
+            colors.push(ImGuiCol_FrameBg, COLOR_ITEM_ACTIVE);
+            colors.push(ImGuiCol_FrameBgHovered, COLOR_ITEM_ACTIVE);
         }
 
         const bool opened = ImGui::BeginCombo(INSPECTOR_EMPTY_LABEL, preview);
@@ -352,15 +352,28 @@ namespace hob::editor {
     }
 
     bool combo_item(const char* label, bool selected) {
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        ImDrawListSplitter splitter;
+        splitter.Split(draw_list, DRAW_CHANNEL_COUNT);
+        splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_FOREGROUND);
+
         EditorStyleColorStack colors;
-        if (selected) {
-            const ImVec4 header = ImGui::GetStyleColorVec4(ImGuiCol_Header);
-            colors.push(ImGuiCol_HeaderHovered, header);
-            colors.push(ImGuiCol_HeaderActive, header);
-        }
+        colors.push(ImGuiCol_Header, COLOR_TRANSPARENT);
+        colors.push(ImGuiCol_HeaderHovered, COLOR_TRANSPARENT);
+        colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
 
         const bool clicked = ImGui::Selectable(label, selected);
         colors.pop();
+
+        if (selected || ImGui::IsItemHovered()) {
+            splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
+            draw_highlight(draw_list,
+                           ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()),
+                           selected ? COLOR_ITEM_ACTIVE : COLOR_ITEM_HOVER,
+                           ROUNDING);
+        }
+
+        splitter.Merge(draw_list);
 
         return clicked;
     }
@@ -406,7 +419,7 @@ namespace hob::editor {
 
         if (ImGui::IsItemActive() || ImGui::IsItemHovered() || active) {
             const ImVec4& background = (ImGui::IsItemActive() || active) ? COLOR_ITEM_ACTIVE : COLOR_ITEM_HOVER;
-            draw_highlight(draw_list, rect, background, BAR_ITEM_ROUNDING);
+            draw_highlight(draw_list, rect, background, ROUNDING);
         }
 
         const ImVec4& icon_color = active ? COLOR_BAR_ICON_ACTIVE : enabled ? COLOR_BAR_ICON : COLOR_BAR_ICON_DISABLED;
@@ -421,7 +434,7 @@ namespace hob::editor {
 
     void set_tooltip(const char* fmt, ...) {
         EditorStyleVarStack vars;
-        vars.push(ImGuiStyleVar_WindowRounding, TOOLTIP_ROUNDING);
+        vars.push(ImGuiStyleVar_WindowRounding, ROUNDING);
 
         va_list args;
         va_start(args, fmt);
@@ -455,10 +468,8 @@ namespace hob::editor {
 
         if (selected || ImGui::IsItemHovered()) {
             splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
-            draw_highlight(draw_list,
-                           row_rect(HIERARCHY_ITEM_INSET),
-                           selected ? COLOR_ITEM_ACTIVE : COLOR_ITEM_HOVER,
-                           HIERARCHY_ITEM_ROUNDING);
+            draw_highlight(
+                draw_list, row_rect(HIERARCHY_ITEM_INSET), selected ? COLOR_ITEM_ACTIVE : COLOR_ITEM_HOVER, ROUNDING);
         }
 
         splitter.Merge(draw_list);

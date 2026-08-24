@@ -19,8 +19,6 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_BG_FRAME{0.106f, 0.106f, 0.106f, 1.0f};
     constexpr ImVec4 COLOR_BG_POPUP{0.106f, 0.106f, 0.106f, 1.0f};
     constexpr ImVec4 COLOR_BG_HOVER{0.129f, 0.129f, 0.129f, 1.0f};
-    constexpr ImVec4 COLOR_BG_PRESSED{0.192f, 0.192f, 0.192f, 1.0f};
-    constexpr ImVec4 COLOR_BG_ACTIVE{0.286f, 0.286f, 0.286f, 1.0f};
     constexpr ImVec4 COLOR_BORDER{0.078f, 0.078f, 0.078f, 1.0f};
 
     constexpr ImVec4 COLOR_TEXT{0.878f, 0.878f, 0.878f, 1.0f};
@@ -38,25 +36,23 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_AXIS_Z{0.20f, 0.58f, 0.92f, 1.0f};
     constexpr ImVec4 COLOR_AXIS_W{0.749f, 0.749f, 0.749f, 1.0f};
 
+    // Rounding
+    constexpr float ROUNDING = 3.0f;
+    constexpr float IMAGE_ROUNDING = 0.0f;
+
     // ImGuiStyle metrics
     constexpr float FONT_SIZE_PX = 18.0f;
 
     constexpr ImVec2 WINDOW_PADDING{6.0f, 6.0f};
     constexpr ImVec2 WINDOW_TITLE_ALIGN{0.0f, 0.5f};
-    constexpr float WINDOW_ROUNDING = 0.0f;
     constexpr float WINDOW_BORDER_SIZE = 0.0f;
     constexpr ImGuiDir WINDOW_MENU_BUTTON_POSITION = ImGuiDir_None;
 
-    constexpr float CHILD_ROUNDING = 3.0f;
     constexpr float CHILD_BORDER_SIZE = 0.0f;
 
-    constexpr float POPUP_ROUNDING = 3.0f;
     constexpr float POPUP_BORDER_SIZE = 0.0f;
 
-    constexpr float TOOLTIP_ROUNDING = 3.0f;
-
     constexpr ImVec2 FRAME_PADDING{10.0f, 7.0f};
-    constexpr float FRAME_ROUNDING = 3.0f;
     constexpr float FRAME_BORDER_SIZE = 0.0f;
     constexpr float COLOR_MARKER_SIZE = 3.0f;
 
@@ -69,19 +65,15 @@ namespace hob::editor {
     constexpr ImGuiTreeNodeFlags TREE_LINES_FLAGS = ImGuiTreeNodeFlags_DrawLinesToNodes;
 
     constexpr float SCROLLBAR_SIZE = 12.0f;
-    constexpr float SCROLLBAR_ROUNDING = 6.0f;
 
     constexpr float GRAB_MIN_SIZE = 12.0f;
-    constexpr float GRAB_ROUNDING = 3.0f;
 
-    constexpr float TAB_ROUNDING = 4.0f;
     constexpr float TAB_BORDER_SIZE = 0.0f;
     constexpr float TAB_BAR_BORDER_SIZE = 0.0f;
     constexpr float TAB_BAR_OVERLINE_SIZE = 0.0f;
 
     constexpr float DOCKING_SEPARATOR_SIZE = 2.0f;
     constexpr float SEPARATOR_SIZE = 1.0f;
-    constexpr float IMAGE_ROUNDING = 0.0f;
 
     // ImGuiStyle colors
     constexpr ImVec4 COLOR_RESIZE_GRIP_HOVER = with_alpha(COLOR_ACCENT, 0.40f);
@@ -95,7 +87,7 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_NAV_WINDOWING_DIM_BG{0.0f, 0.0f, 0.0f, 0.45f};
     constexpr ImVec4 COLOR_MODAL_DIM_BG{0.0f, 0.0f, 0.0f, 0.55f};
 
-    // Item (shared by bar items, bar popup rows and hierarchy rows)
+    // Item (shared by bar items, bar popup rows, hierarchy rows and frame widgets)
     constexpr ImVec4 COLOR_ITEM_HOVER{0.220f, 0.220f, 0.220f, 1.0f};
     constexpr ImVec4 COLOR_ITEM_ACTIVE{0.259f, 0.259f, 0.259f, 1.0f};
 
@@ -125,7 +117,6 @@ namespace hob::editor {
     constexpr EditorBarMetrics BAR_METRICS{{5.0f, 0.0f}, {0.0f, 3.0f}, true};
 
     constexpr ImVec2 BAR_ITEM_SPACING{4.0f, 0.0f};
-    constexpr float BAR_ITEM_ROUNDING = 3.0f;
     constexpr ImVec2 BAR_POPUP_PADDING{16.0f, 6.0f};
     constexpr ImVec2 BAR_POPUP_ITEM_INSET{6.0f, 1.0f};
 
@@ -144,7 +135,6 @@ namespace hob::editor {
     // Hierarchy
     constexpr ImVec2 HIERARCHY_ITEM_SPACING{0.0f, 2.0f};
     constexpr ImVec2 HIERARCHY_ITEM_INSET{4.0f, 1.0f};
-    constexpr float HIERARCHY_ITEM_ROUNDING = 3.0f;
 
     // Inspector
     constexpr float INSPECTOR_LABEL_WIDTH = 180.0f;

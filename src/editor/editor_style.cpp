@@ -10,18 +10,18 @@ namespace hob::editor {
 
         style.WindowPadding = WINDOW_PADDING;
         style.WindowTitleAlign = WINDOW_TITLE_ALIGN;
-        style.WindowRounding = WINDOW_ROUNDING;
+        style.WindowRounding = ROUNDING;
         style.WindowBorderSize = WINDOW_BORDER_SIZE;
         style.WindowMenuButtonPosition = WINDOW_MENU_BUTTON_POSITION;
 
-        style.ChildRounding = CHILD_ROUNDING;
+        style.ChildRounding = ROUNDING;
         style.ChildBorderSize = CHILD_BORDER_SIZE;
 
-        style.PopupRounding = POPUP_ROUNDING;
+        style.PopupRounding = ROUNDING;
         style.PopupBorderSize = POPUP_BORDER_SIZE;
 
         style.FramePadding = FRAME_PADDING;
-        style.FrameRounding = FRAME_ROUNDING;
+        style.FrameRounding = ROUNDING;
         style.FrameBorderSize = FRAME_BORDER_SIZE;
         style.ColorMarkerSize = COLOR_MARKER_SIZE;
 
@@ -34,12 +34,12 @@ namespace hob::editor {
         style.TreeLinesFlags = TREE_LINES_FLAGS;
 
         style.ScrollbarSize = SCROLLBAR_SIZE;
-        style.ScrollbarRounding = SCROLLBAR_ROUNDING;
+        style.ScrollbarRounding = ROUNDING;
 
         style.GrabMinSize = GRAB_MIN_SIZE;
-        style.GrabRounding = GRAB_ROUNDING;
+        style.GrabRounding = ROUNDING;
 
-        style.TabRounding = TAB_ROUNDING;
+        style.TabRounding = ROUNDING;
         style.TabBorderSize = TAB_BORDER_SIZE;
         style.TabBarBorderSize = TAB_BAR_BORDER_SIZE;
         style.TabBarOverlineSize = TAB_BAR_OVERLINE_SIZE;
@@ -58,8 +58,8 @@ namespace hob::editor {
         colors[ImGuiCol_BorderShadow] = COLOR_TRANSPARENT;
 
         colors[ImGuiCol_FrameBg] = COLOR_BG_FRAME;
-        colors[ImGuiCol_FrameBgHovered] = COLOR_BG_HOVER;
-        colors[ImGuiCol_FrameBgActive] = COLOR_BG_PRESSED;
+        colors[ImGuiCol_FrameBgHovered] = COLOR_ITEM_HOVER;
+        colors[ImGuiCol_FrameBgActive] = COLOR_ITEM_ACTIVE;
 
         colors[ImGuiCol_TitleBg] = COLOR_BG_DARK;
         colors[ImGuiCol_TitleBgActive] = COLOR_BG_DARK;
@@ -80,9 +80,9 @@ namespace hob::editor {
         colors[ImGuiCol_ButtonHovered] = COLOR_BUTTON_HOVER;
         colors[ImGuiCol_ButtonActive] = COLOR_BUTTON_ACTIVE;
 
-        colors[ImGuiCol_Header] = COLOR_BG_ACTIVE;
-        colors[ImGuiCol_HeaderHovered] = COLOR_BG_HOVER;
-        colors[ImGuiCol_HeaderActive] = COLOR_BG_ACTIVE;
+        colors[ImGuiCol_Header] = COLOR_ITEM_ACTIVE;
+        colors[ImGuiCol_HeaderHovered] = COLOR_ITEM_HOVER;
+        colors[ImGuiCol_HeaderActive] = COLOR_ITEM_ACTIVE;
 
         colors[ImGuiCol_Separator] = COLOR_BG_DARK;
         colors[ImGuiCol_SeparatorHovered] = COLOR_GRAB;
