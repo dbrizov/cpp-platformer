@@ -54,7 +54,7 @@ namespace hob::editor {
         colors[ImGuiCol_WindowBg] = COLOR_BG_BASE;
         colors[ImGuiCol_ChildBg] = COLOR_TRANSPARENT;
         colors[ImGuiCol_PopupBg] = COLOR_BG_POPUP;
-        colors[ImGuiCol_Border] = COLOR_BORDER;
+        colors[ImGuiCol_Border] = COLOR_BORDER_DARK;
         colors[ImGuiCol_BorderShadow] = COLOR_TRANSPARENT;
 
         colors[ImGuiCol_FrameBg] = COLOR_BG_FRAME;
@@ -85,10 +85,10 @@ namespace hob::editor {
         colors[ImGuiCol_HeaderActive] = COLOR_ITEM_ACTIVE;
 
         colors[ImGuiCol_Separator] = COLOR_SEPARATOR;
-        colors[ImGuiCol_SeparatorHovered] = COLOR_GRAB;
-        colors[ImGuiCol_SeparatorActive] = COLOR_ACCENT;
+        colors[ImGuiCol_SeparatorHovered] = COLOR_RESIZE_GRIP_HOVER;
+        colors[ImGuiCol_SeparatorActive] = COLOR_RESIZE_GRIP_ACTIVE;
 
-        colors[ImGuiCol_ResizeGrip] = COLOR_TRANSPARENT;
+        colors[ImGuiCol_ResizeGrip] = COLOR_BORDER_LIGHT;
         colors[ImGuiCol_ResizeGripHovered] = COLOR_RESIZE_GRIP_HOVER;
         colors[ImGuiCol_ResizeGripActive] = COLOR_RESIZE_GRIP_ACTIVE;
 

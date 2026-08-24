@@ -31,7 +31,8 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_BG_FRAME = COLOR_MAIN_DARKER;
     constexpr ImVec4 COLOR_BG_POPUP = COLOR_MAIN_DARKER;
     constexpr ImVec4 COLOR_BG_HOVER = COLOR_MAIN_DARK;
-    constexpr ImVec4 COLOR_BORDER = COLOR_MAIN_DARKEST;
+    constexpr ImVec4 COLOR_BORDER_DARK = COLOR_MAIN_DARKEST;
+    constexpr ImVec4 COLOR_BORDER_LIGHT = COLOR_MAIN_LIGHTEST;
     constexpr ImVec4 COLOR_SEPARATOR = COLOR_MAIN_LIGHT;
 
     constexpr ImVec4 COLOR_TEXT{0.878f, 0.878f, 0.878f, 1.0f};
@@ -114,8 +115,8 @@ namespace hob::editor {
     constexpr float DOCK_BORDER_SIZE = 0.0f;
     constexpr float DOCK_BORDER_SIZE_FLOATING = 1.0f;
 
-    constexpr ImVec4 COLOR_DOCK_BORDER = COLOR_BORDER;
-    constexpr ImVec4 COLOR_DOCK_BORDER_FLOATING = COLOR_MAIN_LIGHTEST;
+    constexpr ImVec4 COLOR_DOCK_BORDER = COLOR_BORDER_DARK;
+    constexpr ImVec4 COLOR_DOCK_BORDER_FLOATING = COLOR_BORDER_LIGHT;
 
     // Bar (shared by the menu bar, the main toolbar and the dock toolbars)
     struct EditorBarMetrics {
