@@ -9,32 +9,45 @@ namespace hob::editor {
         return ImVec4(color.x, color.y, color.z, alpha);
     }
 
+    // Main tones
+    constexpr ImVec4 COLOR_MAIN_DARKEST{0.080f, 0.080f, 0.080f, 1.0f};
+    constexpr ImVec4 COLOR_MAIN_DARKER{0.105f, 0.105f, 0.105f, 1.0f};
+    constexpr ImVec4 COLOR_MAIN_DARK{0.130f, 0.130f, 0.130f, 1.0f};
+    constexpr ImVec4 COLOR_MAIN_BASE{0.160f, 0.160f, 0.160f, 1.0f};
+    constexpr ImVec4 COLOR_MAIN_LIGHT{0.220f, 0.220f, 0.220f, 1.0f};
+    constexpr ImVec4 COLOR_MAIN_LIGHTER{0.260f, 0.260f, 0.260f, 1.0f};
+    constexpr ImVec4 COLOR_MAIN_LIGHTEST{0.300f, 0.300f, 0.300f, 1.0f};
+    constexpr ImVec4 COLOR_MAIN_BRIGHT{0.340f, 0.340f, 0.340f, 1.0f};
+    constexpr ImVec4 COLOR_MAIN_BRIGHTER{0.380f, 0.380f, 0.380f, 1.0f};
+    constexpr ImVec4 COLOR_MAIN_BRIGHTEST{0.420f, 0.420f, 0.420f, 1.0f};
+
     // Palette
     constexpr ImVec4 COLOR_TRANSPARENT{0.0f, 0.0f, 0.0f, 0.0f};
-    constexpr ImVec4 COLOR_CLEAR{0.078f, 0.078f, 0.078f, 1.0f};
+    constexpr ImVec4 COLOR_CLEAR = COLOR_MAIN_DARKEST;
     constexpr ImVec4 COLOR_ACCENT{1.0f, 0.63f, 0.12f, 1.0f};
 
-    constexpr ImVec4 COLOR_BG_DARK{0.078f, 0.078f, 0.078f, 1.0f};
-    constexpr ImVec4 COLOR_BG_BASE{0.161f, 0.161f, 0.161f, 1.0f};
-    constexpr ImVec4 COLOR_BG_FRAME{0.106f, 0.106f, 0.106f, 1.0f};
-    constexpr ImVec4 COLOR_BG_POPUP{0.106f, 0.106f, 0.106f, 1.0f};
-    constexpr ImVec4 COLOR_BG_HOVER{0.129f, 0.129f, 0.129f, 1.0f};
-    constexpr ImVec4 COLOR_BORDER{0.078f, 0.078f, 0.078f, 1.0f};
+    constexpr ImVec4 COLOR_BG_DARK = COLOR_MAIN_DARKEST;
+    constexpr ImVec4 COLOR_BG_BASE = COLOR_MAIN_BASE;
+    constexpr ImVec4 COLOR_BG_FRAME = COLOR_MAIN_DARKER;
+    constexpr ImVec4 COLOR_BG_POPUP = COLOR_MAIN_DARKER;
+    constexpr ImVec4 COLOR_BG_HOVER = COLOR_MAIN_DARK;
+    constexpr ImVec4 COLOR_BORDER = COLOR_MAIN_DARKEST;
+    constexpr ImVec4 COLOR_SEPARATOR = COLOR_MAIN_LIGHT;
 
     constexpr ImVec4 COLOR_TEXT{0.878f, 0.878f, 0.878f, 1.0f};
     constexpr ImVec4 COLOR_TEXT_DIM{0.584f, 0.584f, 0.584f, 1.0f};
 
-    constexpr ImVec4 COLOR_BUTTON{0.259f, 0.259f, 0.259f, 1.0f};
-    constexpr ImVec4 COLOR_BUTTON_HOVER{0.302f, 0.302f, 0.302f, 1.0f};
-    constexpr ImVec4 COLOR_BUTTON_ACTIVE{0.349f, 0.349f, 0.349f, 1.0f};
+    constexpr ImVec4 COLOR_BUTTON = COLOR_MAIN_LIGHTER;
+    constexpr ImVec4 COLOR_BUTTON_HOVER = COLOR_MAIN_LIGHTEST;
+    constexpr ImVec4 COLOR_BUTTON_ACTIVE = COLOR_MAIN_BRIGHT;
 
-    constexpr ImVec4 COLOR_GRAB{0.349f, 0.349f, 0.349f, 1.0f};
-    constexpr ImVec4 COLOR_GRAB_HOVER{0.431f, 0.431f, 0.431f, 1.0f};
+    constexpr ImVec4 COLOR_GRAB = COLOR_MAIN_LIGHTEST;
+    constexpr ImVec4 COLOR_GRAB_HOVER = COLOR_MAIN_BRIGHTER;
 
     constexpr ImVec4 COLOR_AXIS_X{0.94f, 0.26f, 0.30f, 1.0f};
     constexpr ImVec4 COLOR_AXIS_Y{0.62f, 0.86f, 0.28f, 1.0f};
     constexpr ImVec4 COLOR_AXIS_Z{0.20f, 0.58f, 0.92f, 1.0f};
-    constexpr ImVec4 COLOR_AXIS_W{0.749f, 0.749f, 0.749f, 1.0f};
+    constexpr ImVec4 COLOR_AXIS_W{0.75f, 0.75f, 0.75f, 1.0f};
 
     // Rounding
     constexpr float ROUNDING = 3.0f;
@@ -88,8 +101,8 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_MODAL_DIM_BG{0.0f, 0.0f, 0.0f, 0.55f};
 
     // Item (shared by bar items, bar popup rows, hierarchy rows and frame widgets)
-    constexpr ImVec4 COLOR_ITEM_HOVER{0.220f, 0.220f, 0.220f, 1.0f};
-    constexpr ImVec4 COLOR_ITEM_ACTIVE{0.259f, 0.259f, 0.259f, 1.0f};
+    constexpr ImVec4 COLOR_ITEM_HOVER = COLOR_MAIN_LIGHT;
+    constexpr ImVec4 COLOR_ITEM_ACTIVE = COLOR_MAIN_LIGHTER;
 
     // Icon atlas
     constexpr uint32_t ICON_SIZE_PX = 16;
@@ -120,8 +133,6 @@ namespace hob::editor {
     constexpr ImVec2 BAR_POPUP_PADDING{16.0f, 6.0f};
     constexpr ImVec2 BAR_POPUP_ITEM_INSET{6.0f, 1.0f};
 
-    constexpr ImVec4 COLOR_BAR_SEPARATOR{0.141f, 0.141f, 0.141f, 1.0f};
-
     constexpr ImVec4 COLOR_BAR_ICON = COLOR_TEXT;
     constexpr ImVec4 COLOR_BAR_ICON_ACTIVE = COLOR_ACCENT;
     constexpr ImVec4 COLOR_BAR_ICON_DISABLED = with_alpha(COLOR_BAR_ICON, 0.30f);
@@ -150,8 +161,9 @@ namespace hob::editor {
     constexpr const char* INSPECTOR_FLOAT_FORMAT = "%.3f";
     constexpr ImGuiColorEditFlags INSPECTOR_COLOR_EDIT_FLAGS = ImGuiColorEditFlags_Float;
 
-    constexpr ImVec4 COLOR_INSPECTOR_HEADER{0.220f, 0.220f, 0.220f, 1.0f};
-    constexpr ImVec4 COLOR_INSPECTOR_HEADER_HOVER{0.259f, 0.259f, 0.259f, 1.0f};
+    constexpr ImVec4 COLOR_INSPECTOR_HEADER = COLOR_MAIN_LIGHT;
+    constexpr ImVec4 COLOR_INSPECTOR_HEADER_HOVER = COLOR_MAIN_LIGHTER;
+    constexpr ImVec4 COLOR_INSPECTOR_HEADER_ACTIVE = COLOR_MAIN_LIGHTEST;
 
     // Scene View
     constexpr float SCENE_VIEW_SELECTION_OUTLINE_THICKNESS = 2.0f;

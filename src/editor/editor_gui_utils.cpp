@@ -223,15 +223,10 @@ namespace hob::editor {
 
         splitter.Merge(draw_list);
 
-        if (open) {
-            ImGui::PushStyleColor(ImGuiCol_Separator, COLOR_BAR_SEPARATOR);
-        }
-
         return open;
     }
 
     void end_menu() {
-        ImGui::PopStyleColor();
         ImGui::EndMenu();
     }
 
@@ -275,15 +270,10 @@ namespace hob::editor {
 
         splitter.Merge(draw_list);
 
-        if (open) {
-            ImGui::PushStyleColor(ImGuiCol_Separator, COLOR_BAR_SEPARATOR);
-        }
-
         return open;
     }
 
     void end_submenu() {
-        ImGui::PopStyleColor();
         ImGui::EndMenu();
     }
 
@@ -481,9 +471,10 @@ namespace hob::editor {
         EditorStyleColorStack colors;
         colors.push(ImGuiCol_Header, COLOR_INSPECTOR_HEADER);
         colors.push(ImGuiCol_HeaderHovered, COLOR_INSPECTOR_HEADER_HOVER);
-        colors.push(ImGuiCol_HeaderActive, COLOR_INSPECTOR_HEADER_HOVER);
+        colors.push(ImGuiCol_HeaderActive, COLOR_INSPECTOR_HEADER_ACTIVE);
 
         const bool open = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen);
+
         colors.pop();
 
         return open;

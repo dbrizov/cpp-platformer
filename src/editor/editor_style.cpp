@@ -84,7 +84,7 @@ namespace hob::editor {
         colors[ImGuiCol_HeaderHovered] = COLOR_ITEM_HOVER;
         colors[ImGuiCol_HeaderActive] = COLOR_ITEM_ACTIVE;
 
-        colors[ImGuiCol_Separator] = COLOR_BG_DARK;
+        colors[ImGuiCol_Separator] = COLOR_SEPARATOR;
         colors[ImGuiCol_SeparatorHovered] = COLOR_GRAB;
         colors[ImGuiCol_SeparatorActive] = COLOR_ACCENT;
 
