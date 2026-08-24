@@ -101,6 +101,27 @@ vcpkg --version
 
 # Build & Run
 Configure with the preset for your toolchain, build, then run the executable.
+
+## Editor
+The `*-editor` presets build the in-process editor and boot into it by default, in their own build folder.
+```
+# Configure (pick one preset)
+cmake --preset debug-msvc-editor      # Windows / MSVC
+cmake --preset debug-gcc-editor       # Linux / GCC
+cmake --preset debug-clang-editor     # macOS / Clang
+
+# Build
+cmake --build --preset debug-msvc-editor-x64      # debug-gcc-editor-x64, debug-clang-editor-arm64-osx, ...
+
+# Run (boots into the editor)
+./build/debug/windows-msvc-editor/Debug/hob2d.exe
+
+# Edit a specific game project (bare name, or a path relative to the repo root)
+./build/debug/windows-msvc-editor/Debug/hob2d.exe --project sandbox
+```
+
+## Game
+The plain presets build the runtime only, which launches straight into the game.
 ```
 # Configure (pick one preset)
 cmake --preset debug-msvc      # Windows / MSVC
@@ -117,15 +138,9 @@ cmake --build --preset debug-msvc-x64      # debug-gcc-x64, debug-clang-arm64-os
 ./build/debug/windows-msvc/Debug/hob2d.exe --project sandbox
 ```
 
+The editor can also be enabled per run on any build with the `--editor` flag.
+
+## Project selection
 The engine loads one game project from `content/projects/<name>/` at launch. The bundled sample is
 `content/projects/sandbox/`. Set the build's default game at configure time with `-DHOB_PROJECT=<name>`,
 or select it at runtime with `--project <name>` (a bare name resolves under `content/projects/`).
-
-## Editor
-An in-process editor is available. Enable it per run with the `--editor` flag on any build, or use a
-dedicated editor build (baked-in default, separate build folder) via the `*-editor` presets:
-```
-cmake --preset debug-msvc-editor           # debug-gcc-editor, debug-clang-editor, ...
-cmake --build --preset debug-msvc-editor-x64
-./build/debug/windows-msvc-editor/Debug/hob2d.exe   # boots into the editor
-```

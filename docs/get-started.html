@@ -93,20 +93,43 @@ source ~/.zshrc
 vcpkg --version</pre>
 
                 <h2>Build &amp; Run</h2>
-                <p>Configure with the preset for your toolchain, build, then run the executable:</p>
+                <p>Configure with the preset for your toolchain, build, then run the executable.</p>
+
+                <h3>Editor</h3>
+                <p>The <code>*-editor</code> presets build the in-process editor and boot into it by default,
+                    in their own build folder:</p>
+<pre><span class="cmt"># Configure (pick one preset)</span>
+cmake --preset debug-msvc-editor      <span class="cmt"># Windows / MSVC</span>
+cmake --preset debug-gcc-editor       <span class="cmt"># Linux / GCC</span>
+cmake --preset debug-clang-editor     <span class="cmt"># macOS / Clang</span>
+
+<span class="cmt"># Build</span>
+cmake --build --preset debug-msvc-editor-x64
+
+<span class="cmt"># Run (boots into the editor)</span>
+./build/debug/windows-msvc-editor/Debug/hob2d.exe
+
+<span class="cmt"># Edit a specific game project (bare name, or a path relative to the repo root)</span>
+./build/debug/windows-msvc-editor/Debug/hob2d.exe --project sandbox</pre>
+
+                <h3>Game</h3>
+                <p>The plain presets build the runtime only, which launches straight into the game:</p>
 <pre><span class="cmt"># Configure (pick one preset)</span>
 cmake --preset debug-msvc      <span class="cmt"># Windows / MSVC</span>
 cmake --preset debug-gcc       <span class="cmt"># Linux / GCC</span>
 cmake --preset debug-clang     <span class="cmt"># macOS / Clang</span>
 
 <span class="cmt"># Build</span>
-cmake --build --preset windows-debug-msvc-x64
+cmake --build --preset debug-msvc-x64
 
 <span class="cmt"># Run (no arg loads the default project, 'sandbox')</span>
 ./build/debug/windows-msvc/Debug/hob2d.exe
 
 <span class="cmt"># Run a specific game project (bare name, or a path relative to the repo root)</span>
 ./build/debug/windows-msvc/Debug/hob2d.exe --project sandbox</pre>
+                <p>The editor can also be enabled per run on any build with the <code>--editor</code> flag.</p>
+
+                <h3>Project selection</h3>
                 <p>The engine loads one game project from <code>content/projects/&lt;name&gt;/</code> at launch.
                     The bundled sample is <code>content/projects/sandbox/</code>. Set the build's default game at
                     configure time with <code>-DHOB_PROJECT=&lt;name&gt;</code>, or select it at runtime with
