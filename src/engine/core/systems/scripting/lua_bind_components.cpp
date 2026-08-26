@@ -614,7 +614,7 @@ namespace hob {
 
         bind_asset_factory_schema<AnimationClip>(asset_factory_schemas,
                                                  "DefineAnimationClip",
-                                                 asset_factory::ANIMATION_CLIPS,
+                                                 def_registry::ANIMATION_CLIPS,
                                                  {"textures", "fps", "looping", "tracks", "duration"});
 
         bind_usertype<SpriteAnimatorComponent>(lua, meta, Bases<Component>{})

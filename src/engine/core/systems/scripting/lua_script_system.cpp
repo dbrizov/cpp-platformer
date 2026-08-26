@@ -4,6 +4,7 @@
 // clang-format on
 
 #include <algorithm>
+#include <format>
 #include <string>
 #include <vector>
 
@@ -289,6 +290,40 @@ namespace hob {
         console.register_command("l_reload", "Hot-reload Lua scripts", [this](CommandArgs) {
             hot_reload();
         });
+
+        console.register_command(
+            "l_defs", "List every definition and the file that declared it", [this, &console](CommandArgs) {
+                const sol::object def_sources = m_impl->lua["__def_sources"];
+                if (!def_sources.is<sol::table>()) {
+                    log::lua.error("__def_sources is not installed");
+                    return;
+                }
+
+                std::vector<std::string> lines;
+                def_sources.as<sol::table>().for_each(
+                    [&lines](const sol::object& registry, const sol::object& by_name) {
+                        if (!registry.is<std::string>() || !by_name.is<sol::table>()) {
+                            return;
+                        }
+
+                        const std::string registry_name = registry.as<std::string>();
+                        by_name.as<sol::table>().for_each([&](const sol::object& name, const sol::object& path) {
+                            if (name.is<std::string>() && path.is<std::string>()) {
+                                lines.push_back(std::format(
+                                    "{}.{} -> {}", registry_name, name.as<std::string>(), path.as<std::string>()));
+                            }
+                        });
+                    });
+
+                std::sort(lines.begin(), lines.end());
+                for (const std::string& line : lines) {
+                    log::lua.info("{}", line);
+                    console.log("{}", line);
+                }
+
+                log::lua.info("{} definitions", lines.size());
+                console.log("{} definitions", lines.size());
+            });
     }
 
     void LuaScriptSystem::register_bindings() {

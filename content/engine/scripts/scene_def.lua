@@ -1,7 +1,30 @@
 -- DefineScene: a level as data.
 
-_G.__scene_registry = _G.__scene_registry or {}
-_G.__scene_instance_by_entity_id = _G.__scene_instance_by_entity_id or {}
+_G.__scene_registry = {}
+_G.__scene_instance_by_entity_id = {}
+
+function _G.__clear_scene_defs()
+    _G.__scene_registry = {}
+end
+
+local SCENE_FILE_SUFFIX = ".scene.lua"
+
+function _G.__scene_name_from_file(path)
+    return __def_name_from_file(path, SCENE_FILE_SUFFIX)
+end
+
+local function check_file_name_matches(name)
+    local path = __get_def_source(DefRegistry.SCENES, name)
+    if path == nil then
+        return
+    end
+
+    local expected = __scene_name_from_file(path)
+    if expected ~= nil and expected ~= name then
+        Log.error("DefineScene." .. tostring(name) .. " lives in a file named for '" .. expected ..
+            "' ('" .. path .. "'). The scene still loads, but the editor names new files after the scene.")
+    end
+end
 
 ---@class DefineScene
 _G.DefineScene = setmetatable({}, {
@@ -11,7 +34,12 @@ _G.DefineScene = setmetatable({}, {
             return
         end
 
+        if not __record_def_source(DefRegistry.SCENES, name) then
+            return
+        end
+
         _G.__scene_registry[name] = def
+        check_file_name_matches(name)
     end,
     __index = function(_, name)
         return _G.__scene_registry[name]
@@ -24,7 +52,7 @@ _G.Scenes = setmetatable({}, {
     __index = function(_, name) return name end,
 })
 
-_G.Scene = _G.Scene or {}
+_G.Scene = {}
 
 ---@param entity Entity
 ---@param cpp_overrides table

@@ -14,6 +14,16 @@ namespace hob {
             .constant("CPP_OVERRIDES", scene_key::CPP_OVERRIDES)
             .constant("LUA_OVERRIDES", scene_key::LUA_OVERRIDES);
 
+        bind_table(lua, meta, "DefRegistry")
+            .constant("SCENES", def_registry::SCENES)
+            .constant("ENTITIES", def_registry::ENTITIES)
+            .constant("COMPONENTS", def_registry::COMPONENTS)
+            .constant("TEXTURES", def_registry::TEXTURES)
+            .constant("SHADERS", def_registry::SHADERS)
+            .constant("MATERIALS", def_registry::MATERIALS)
+            .constant("ANIMATION_CLIPS", def_registry::ANIMATION_CLIPS)
+            .constant("AUDIO_CLIPS", def_registry::AUDIO_CLIPS);
+
         bind_table(lua, meta, "TransformKey")
             .constant("SECTION", transform_key::SECTION)
             .constant("POSITION", transform_key::POSITION)

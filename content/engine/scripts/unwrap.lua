@@ -1,5 +1,5 @@
 -- An explicit "no value" a table can hold, since assigning nil erases the key instead.
-_G.None = _G.None or setmetatable({}, {
+_G.None = setmetatable({}, {
     __tostring = function() return "None" end,
     __unwrap = function() return nil end,
 })

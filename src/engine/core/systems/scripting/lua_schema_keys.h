@@ -54,11 +54,14 @@ namespace hob {
         constexpr const char* OTHER = "other";
     } // namespace field_type
 
-    namespace asset_factory {
+    namespace def_registry {
+        constexpr const char* SCENES = "Scenes";
+        constexpr const char* ENTITIES = "Entities";
+        constexpr const char* COMPONENTS = "Components";
         constexpr const char* TEXTURES = "Textures";
         constexpr const char* SHADERS = "Shaders";
         constexpr const char* MATERIALS = "Materials";
         constexpr const char* ANIMATION_CLIPS = "AnimationClips";
         constexpr const char* AUDIO_CLIPS = "AudioClips";
-    } // namespace asset_factory
+    } // namespace def_registry
 } // namespace hob

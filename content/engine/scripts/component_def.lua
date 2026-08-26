@@ -1,15 +1,24 @@
 -- DefineComponent: Class declaration for Lua components.
 
-_G.__component_registry = _G.__component_registry or {}
-_G.__component_pending = _G.__component_pending or {}
+_G.__component_registry = {}
+_G.__component_pending = {}
 
-_G.__live_component_instances = _G.__live_component_instances or setmetatable({}, { __mode = "k" })
+_G.__live_component_instances = setmetatable({}, { __mode = "k" })
+
+function _G.__clear_component_defs()
+    _G.__component_registry = {}
+    _G.__component_pending = {}
+end
 
 ---@class DefineComponent
 _G.DefineComponent = setmetatable({}, {
     __newindex = function(_, name, def)
         if type(def) ~= "table" then
             Log.error("DefineComponent." .. tostring(name) .. " must be assigned a table")
+            return
+        end
+
+        if not __record_def_source(DefRegistry.COMPONENTS, name) then
             return
         end
 

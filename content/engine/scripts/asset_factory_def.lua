@@ -1,23 +1,33 @@
 -- Generic asset factory.
 
-_G.__asset_names = _G.__asset_names or {}
-_G.__asset_defs = _G.__asset_defs or {}
-_G.__asset_factory_cache_clearers = {}
+_G.__asset_names = {}
+_G.__asset_defs = {}
+
+-- One entry per installed factory: these four tables are closure locals, so only a closure can reset them.
+local asset_def_clearers = {}
+
+function _G.__clear_asset_factory_defs()
+    for _, clear in ipairs(asset_def_clearers) do
+        clear()
+    end
+end
 
 local function install_asset_factory(factory_name, schema)
     local asset_defs = {}
-    local built_assets = {}
-
-    _G.__asset_factory_cache_clearers[#_G.__asset_factory_cache_clearers + 1] = function()
-        for asset_name in pairs(built_assets) do
-            built_assets[asset_name] = nil
-        end
-    end
-
     local asset_names = {}
+    local built_assets = {}
     local seen = {}
     _G.__asset_names[factory_name] = asset_names
     _G.__asset_defs[factory_name] = asset_defs
+
+    asset_def_clearers[#asset_def_clearers + 1] = function()
+        asset_defs = {}
+        asset_names = {}
+        built_assets = {}
+        seen = {}
+        _G.__asset_names[factory_name] = asset_names
+        _G.__asset_defs[factory_name] = asset_defs
+    end
 
     local function build(asset_name)
         local asset_def = asset_defs[asset_name]
@@ -68,6 +78,10 @@ local function install_asset_factory(factory_name, schema)
                 return
             end
 
+            if not __record_def_source(factory_name, asset_name) then
+                return
+            end
+
             asset_defs[asset_name] = asset_def
 
             if not seen[asset_name] then
@@ -84,12 +98,6 @@ local function install_asset_factory(factory_name, schema)
             return asset_ref
         end,
     })
-end
-
-function _G.__clear_asset_factory_caches()
-    for _, clear in ipairs(_G.__asset_factory_cache_clearers) do
-        clear()
-    end
 end
 
 -- Eagerly build every declared shader so its GPU pipeline compiles at load, not on the gameplay hot path.

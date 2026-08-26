@@ -9,6 +9,18 @@
 ---@field LUA_OVERRIDES string
 SceneKey = {}
 
+-- DefRegistry
+---@class DefRegistry
+---@field SCENES string
+---@field ENTITIES string
+---@field COMPONENTS string
+---@field TEXTURES string
+---@field SHADERS string
+---@field MATERIALS string
+---@field ANIMATION_CLIPS string
+---@field AUDIO_CLIPS string
+DefRegistry = {}
+
 -- TransformKey
 ---@class TransformKey
 ---@field SECTION string

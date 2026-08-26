@@ -42,7 +42,7 @@ namespace hob {
             .method("get_path", &AudioClip::get_path);
 
         bind_asset_factory_schema<AudioClip>(
-            asset_factory_schemas, "DefineAudioClip", asset_factory::AUDIO_CLIPS, {"path"});
+            asset_factory_schemas, "DefineAudioClip", def_registry::AUDIO_CLIPS, {"path"});
 
         bind_table(lua, meta, "Audio")
             .func_sig(

@@ -47,19 +47,19 @@ namespace hob::editor {
 
     const char* get_asset_factory_name_for_field_type(std::string_view type) {
         if (type == field_type::TEXTURE) {
-            return asset_factory::TEXTURES;
+            return def_registry::TEXTURES;
         }
 
         if (type == field_type::MATERIAL) {
-            return asset_factory::MATERIALS;
+            return def_registry::MATERIALS;
         }
 
         if (type == field_type::ANIMATION_CLIP) {
-            return asset_factory::ANIMATION_CLIPS;
+            return def_registry::ANIMATION_CLIPS;
         }
 
         if (type == field_type::AUDIO_CLIP) {
-            return asset_factory::AUDIO_CLIPS;
+            return def_registry::AUDIO_CLIPS;
         }
 
         return nullptr;

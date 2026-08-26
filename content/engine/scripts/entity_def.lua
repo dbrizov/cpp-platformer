@@ -1,13 +1,21 @@
 -- DefineEntity: Prefab declaration for entities.
 
-_G.__entity_prefab_registry = _G.__entity_prefab_registry or {}
-_G.__entity_prefab_by_id = _G.__entity_prefab_by_id or {} -- entity id -> the prefab
+_G.__entity_prefab_registry = {}
+_G.__entity_prefab_name_by_id = {}
+
+function _G.__clear_entity_defs()
+    _G.__entity_prefab_registry = {}
+end
 
 ---@class DefineEntity
 _G.DefineEntity = setmetatable({}, {
     __newindex = function(_, name, def)
         if type(def) ~= "table" then
             Log.error("DefineEntity." .. tostring(name) .. " must be assigned a table")
+            return
+        end
+
+        if not __record_def_source(DefRegistry.ENTITIES, name) then
             return
         end
 
@@ -153,7 +161,7 @@ function _G.__reapply_prefabs_to_spawned_entities()
     local live = {}
     EntitySpawner.for_each_entity(function(entity)
         local id = entity:get_id()
-        local name = _G.__entity_prefab_by_id[id]
+        local name = _G.__entity_prefab_name_by_id[id]
         if name then
             live[id] = name
             local prefab = _G.__entity_prefab_registry[name]
@@ -162,7 +170,7 @@ function _G.__reapply_prefabs_to_spawned_entities()
             end
         end
     end)
-    _G.__entity_prefab_by_id = live
+    _G.__entity_prefab_name_by_id = live
 
     -- Probes are pending (never entered play), so this drops them from the spawn queue synchronously.
     for _, probe in ipairs(probes) do
@@ -188,7 +196,7 @@ EntitySpawner.spawn_entity = function(prefab_name, position, rotation_deg, scale
     entity:set_prefab_name(prefab_name)
 
     apply_prefab(entity, prefab)
-    _G.__entity_prefab_by_id[entity:get_id()] = prefab_name
+    _G.__entity_prefab_name_by_id[entity:get_id()] = prefab_name
 
     local transform = entity:get_transform()
     if position ~= nil then
@@ -209,7 +217,7 @@ local destroy_entity_c = EntitySpawner.destroy_entity_c
 ---@param entity Entity
 EntitySpawner.destroy_entity = function(entity)
     if entity then
-        _G.__entity_prefab_by_id[entity:get_id()] = nil
+        _G.__entity_prefab_name_by_id[entity:get_id()] = nil
     end
     destroy_entity_c(entity)
 end
@@ -217,6 +225,6 @@ end
 local clear_c = EntitySpawner.clear_c
 
 EntitySpawner.clear = function()
-    _G.__entity_prefab_by_id = {}
+    _G.__entity_prefab_name_by_id = {}
     clear_c()
 end

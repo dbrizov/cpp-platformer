@@ -7,18 +7,17 @@
 -- We only swap the metatable; we do NOT re-run init().
 
 -- 1. Wipe registries so definitions rebuild cleanly.
-_G.__component_registry = {}
-_G.__component_pending = {}
+__clear_asset_factory_defs()
+__clear_component_defs()
+__clear_entity_defs()
+__clear_scene_defs()
+__clear_def_sources()
 
 -- 2a. Re-run the same definition files bootstrap uses, then re-finalize.
 __load_project_definitions()
 
--- 2b. Drop cached asset factory objects (materials, animation clips, ...) so redefined defs
---     rebuild from their updated config on next unwrap.
-__clear_asset_factory_caches()
-
--- 2c. Re-warm shaders so pipelines stay built (rebuilds hit the strong shader cache) instead of
---     lazily recompiling the first time a reloaded material references them.
+-- 2b. Re-warm shaders so pipelines stay built (rebuilds hit the strong shader cache)
+--     instead of lazily recompiling the first time a reloaded material references them.
 __warmup_shaders()
 
 -- 3. Re-point every live component instance at its rebuilt class.

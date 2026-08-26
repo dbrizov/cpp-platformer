@@ -108,7 +108,7 @@ namespace hob {
             .method("get_path", &Texture::get_path);
 
         bind_asset_factory_schema<Texture>(
-            asset_factory_schemas, "DefineTexture", asset_factory::TEXTURES, {"path", "wrap", "filter"});
+            asset_factory_schemas, "DefineTexture", def_registry::TEXTURES, {"path", "wrap", "filter"});
 
         // Shader
         bind_usertype<Shader>(lua, meta, Bases<Asset>{})
@@ -140,7 +140,7 @@ namespace hob {
                 {"config"});
 
         bind_asset_factory_schema<Shader>(
-            asset_factory_schemas, "DefineShader", asset_factory::SHADERS, {"path", "blend", "cull", "defaults"});
+            asset_factory_schemas, "DefineShader", def_registry::SHADERS, {"path", "blend", "cull", "defaults"});
 
         // Material
         bind_usertype<Material>(lua, meta, Bases<Asset>{})
@@ -233,6 +233,6 @@ namespace hob {
             });
 
         bind_asset_factory_schema<Material>(
-            asset_factory_schemas, "DefineMaterial", asset_factory::MATERIALS, {"shader", "textures"});
+            asset_factory_schemas, "DefineMaterial", def_registry::MATERIALS, {"shader", "textures"});
     }
 } // namespace hob
