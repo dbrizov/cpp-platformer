@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
 #include "engine/core/systems/entity_spawner.h"
@@ -9,22 +11,51 @@
 #include "lua_type_names.h" // IWYU pragma: keep
 
 namespace hob {
+    void LuaScriptSystem::install_entity_lifetime_handlers() {
+        EntitySpawner& spawner = m_engine.get_entity_spawner();
+
+        const auto dispatch = [this](const char* name, auto&&... args) {
+            const sol::protected_function dispatcher = m_impl->lua[name];
+            if (!dispatcher.valid()) {
+                return;
+            }
+
+            const sol::protected_function_result result = dispatcher(std::forward<decltype(args)>(args)...);
+            if (!result.valid()) {
+                const sol::error err = result;
+                log::sol2.error("{}: {}", name, err.what());
+            }
+        };
+
+        spawner.set_entity_spawned_handler([dispatch](EntityId id) {
+            dispatch("__on_entity_spawned", id);
+        });
+
+        spawner.set_entity_destroyed_handler([dispatch](EntityId id) {
+            dispatch("__on_entity_destroyed", id);
+        });
+
+        spawner.set_entities_cleared_handler([dispatch]() {
+            dispatch("__on_entities_cleared");
+        });
+    }
+
     void LuaScriptSystem::bind_entity_spawner() {
         sol::state& lua = m_impl->lua;
         LuaMetaRegistry& meta = m_impl->meta;
         EntitySpawner& spawner = m_engine.get_entity_spawner();
 
         bind_table(lua, meta, "EntitySpawner")
-            .func("spawn_entity_c",
+            .func("spawn_entity",
                   [&spawner]() {
                       return EntityRef(spawner.spawn_entity().get_id(), spawner);
                   })
-            .func("destroy_entity_c",
+            .func("destroy_entity",
                   [&spawner](const EntityRef& r) {
                       spawner.destroy_entity(r.get_id());
                   },
                   {"entity"})
-            .func("clear_c",
+            .func("clear",
                   [&spawner]() {
                       spawner.clear();
                   })

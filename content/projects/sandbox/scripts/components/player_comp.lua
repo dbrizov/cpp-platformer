@@ -55,6 +55,25 @@ function Player:enter_play()
     self._fire_action_id = input:bind_action("fire", InputEventType.Pressed, function()
         self:set_health(self.health - self.fire_damage)
         self.entity:get_audio():play()
+
+        local mouse_screen = Input.get_mouse_screen_position()
+        local mouse_world = Camera.screen_to_world(mouse_screen)
+        local player_pos = self.entity:get_transform():get_position()
+
+        local direction = mouse_world - player_pos
+        local distance = direction:length()
+        local hit = Physics.raycast(player_pos, direction, distance)
+        if hit.hit then
+            local health_comp = hit.entity:get_lua_component(Components.EnemyHealthbar)
+            if health_comp then
+                local new_health = health_comp.health - self.fire_damage
+                if new_health <= 0 then
+                    EntitySpawner.destroy_entity(hit.entity)
+                else
+                    health_comp:set_health(new_health)
+                end
+            end
+        end
     end)
 
     self._slow_motion_action_id = input:bind_action("slow_motion", InputEventType.Pressed, function()

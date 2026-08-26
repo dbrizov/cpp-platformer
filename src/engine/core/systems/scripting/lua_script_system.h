@@ -56,6 +56,9 @@ namespace hob {
         bool run_project_main();
 
     private:
+        void install_log_redirects();
+        void install_entity_lifetime_handlers();
+
         void refresh_lua_component_class_caches();
 
         void register_bindings();

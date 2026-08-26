@@ -3,6 +3,14 @@
 _G.__entity_prefab_registry = {}
 _G.__entity_prefab_name_by_id = {}
 
+on_entity_destroyed(function(entity_id)
+    _G.__entity_prefab_name_by_id[entity_id] = nil
+end)
+
+on_entities_cleared(function()
+    _G.__entity_prefab_name_by_id = {}
+end)
+
 function _G.__clear_entity_defs()
     _G.__entity_prefab_registry = {}
 end
@@ -41,6 +49,10 @@ function _G.__call_component_setter(component, setter, value)
 end
 
 local call_setter = _G.__call_component_setter
+
+---@type fun(): Entity
+local spawn_entity_c = EntitySpawner.spawn_entity
+local destroy_entity_c = EntitySpawner.destroy_entity
 
 local function should_reapply_field(schema, field)
     local flags = schema.reapply_on_hot_reload
@@ -139,7 +151,7 @@ function _G.__reapply_prefabs_to_spawned_entities()
         end
 
         local schema = schemas[key]
-        local probe = EntitySpawner.spawn_entity_c()
+        local probe = spawn_entity_c()
         probes[#probes + 1] = probe
 
         local component = probe[schema.add](probe)
@@ -174,11 +186,9 @@ function _G.__reapply_prefabs_to_spawned_entities()
 
     -- Probes are pending (never entered play), so this drops them from the spawn queue synchronously.
     for _, probe in ipairs(probes) do
-        EntitySpawner.destroy_entity_c(probe)
+        destroy_entity_c(probe)
     end
 end
-
-local spawn_entity_c = EntitySpawner.spawn_entity_c
 
 ---@param prefab_name string
 ---@param position? Vector2
@@ -210,21 +220,4 @@ EntitySpawner.spawn_entity = function(prefab_name, position, rotation_deg, scale
     end
 
     return entity
-end
-
-local destroy_entity_c = EntitySpawner.destroy_entity_c
-
----@param entity Entity
-EntitySpawner.destroy_entity = function(entity)
-    if entity then
-        _G.__entity_prefab_name_by_id[entity:get_id()] = nil
-    end
-    destroy_entity_c(entity)
-end
-
-local clear_c = EntitySpawner.clear_c
-
-EntitySpawner.clear = function()
-    _G.__entity_prefab_name_by_id = {}
-    clear_c()
 end

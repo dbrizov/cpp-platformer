@@ -133,7 +133,6 @@ function Editor.clear_world()
     scene_state.entity_id_by_instance_id = {}
     scene_state.entity_def_by_instance_id = {}
 
-    _G.__scene_instance_by_entity_id = {}
     EntitySpawner.clear()
 end
 

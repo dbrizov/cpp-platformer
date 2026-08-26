@@ -26,6 +26,18 @@ namespace hob {
         log::engine.info("EntitySpawner::Shutdown");
     }
 
+    void EntitySpawner::set_entity_spawned_handler(std::function<void(EntityId)> callback) {
+        m_entity_spawned_handler = std::move(callback);
+    }
+
+    void EntitySpawner::set_entity_destroyed_handler(std::function<void(EntityId)> callback) {
+        m_entity_destroyed_handler = std::move(callback);
+    }
+
+    void EntitySpawner::set_entities_cleared_handler(std::function<void()> callback) {
+        m_entities_cleared_handler = std::move(callback);
+    }
+
     Entity& EntitySpawner::spawn_entity() {
         std::unique_ptr<Entity> entity = std::unique_ptr<Entity>(new Entity(m_engine));
 
@@ -206,6 +218,10 @@ namespace hob {
         m_entity_spawn_requests_swap_buffer.clear();
         m_entity_destroy_requests_swap_buffer.clear();
         m_entity_ticking_sync_requests_swap_buffer.clear();
+
+        if (m_entities_cleared_handler) {
+            m_entities_cleared_handler();
+        }
     }
 
     void EntitySpawner::register_cvars(Console& console) {
@@ -367,6 +383,10 @@ namespace hob {
             m_entity_records[entity_id].live_index = static_cast<EntityIndex>(m_entities.size());
             m_entities.emplace_back(std::move(entity));
             m_entities.back()->enter_play();
+
+            if (m_entity_spawned_handler) {
+                m_entity_spawned_handler(entity_id);
+            }
         }
 
         m_entity_spawn_requests_swap_buffer.clear();
@@ -381,6 +401,10 @@ namespace hob {
             Entity* entity = get_entity(id);
             if (entity != nullptr) {
                 entity->exit_play();
+
+                if (m_entity_destroyed_handler) {
+                    m_entity_destroyed_handler(id);
+                }
             }
         }
 

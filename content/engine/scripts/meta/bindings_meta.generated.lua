@@ -268,12 +268,12 @@ function Audio.set_master_volume(volume) end
 EntitySpawner = {}
 
 ---@return Entity
-function EntitySpawner.spawn_entity_c() end
+function EntitySpawner.spawn_entity() end
 
 ---@param entity Entity
-function EntitySpawner.destroy_entity_c(entity) end
+function EntitySpawner.destroy_entity(entity) end
 
-function EntitySpawner.clear_c() end
+function EntitySpawner.clear() end
 
 ---@param id integer
 ---@return Entity

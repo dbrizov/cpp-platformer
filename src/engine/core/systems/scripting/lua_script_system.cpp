@@ -20,48 +20,6 @@
 #include "engine/entity/entity.h"
 
 namespace hob {
-    namespace {
-        int32_t lua_panic_handler(lua_State* L) {
-            const char* message = lua_tostring(L, -1);
-            log::sol2.error("panic: {}", message ? message : "unknown error");
-            return 0;
-        }
-
-        void lua_warn_handler(void* ud, const char* message, int32_t tocont) {
-            (void)ud;
-            static std::string buffer;
-            buffer += message;
-            if (!tocont) {
-                log::sol2.info("{}", buffer);
-                buffer.clear();
-            }
-        }
-
-        void install_lua_log_redirects(sol::state& lua) {
-            lua_State* L = lua.lua_state();
-            lua_atpanic(L, lua_panic_handler);
-            lua_setwarnf(L, lua_warn_handler, nullptr);
-
-            lua["print"] = [](sol::this_state ts, sol::variadic_args args) {
-                sol::state_view sv(ts);
-                const sol::protected_function tostring = sv["tostring"];
-                std::string out;
-                bool first = true;
-                for (auto v : args) {
-                    sol::protected_function_result r = tostring(sol::object(v));
-                    const std::string piece = r.valid() ? r.get<std::string>() : "<tostring failed>";
-                    if (!first) {
-                        out += '\t';
-                    }
-                    out += piece;
-                    first = false;
-                }
-
-                log::sol2.info("{}", out);
-            };
-        }
-    } // namespace
-
     LuaScriptSystem::LuaScriptSystem(Engine& engine, bool run_project_main_on_boot)
         : m_engine(engine)
         , m_impl(std::make_unique<LuaScriptSystemImpl>()) {
@@ -76,7 +34,8 @@ namespace hob {
                            sol::lib::coroutine,
                            sol::lib::debug);
 
-        install_lua_log_redirects(lua);
+        install_log_redirects();
+        install_entity_lifetime_handlers();
 
         // Make `require` find modules in the engine's scripts/lib (e.g. vendored lldebugger).
         const std::string lib_path = (PathUtils::get_engine_root() / "scripts" / "lib" / "?.lua").string();
@@ -112,6 +71,11 @@ namespace hob {
     }
 
     LuaScriptSystem::~LuaScriptSystem() {
+        EntitySpawner& spawner = m_engine.get_entity_spawner();
+        spawner.set_entity_spawned_handler(nullptr);
+        spawner.set_entity_destroyed_handler(nullptr);
+        spawner.set_entities_cleared_handler(nullptr);
+
         log::lua.info("LuaScriptSystem::Shutdown");
     }
 
@@ -286,6 +250,25 @@ namespace hob {
         });
     }
 
+    void LuaScriptSystem::register_bindings() {
+        bind_schema();
+        bind_asset();
+        bind_math();
+        bind_entity();
+        bind_components();
+        bind_camera();
+        bind_renderer();
+        bind_timer();
+        bind_input();
+        bind_ui();
+        bind_physics();
+        bind_audio();
+        bind_entity_spawner();
+        bind_scripts();
+        bind_debug();
+        bind_logging();
+    }
+
     void LuaScriptSystem::register_cvars(Console& console) {
         console.register_command("l_reload", "Hot-reload Lua scripts", [this](CommandArgs) {
             hot_reload();
@@ -324,24 +307,5 @@ namespace hob {
                 log::lua.info("{} definitions", lines.size());
                 console.log("{} definitions", lines.size());
             });
-    }
-
-    void LuaScriptSystem::register_bindings() {
-        bind_schema();
-        bind_asset();
-        bind_math();
-        bind_entity();
-        bind_components();
-        bind_camera();
-        bind_renderer();
-        bind_timer();
-        bind_input();
-        bind_ui();
-        bind_physics();
-        bind_audio();
-        bind_entity_spawner();
-        bind_scripts();
-        bind_debug();
-        bind_logging();
     }
 } // namespace hob

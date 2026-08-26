@@ -145,9 +145,10 @@ find_package(sol2 CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE sol2::sol2)
 
 if (MSVC)
-    # Promote warnings to errors.
-    # - unused variable (4101)
-    target_compile_options(${PROJECT_NAME} PRIVATE /we4101)
+    # Promote warnings to errors. Matches the GCC/Clang set below:
+    # -Werror=unused-variable - unused variable, never referenced (4101) and initialized but not referenced (4189)
+    # -Werror=return-type - not all control paths return a value (4715) / must return a value (4716)
+    target_compile_options(${PROJECT_NAME} PRIVATE /we4101 /we4189 /we4715 /we4716)
 
     # Force-include <cstdint> into every translation unit.
     target_compile_options(${PROJECT_NAME} PRIVATE /FIcstdint)

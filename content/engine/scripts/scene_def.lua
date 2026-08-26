@@ -3,6 +3,14 @@
 _G.__scene_registry = {}
 _G.__scene_instance_by_entity_id = {}
 
+on_entity_destroyed(function(entity_id)
+    _G.__scene_instance_by_entity_id[entity_id] = nil
+end)
+
+on_entities_cleared(function()
+    _G.__scene_instance_by_entity_id = {}
+end)
+
 function _G.__clear_scene_defs()
     _G.__scene_registry = {}
 end
@@ -20,7 +28,14 @@ local function check_file_name_matches(name)
     end
 
     local expected = __scene_name_from_file(path)
-    if expected ~= nil and expected ~= name then
+    if expected == nil then
+        Log.error("DefineScene." .. tostring(name) .. " is declared in '" .. path ..
+            "', which is not a '" .. SCENE_FILE_SUFFIX .. "' file. The scene still loads and saves back " ..
+            "to that file, but the editor cannot create scenes there.")
+        return
+    end
+
+    if expected ~= name then
         Log.error("DefineScene." .. tostring(name) .. " lives in a file named for '" .. expected ..
             "' ('" .. path .. "'). The scene still loads, but the editor names new files after the scene.")
     end

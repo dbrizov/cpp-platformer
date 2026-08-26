@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <unordered_map>
@@ -27,10 +28,6 @@ namespace hob {
     template<typename Pred>
     concept EntityPredicate = std::predicate<Pred, Entity*>;
 
-    // Per-id bookkeeping.
-    // - 'ptr' is valid from spawn_entity() until the entity exits play.
-    // - 'live_index' is the slot in m_entities once the entity enters play.
-    //   While the entity is still in m_entity_spawn_requests 'live_index' stays INVALID_ENTITY_INDEX.
     struct EntityRecord {
         Entity* ptr = nullptr;
         EntityIndex live_index = INVALID_ENTITY_INDEX;
@@ -40,6 +37,10 @@ namespace hob {
         friend class Engine;
 
         Engine& m_engine;
+
+        std::function<void(EntityId)> m_entity_spawned_handler;
+        std::function<void(EntityId)> m_entity_destroyed_handler;
+        std::function<void()> m_entities_cleared_handler;
 
         EntityId m_next_entity_id = 0;
         std::vector<std::unique_ptr<Entity>> m_entities;
@@ -73,6 +74,10 @@ namespace hob {
 
         Entity& spawn_entity();
         void destroy_entity(EntityId id);
+
+        void set_entity_spawned_handler(std::function<void(EntityId)> callback);
+        void set_entity_destroyed_handler(std::function<void(EntityId)> callback);
+        void set_entities_cleared_handler(std::function<void()> callback);
 
         Entity* get_entity(EntityId id) const;
         void get_entities(std::vector<Entity*>& out_entities) const;
