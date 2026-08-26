@@ -145,6 +145,10 @@ find_package(sol2 CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE sol2::sol2)
 
 if (MSVC)
+    # Promote warnings to errors.
+    # - unused variable (4101)
+    target_compile_options(${PROJECT_NAME} PRIVATE /we4101)
+
     # Force-include <cstdint> into every translation unit.
     target_compile_options(${PROJECT_NAME} PRIVATE /FIcstdint)
 
@@ -159,6 +163,9 @@ if (MSVC)
     set_target_properties(${PROJECT_NAME} PROPERTIES
             MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug>:Embedded>")
 else ()
+    # Promote warnings to errors.
+    target_compile_options(${PROJECT_NAME} PRIVATE -Werror=return-type -Werror=unused-variable)
+
     # Force-include <cstdint> into every translation unit.
     target_compile_options(${PROJECT_NAME} PRIVATE -include cstdint)
 endif ()

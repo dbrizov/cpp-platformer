@@ -160,8 +160,6 @@ namespace hob::editor {
     }
 
     ImGuiID dock_space_over_viewport(ImGuiDockNodeFlags flags) {
-        const ImGuiStyle& style = ImGui::GetStyle();
-
         EditorStyleVarStack vars;
         vars.push(ImGuiStyleVar_ItemInnerSpacing, DOCK_TAB_SPACING);
         vars.push(ImGuiStyleVar_FramePadding, DOCK_TAB_PADDING);
