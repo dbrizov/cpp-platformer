@@ -55,19 +55,19 @@ namespace hob::editor {
                 .context = EditorActionContext::Global,
                 .is_enabled =
                     [](const Editor& editor) {
-                        return editor.get_state() != EditorState::Play;
+                        return editor.get_state() != WorldState::Playing;
                     },
                 .is_active =
                     [](const Editor& editor) {
-                        return editor.get_state() == EditorState::Play;
+                        return editor.get_state() == WorldState::Playing;
                     },
                 .format_label =
                     [](const Editor& editor) {
-                        return std::string(editor.get_state() == EditorState::Paused ? "Resume" : "Play");
+                        return std::string(editor.get_state() == WorldState::Paused ? "Resume" : "Play");
                     },
                 .run =
                     [](Editor& editor) {
-                        editor.set_state(EditorState::Play);
+                        editor.set_state(WorldState::Playing);
                     },
             },
             {
@@ -77,16 +77,16 @@ namespace hob::editor {
                 .context = EditorActionContext::Global,
                 .is_enabled =
                     [](const Editor& editor) {
-                        return editor.get_state() == EditorState::Play;
+                        return editor.get_state() == WorldState::Playing;
                     },
                 .is_active =
                     [](const Editor& editor) {
-                        return editor.get_state() == EditorState::Paused;
+                        return editor.get_state() == WorldState::Paused;
                     },
                 .format_label = nullptr,
                 .run =
                     [](Editor& editor) {
-                        editor.set_state(EditorState::Paused);
+                        editor.set_state(WorldState::Paused);
                     },
             },
             {
@@ -96,7 +96,7 @@ namespace hob::editor {
                 .context = EditorActionContext::Global,
                 .is_enabled =
                     [](const Editor& editor) {
-                        return editor.get_state() == EditorState::Paused;
+                        return editor.get_state() == WorldState::Paused;
                     },
                 .format_label = nullptr,
                 .run =
@@ -111,12 +111,12 @@ namespace hob::editor {
                 .context = EditorActionContext::Global,
                 .is_enabled =
                     [](const Editor& editor) {
-                        return editor.get_state() != EditorState::Edit;
+                        return editor.get_state() != WorldState::Stopped;
                     },
                 .format_label = nullptr,
                 .run =
                     [](Editor& editor) {
-                        editor.set_state(EditorState::Edit);
+                        editor.set_state(WorldState::Stopped);
                     },
             },
             {

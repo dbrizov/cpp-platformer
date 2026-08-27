@@ -29,8 +29,8 @@ namespace hob {
     public:
         explicit RigidbodyComponent(Entity& entity);
 
-        void enter_play() override;
-        void exit_play() override;
+        void enter_world() override;
+        void exit_world() override;
 
         std::string to_string() const override;
 

@@ -14,6 +14,7 @@
 #include "systems/timer.h"
 #include "systems/ui/ui_system.h"
 #include "systems/window.h"
+#include "world_state.h"
 
 namespace hob {
     struct EngineConfig;
@@ -40,8 +41,8 @@ namespace hob {
 
         EngineHooks* m_hooks = nullptr;
 
-        bool m_is_simulation_enabled = true;
-        bool m_is_game_input_enabled = true;
+        WorldState m_world_state = WorldState::Playing;
+        bool m_is_tick_step_requested = false;
 
         CameraComponent* m_active_camera = nullptr;
         mutable bool m_warned_no_active_camera = false;
@@ -76,11 +77,12 @@ namespace hob {
         void open_game_window();
         void close_game_window();
 
-        bool is_simulation_enabled() const;
-        void set_simulation_enabled(bool enabled);
+        WorldState get_world_state() const;
+        void set_world_state(WorldState state);
 
-        bool is_game_input_enabled() const;
-        void set_game_input_enabled(bool enabled);
+        bool is_in_play() const;
+        bool is_ticking() const;
+        void request_tick_step();
 
         CameraComponent* get_active_camera() const;
         void set_active_camera(CameraComponent* camera);

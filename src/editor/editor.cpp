@@ -54,6 +54,8 @@ namespace hob::editor {
 
         m_reset_layout = !std::filesystem::exists(m_imgui_ini_path);
 
+        m_engine.set_world_state(WorldState::Stopped);
+
         log::editor.info("Editor::Initialise");
     }
 
@@ -75,17 +77,18 @@ namespace hob::editor {
         return m_engine;
     }
 
-    EditorState Editor::get_state() const {
-        return m_state;
+    WorldState Editor::get_state() const {
+        return m_engine.get_world_state();
     }
 
-    void Editor::set_state(EditorState state) {
-        if (state == m_state) {
+    void Editor::set_state(WorldState state) {
+        const WorldState previous = get_state();
+        if (state == previous) {
             return;
         }
 
-        const bool entering_play = (m_state == EditorState::Edit);
-        const bool leaving_play = (state == EditorState::Edit);
+        const bool entering_play = (previous == WorldState::Stopped);
+        const bool leaving_play = (state == WorldState::Stopped);
 
         if (entering_play || leaving_play) {
             const EditorSelectionInstanceIds captured = capture_selection_instance_ids();
@@ -104,12 +107,11 @@ namespace hob::editor {
             restore_selection(captured);
         }
 
-        m_state = state;
-        sync_simulation_state();
+        m_engine.set_world_state(state);
     }
 
     void Editor::request_step() {
-        m_step_requested = true;
+        m_engine.request_tick_step();
     }
 
     void Editor::request_reset_layout() {
@@ -252,8 +254,6 @@ namespace hob::editor {
     }
 
     void Editor::init() {
-        sync_simulation_state();
-
         const std::vector<std::string> names = get_scene_names();
         if (names.empty()) {
             log::editor.info("The project defines no scenes; starting with an empty world");
@@ -274,7 +274,6 @@ namespace hob::editor {
     void Editor::tick(float delta_time) {
         update_input();
         update_window_title();
-        sync_simulation_state();
 
         prune_selection();
     }
@@ -317,7 +316,7 @@ namespace hob::editor {
             return false;
         }
 
-        set_state(EditorState::Edit);
+        set_state(WorldState::Stopped);
         return true;
     }
 
@@ -327,7 +326,7 @@ namespace hob::editor {
             return false;
         }
 
-        set_state(EditorState::Edit);
+        set_state(WorldState::Stopped);
         return true;
     }
 
@@ -378,14 +377,6 @@ namespace hob::editor {
             m_window_title = title;
             m_engine.get_main_window().set_title(m_window_title);
         }
-    }
-
-    void Editor::sync_simulation_state() {
-        const bool simulate = (m_state == EditorState::Play) || (m_state == EditorState::Paused && m_step_requested);
-        m_step_requested = false;
-
-        m_engine.set_simulation_enabled(simulate);
-        m_engine.set_game_input_enabled(m_state == EditorState::Play);
     }
 
     bool Editor::is_context_active(EditorActionContext context) const {

@@ -30,6 +30,8 @@ namespace hob {
     public:
         explicit AudioComponent(Entity& entity);
 
+        void enter_world() override;
+        void exit_world() override;
         void enter_play() override;
         void exit_play() override;
 

@@ -14,13 +14,13 @@ namespace hob {
         m_material = get_engine().get_renderer().get_default_material();
     }
 
-    void SpriteComponent::enter_play() {
+    void SpriteComponent::enter_world() {
         m_sprite_draw_id = get_engine().get_renderer().register_sprite_draw();
         get_engine().get_entity_spawner().register_sprite(this);
         m_render_dirty = true;
     }
 
-    void SpriteComponent::exit_play() {
+    void SpriteComponent::exit_world() {
         get_engine().get_entity_spawner().unregister_sprite(this);
         get_engine().get_renderer().unregister_sprite_draw(m_sprite_draw_id);
         m_sprite_draw_id = INVALID_SPRITE_DRAW_ID;

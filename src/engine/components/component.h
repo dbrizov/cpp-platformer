@@ -28,6 +28,8 @@ namespace hob {
         virtual int32_t get_priority() const;
 
         virtual void init();
+        virtual void enter_world();
+        virtual void exit_world();
         virtual void enter_play();
         virtual void exit_play();
         virtual void tick(float delta_time);

@@ -22,8 +22,8 @@ namespace hob {
     public:
         explicit ColliderComponent(Entity& entity);
 
-        void enter_play() override;
-        void exit_play() override;
+        void enter_world() override;
+        void exit_world() override;
         void debug_draw_tick(float delta_time) override;
 
         std::string to_string() const override;

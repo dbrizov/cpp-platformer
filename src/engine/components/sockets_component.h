@@ -29,8 +29,8 @@ namespace hob {
 
         int32_t get_priority() const override;
 
-        void enter_play() override;
-        void exit_play() override;
+        void enter_world() override;
+        void exit_world() override;
         void debug_draw_tick(float delta_time) override;
 
         std::string to_string() const override;

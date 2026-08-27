@@ -16,19 +16,25 @@ namespace hob {
     AudioComponent::AudioComponent(Entity& entity)
         : Component(entity) {}
 
-    void AudioComponent::enter_play() {
+    void AudioComponent::enter_world() {
         m_track = get_engine().get_audio().create_track();
         get_engine().get_entity_spawner().register_audio(this);
+    }
 
+    void AudioComponent::exit_world() {
+        get_engine().get_entity_spawner().unregister_audio(this);
+        get_engine().get_audio().destroy_track(m_track);
+        m_track = nullptr;
+    }
+
+    void AudioComponent::enter_play() {
         if (m_autoplay && m_clip) {
             play();
         }
     }
 
     void AudioComponent::exit_play() {
-        get_engine().get_entity_spawner().unregister_audio(this);
-        get_engine().get_audio().destroy_track(m_track);
-        m_track = nullptr;
+        stop();
     }
 
     std::string AudioComponent::to_string() const {

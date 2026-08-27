@@ -35,7 +35,7 @@ namespace hob {
     public:
         explicit TransformComponent(Entity& entity);
 
-        void exit_play() override;
+        void exit_world() override;
 
         std::string to_string() const override;
 

@@ -70,7 +70,7 @@ namespace hob {
         }
 
         if (was_pending) {
-            // Pending entities never enter play, so exit_play()/detach won't run. Detach synchronously to
+            // Pending entities never enter the world, so exit_world()/detach won't run. Detach synchronously to
             // avoid leaving a dangling pointer in a surviving parent (or in a still-in-play child).
             transform->detach_from_hierarchy();
 
@@ -84,7 +84,7 @@ namespace hob {
             return;
         }
 
-        // Mark for destroy if already in play. In-play subtree members detach in exit_play() during resolve.
+        // Mark for destroy if already spawned. Live subtree members detach in exit_world() during resolve.
         m_entity_destroy_requests.insert(id);
     }
 
@@ -208,6 +208,7 @@ namespace hob {
     void EntitySpawner::clear() {
         for (auto& entity : m_entities) {
             entity->exit_play();
+            entity->exit_world();
         }
 
         m_entities.clear();
@@ -382,7 +383,11 @@ namespace hob {
             const EntityId entity_id = entity->get_id();
             m_entity_records[entity_id].live_index = static_cast<EntityIndex>(m_entities.size());
             m_entities.emplace_back(std::move(entity));
-            m_entities.back()->enter_play();
+            m_entities.back()->enter_world();
+
+            if (m_engine.is_in_play()) {
+                m_entities.back()->enter_play();
+            }
 
             if (m_entity_spawned_handler) {
                 m_entity_spawned_handler(entity_id);
@@ -401,6 +406,7 @@ namespace hob {
             Entity* entity = get_entity(id);
             if (entity != nullptr) {
                 entity->exit_play();
+                entity->exit_world();
 
                 if (m_entity_destroyed_handler) {
                     m_entity_destroyed_handler(id);

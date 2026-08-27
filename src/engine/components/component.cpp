@@ -20,6 +20,8 @@ namespace hob {
 
     // clang-format off
     void Component::init() {}
+    void Component::enter_world() {}
+    void Component::exit_world() {}
     void Component::enter_play() {}
     void Component::exit_play() {}
     void Component::tick(float delta_time) {}

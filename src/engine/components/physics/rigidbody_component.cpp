@@ -12,7 +12,7 @@ namespace hob {
     RigidbodyComponent::RigidbodyComponent(Entity& entity)
         : Component(entity) {}
 
-    void RigidbodyComponent::enter_play() {
+    void RigidbodyComponent::enter_world() {
         const TransformComponent* transform = get_entity().get_transform();
 
         // Warn when a dynamic body is parented under a moving (non-static) transform: the body is
@@ -63,7 +63,7 @@ namespace hob {
         }
     }
 
-    void RigidbodyComponent::exit_play() {
+    void RigidbodyComponent::exit_world() {
         if (m_body_type != BodyType::Static) {
             get_engine().get_entity_spawner().unregister_simulated_rigidbody(this);
         }

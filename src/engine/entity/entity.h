@@ -44,6 +44,7 @@ namespace hob {
         std::string m_name;
         std::string m_prefab_name;
         mutable std::string m_fallback_display_name;
+        bool m_is_in_world = false;
         bool m_is_in_play = false;
 
         TickIndex m_tick_index = INVALID_TICK_INDEX; // Slot in EntitySpawner's ticking registry.
@@ -63,6 +64,8 @@ namespace hob {
         Entity(Entity&&) = delete;
         Entity& operator=(Entity&&) = delete;
 
+        void enter_world();
+        void exit_world();
         void enter_play();
         void exit_play();
         void tick(float delta_time);
@@ -89,6 +92,7 @@ namespace hob {
 
         const std::string& get_display_name() const;
 
+        bool is_in_world() const;
         bool is_in_play() const;
 
         bool is_ticking() const;
@@ -147,6 +151,10 @@ namespace hob {
         std::unique_ptr<T> component = std::make_unique<T>(*this, std::forward<Args>(args)...);
 
         component->init();
+
+        if (is_in_world()) {
+            component->enter_world();
+        }
 
         if (is_in_play()) {
             component->enter_play();

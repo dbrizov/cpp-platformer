@@ -19,26 +19,18 @@
 #include "editor_entity_selection.h"
 #include "editor_icons.h"
 #include "engine/core/engine_hooks.h"
+#include "engine/core/world_state.h"
 
 namespace hob {
     class Engine;
 } // namespace hob
 
 namespace hob::editor {
-    enum class EditorState {
-        Edit,
-        Play,
-        Paused,
-    };
-
     class Editor : public EngineHooks {
         Engine& m_engine;
 
         std::string m_imgui_ini_path;
         bool m_reset_layout = false;
-
-        EditorState m_state = EditorState::Edit;
-        bool m_step_requested = false;
 
         std::string m_window_title;
         std::string m_current_scene;
@@ -73,8 +65,8 @@ namespace hob::editor {
 
         Engine& get_engine() const;
 
-        EditorState get_state() const;
-        void set_state(EditorState state);
+        WorldState get_state() const;
+        void set_state(WorldState state);
 
         void request_step();
         void request_reset_layout();
@@ -134,7 +126,6 @@ namespace hob::editor {
 
         void update_input();
         void update_window_title();
-        void sync_simulation_state();
         bool is_context_active(EditorActionContext context) const;
 
         void prune_selection();

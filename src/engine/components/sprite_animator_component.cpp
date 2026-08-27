@@ -3,7 +3,6 @@
 #include <cmath>
 #include <utility>
 
-#include "engine/core/engine.h"
 #include "engine/entity/entity.h"
 
 namespace hob {
@@ -11,15 +10,8 @@ namespace hob {
         : Component(entity) {}
 
     void SpriteAnimatorComponent::enter_play() {
-        if (m_default_clip_name.empty()) {
-            return;
-        }
-
-        if (get_engine().is_simulation_enabled()) {
+        if (!m_default_clip_name.empty()) {
             play(m_default_clip_name);
-        }
-        else {
-            select_clip(m_default_clip_name);
         }
     }
 
@@ -97,24 +89,16 @@ namespace hob {
         return m_current_clip_name;
     }
 
-    bool SpriteAnimatorComponent::select_clip(const std::string& name) {
+    void SpriteAnimatorComponent::play(const std::string& name) {
         auto it = m_clips.find(name);
         if (it == m_clips.end()) {
-            return false;
+            return;
         }
 
         m_current_clip = it->second;
         m_current_clip_name = name;
         m_time = 0.0f;
         m_playing = true;
-
-        return true;
-    }
-
-    void SpriteAnimatorComponent::play(const std::string& name) {
-        if (!select_clip(name)) {
-            return;
-        }
 
         // Show the first frame / pose immediately.
         apply_key_values();

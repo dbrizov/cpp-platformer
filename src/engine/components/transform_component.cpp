@@ -13,7 +13,7 @@ namespace hob {
         rebuild_local_matrix();
     }
 
-    void TransformComponent::exit_play() {
+    void TransformComponent::exit_world() {
         detach_from_hierarchy();
     }
 

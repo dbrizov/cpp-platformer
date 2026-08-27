@@ -59,7 +59,7 @@ namespace hob::editor {
             return;
         }
 
-        if (editor.get_state() == EditorState::Edit) {
+        if (editor.get_state() == WorldState::Stopped) {
             const char* set_instance_field =
                 target.is_lua ? editor_func::SET_LUA_INSTANCE_FIELD : editor_func::SET_INSTANCE_FIELD;
 

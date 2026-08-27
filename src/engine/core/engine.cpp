@@ -156,14 +156,17 @@ namespace hob {
                 m_hooks->tick(delta_time);
             }
 
-            const bool is_game_input_active = m_is_simulation_enabled && m_is_game_input_enabled &&
-                                              !m_console.is_open() && get_play_window().has_focus();
+            const bool is_game_input_active =
+                m_world_state == WorldState::Playing && !m_console.is_open() && get_play_window().has_focus();
 
             if (is_game_input_active) {
                 m_input.tick(scaled_delta_time);
             }
 
-            if (m_is_simulation_enabled) {
+            const bool ticking = is_ticking();
+            m_is_tick_step_requested = false;
+
+            if (ticking) {
                 for (Entity* entity : m_entity_spawner.get_ticking_entities()) {
                     entity->tick(scaled_delta_time);
                 }
@@ -338,20 +341,25 @@ namespace hob {
         m_game_window.reset();
     }
 
-    bool Engine::is_simulation_enabled() const {
-        return m_is_simulation_enabled;
+    WorldState Engine::get_world_state() const {
+        return m_world_state;
     }
 
-    void Engine::set_simulation_enabled(bool enabled) {
-        m_is_simulation_enabled = enabled;
+    void Engine::set_world_state(WorldState state) {
+        m_world_state = state;
     }
 
-    bool Engine::is_game_input_enabled() const {
-        return m_is_game_input_enabled;
+    bool Engine::is_in_play() const {
+        return m_world_state != WorldState::Stopped;
     }
 
-    void Engine::set_game_input_enabled(bool enabled) {
-        m_is_game_input_enabled = enabled;
+    bool Engine::is_ticking() const {
+        return m_world_state == WorldState::Playing ||
+               (m_world_state == WorldState::Paused && m_is_tick_step_requested);
+    }
+
+    void Engine::request_tick_step() {
+        m_is_tick_step_requested = true;
     }
 
     CameraComponent* Engine::get_active_camera() const {
@@ -372,7 +380,7 @@ namespace hob {
     Matrix4x4 Engine::get_game_camera_view_projection() const {
         const CameraComponent* camera = get_active_camera();
         if (camera == nullptr) {
-            // A host may legitimately run frames with no game camera (the editor's Edit state).
+            // A host may legitimately run frames with no game camera (a stopped world).
             if (!m_warned_no_active_camera && m_hooks == nullptr) {
                 log::engine.error("Engine::draw_entities: no active camera (spawn a Camera entity to render)");
                 m_warned_no_active_camera = true;

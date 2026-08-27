@@ -14,7 +14,33 @@ namespace hob {
     Entity::Entity(Engine& engine)
         : m_engine(engine) {}
 
+    void Entity::enter_world() {
+        if (m_is_in_world) {
+            return;
+        }
+
+        m_is_in_world = true;
+        for (auto& component : m_components) {
+            component->enter_world();
+        }
+    }
+
+    void Entity::exit_world() {
+        if (!m_is_in_world) {
+            return;
+        }
+
+        m_is_in_world = false;
+        for (auto& component : m_components) {
+            component->exit_world();
+        }
+    }
+
     void Entity::enter_play() {
+        if (m_is_in_play) {
+            return;
+        }
+
         m_is_in_play = true;
         for (auto& component : m_components) {
             component->enter_play();
@@ -26,6 +52,10 @@ namespace hob {
     }
 
     void Entity::exit_play() {
+        if (!m_is_in_play) {
+            return;
+        }
+
         if (is_ticking()) {
             get_engine().get_entity_spawner().unregister_ticking_entity(this);
         }
@@ -149,6 +179,10 @@ namespace hob {
         }
 
         return m_fallback_display_name;
+    }
+
+    bool Entity::is_in_world() const {
+        return m_is_in_world;
     }
 
     bool Entity::is_in_play() const {

@@ -9,11 +9,11 @@ namespace hob {
     CameraComponent::CameraComponent(Entity& entity)
         : Component(entity) {}
 
-    void CameraComponent::enter_play() {
+    void CameraComponent::enter_world() {
         get_engine().set_active_camera(this);
     }
 
-    void CameraComponent::exit_play() {
+    void CameraComponent::exit_world() {
         get_engine().clear_active_camera(this);
     }
 

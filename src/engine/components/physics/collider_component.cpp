@@ -12,14 +12,14 @@ namespace hob {
     ColliderComponent::ColliderComponent(Entity& entity)
         : Component(entity) {}
 
-    void ColliderComponent::enter_play() {
+    void ColliderComponent::enter_world() {
         const RigidbodyComponent* rigidbody = get_entity().get_rigidbody();
         HOB_ASSERT(rigidbody != nullptr && rigidbody->has_body(), "Collider requires a Rigidbody to function");
 
         build_shape();
     }
 
-    void ColliderComponent::exit_play() {
+    void ColliderComponent::exit_world() {
         if (b2Shape_IsValid(m_shape_id)) {
             b2DestroyShape(m_shape_id, false);
             m_shape_id = b2_nullShapeId;

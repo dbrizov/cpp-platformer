@@ -42,7 +42,6 @@ namespace hob {
         bool is_playing() const;
 
     private:
-        bool select_clip(const std::string& name);
         void apply_key_values();
     };
 } // namespace hob

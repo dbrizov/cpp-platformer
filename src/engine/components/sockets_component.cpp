@@ -34,11 +34,11 @@ namespace hob {
         return component_priority::CP_SOCKETS;
     }
 
-    void SocketsComponent::enter_play() {
+    void SocketsComponent::enter_world() {
         create_socket_entities();
     }
 
-    void SocketsComponent::exit_play() {
+    void SocketsComponent::exit_world() {
         destroy_socket_entities();
     }
 

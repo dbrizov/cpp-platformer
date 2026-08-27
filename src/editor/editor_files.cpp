@@ -18,8 +18,8 @@ namespace hob::editor {
                 return "no scene is open";
             }
 
-            if (editor.get_state() != EditorState::Edit) {
-                return "the scene document is only editable in Edit state";
+            if (editor.get_state() != WorldState::Stopped) {
+                return "the scene document is only editable while the world is stopped";
             }
 
             Engine& engine = editor.get_engine();
