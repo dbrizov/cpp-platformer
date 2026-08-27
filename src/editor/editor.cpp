@@ -105,6 +105,7 @@ namespace hob::editor {
         }
 
         m_state = state;
+        sync_simulation_state();
     }
 
     void Editor::request_step() {
@@ -251,6 +252,8 @@ namespace hob::editor {
     }
 
     void Editor::init() {
+        sync_simulation_state();
+
         const std::vector<std::string> names = get_scene_names();
         if (names.empty()) {
             log::editor.info("The project defines no scenes; starting with an empty world");
@@ -271,12 +274,7 @@ namespace hob::editor {
     void Editor::tick(float delta_time) {
         update_input();
         update_window_title();
-
-        const bool simulate = (m_state == EditorState::Play) || (m_state == EditorState::Paused && m_step_requested);
-        m_step_requested = false;
-
-        m_engine.set_simulation_enabled(simulate);
-        m_engine.set_game_input_enabled(m_state == EditorState::Play);
+        sync_simulation_state();
 
         prune_selection();
     }
@@ -337,26 +335,6 @@ namespace hob::editor {
         return {&m_scene_view, &m_hierarchy, &m_inspector, &m_assets, &m_output};
     }
 
-    void Editor::update_window_title() {
-        const std::string project = PathUtils::get_project_root().filename().string();
-
-        std::string title;
-        if (!m_current_scene.empty()) {
-            title = is_scene_dirty() ? "(*) " : "";
-            title += m_current_scene;
-            title += " - ";
-        }
-
-        title += project;
-        title += " - ";
-        title += EDITOR_WINDOW_TITLE;
-
-        if (title != m_window_title) {
-            m_window_title = title;
-            m_engine.get_main_window().set_title(m_window_title);
-        }
-    }
-
     void Editor::update_input() {
         m_active_contexts = 0;
 
@@ -380,6 +358,34 @@ namespace hob::editor {
         }
 
         m_scene_view.update_input(*this);
+    }
+
+    void Editor::update_window_title() {
+        const std::string project = PathUtils::get_project_root().filename().string();
+
+        std::string title;
+        if (!m_current_scene.empty()) {
+            title = is_scene_dirty() ? "(*) " : "";
+            title += m_current_scene;
+            title += " - ";
+        }
+
+        title += project;
+        title += " - ";
+        title += EDITOR_WINDOW_TITLE;
+
+        if (title != m_window_title) {
+            m_window_title = title;
+            m_engine.get_main_window().set_title(m_window_title);
+        }
+    }
+
+    void Editor::sync_simulation_state() {
+        const bool simulate = (m_state == EditorState::Play) || (m_state == EditorState::Paused && m_step_requested);
+        m_step_requested = false;
+
+        m_engine.set_simulation_enabled(simulate);
+        m_engine.set_game_input_enabled(m_state == EditorState::Play);
     }
 
     bool Editor::is_context_active(EditorActionContext context) const {

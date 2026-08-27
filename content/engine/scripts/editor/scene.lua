@@ -236,7 +236,8 @@ function Editor.get_instance_def(instance_id)
     return scene_state.entity_def_by_instance_id[instance_id]
 end
 
--- Re-points the orphaned defs at the reloaded document; false means the caller must respawn instead.
+-- Re-points the orphaned defs at the reloaded document and pushes them to the live entities;
+-- false means the caller must respawn instead.
 ---@return boolean
 function Editor.rebind_instance_defs()
     local name = scene_state.name
@@ -280,6 +281,8 @@ function Editor.rebind_instance_defs()
             _G.__scene_instance_by_entity_id[entity_id] = inst
         end
     end
+
+    __reapply_scene_overrides_to_spawned_entities()
 
     return true
 end

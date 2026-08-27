@@ -4,8 +4,8 @@
 _G.Editor = _G.Editor or {}
 
 local INDENT = "    "
-local MIN_FLOAT_PRECISION = 7
-local MAX_FLOAT_PRECISION = 17
+local LINE_BUDGET = 140
+local FLOAT_FORMAT = "%.7g"
 
 local SHAPES = {
     [FieldType.VECTOR2] = { ctor = "Vector2", fields = { "x", "y" } },
@@ -16,6 +16,7 @@ local SHAPES = {
 }
 
 local POSE_ORDER = { "position", "rotation_deg", "scale" }
+local POSE_TYPES = { rotation_deg = { type = FieldType.FLOAT } }
 
 local shape_by_metatable = nil
 
@@ -58,14 +59,7 @@ local function format_number(value, path)
         return "0.0"
     end
 
-    local text
-    for precision = MIN_FLOAT_PRECISION, MAX_FLOAT_PRECISION do
-        text = string.format("%." .. precision .. "g", value)
-        if tonumber(text) == value then
-            break
-        end
-    end
-
+    local text = string.format(FLOAT_FORMAT, value)
     if not text:find("[.eE]") then
         text = text .. ".0"
     end
@@ -125,6 +119,11 @@ local function format_named_number(value, field_meta, path)
         end
     end
 
+    local declared = field_meta and field_meta.type
+    if declared == FieldType.FLOAT or declared == FieldType.ANGLE then
+        value = value + 0.0
+    end
+
     return format_number(value, path)
 end
 
@@ -160,40 +159,57 @@ local function ordered_keys(source, order)
     return keys
 end
 
-local function wrap_fields(parts)
+local function indent_of(depth)
+    return string.rep(INDENT, depth)
+end
+
+local function wrap_fields(parts, depth, prefix)
     if #parts == 0 then
         return nil
     end
 
-    return "{ " .. table.concat(parts, ", ") .. " }"
+    local inline = "{ " .. table.concat(parts, ", ") .. " }"
+    if #INDENT * depth + prefix + #inline + 1 <= LINE_BUDGET and not inline:find("\n", 1, true) then
+        return inline
+    end
+
+    local inner = indent_of(depth + 1)
+    local separator = ",\n" .. inner
+
+    return "{\n" .. inner .. table.concat(parts, separator) .. ",\n" .. indent_of(depth) .. "}"
+end
+
+local function field_prefix(key)
+    return #key + 3
 end
 
 local serialize_value
 
-local function serialize_shape(shape, value, path)
+local function serialize_shape(shape, value, path, depth)
     local args = {}
     for index, field in ipairs(shape.fields) do
-        args[index] = serialize_value(value[field], nil, path .. "." .. field)
+        args[index] = serialize_value(value[field], nil, path .. "." .. field, depth, 0)
     end
 
     return shape.ctor .. "(" .. table.concat(args, ", ") .. ")"
 end
 
-local function serialize_plain_table(value, path)
+local function serialize_plain_table(value, path, depth, prefix)
     local parts = {}
 
     for index = 1, #value do
-        parts[#parts + 1] = serialize_value(value[index], nil, path .. "[" .. index .. "]")
+        parts[#parts + 1] = serialize_value(value[index], nil, path .. "[" .. index .. "]", depth + 1, 0)
     end
 
     for _, key in ipairs(sorted_keys(value)) do
-        parts[#parts + 1] = key .. " = " .. serialize_value(value[key], nil, path .. "." .. key)
+        parts[#parts + 1] = key .. " = " ..
+            serialize_value(value[key], nil, path .. "." .. key, depth + 1, field_prefix(key))
     end
 
-    return wrap_fields(parts) or "{}"
+    return wrap_fields(parts, depth, prefix) or "{}"
 end
 
-serialize_value = function(value, field_meta, path)
+serialize_value = function(value, field_meta, path, depth, prefix)
     if value == None then
         return "None"
     end
@@ -215,7 +231,7 @@ serialize_value = function(value, field_meta, path)
     if value_type == "table" then
         local mt = getmetatable(value)
         if mt == nil then
-            return serialize_plain_table(value, path)
+            return serialize_plain_table(value, path, depth, prefix)
         end
 
         local registry = rawget(mt, "__registry")
@@ -236,22 +252,23 @@ serialize_value = function(value, field_meta, path)
                 "', which is neither a declared asset nor a value with a Lua literal")
         end
 
-        return serialize_shape(shape, value, path)
+        return serialize_shape(shape, value, path, depth)
     end
 
     fail(path, "holds a " .. value_type .. " value, which cannot be written to a scene file")
 end
 
-local function serialize_pose_overrides(pose, path)
+local function serialize_pose_overrides(pose, path, depth, prefix)
     local parts = {}
     for _, field in ipairs(ordered_keys(pose, POSE_ORDER)) do
-        parts[#parts + 1] = field .. " = " .. serialize_value(pose[field], nil, path .. "." .. field)
+        parts[#parts + 1] = field .. " = " ..
+            serialize_value(pose[field], POSE_TYPES[field], path .. "." .. field, depth + 1, field_prefix(field))
     end
 
-    return wrap_fields(parts)
+    return wrap_fields(parts, depth, prefix)
 end
 
-local function serialize_cpp_section(section, schema, path)
+local function serialize_cpp_section(section, schema, path, depth, prefix)
     if type(section) ~= "table" then
         fail(path, "is not a table")
     end
@@ -261,27 +278,29 @@ local function serialize_cpp_section(section, schema, path)
     local parts = {}
     for _, field in ipairs(ordered_keys(section, schema and schema.__order)) do
         local field_meta = types and types[field]
-        parts[#parts + 1] = field .. " = " .. serialize_value(section[field], field_meta, path .. "." .. field)
+        parts[#parts + 1] = field .. " = " ..
+            serialize_value(section[field], field_meta, path .. "." .. field, depth + 1, field_prefix(field))
     end
 
-    return wrap_fields(parts)
+    return wrap_fields(parts, depth, prefix)
 end
 
-local function serialize_cpp_overrides(cpp_overrides, path)
+local function serialize_cpp_overrides(cpp_overrides, path, depth, prefix)
     local schemas = _G.__component_schemas
 
     local parts = {}
     for _, key in ipairs(ordered_keys(cpp_overrides, schemas.__order)) do
-        local section = serialize_cpp_section(cpp_overrides[key], schemas[key], path .. "." .. key)
+        local section = serialize_cpp_section(cpp_overrides[key], schemas[key], path .. "." .. key,
+            depth + 1, field_prefix(key))
         if section ~= nil then
             parts[#parts + 1] = key .. " = " .. section
         end
     end
 
-    return wrap_fields(parts)
+    return wrap_fields(parts, depth, prefix)
 end
 
-local function serialize_lua_overrides(lua_overrides, path)
+local function serialize_lua_overrides(lua_overrides, path, depth, prefix)
     local parts = {}
     for _, class_name in ipairs(sorted_keys(lua_overrides)) do
         local section_path = path .. "." .. class_name
@@ -293,42 +312,42 @@ local function serialize_lua_overrides(lua_overrides, path)
         local fields = {}
         for _, field in ipairs(sorted_keys(overrides)) do
             fields[#fields + 1] = field .. " = " ..
-                serialize_value(overrides[field], nil, section_path .. "." .. field)
+                serialize_value(overrides[field], nil, section_path .. "." .. field, depth + 2, field_prefix(field))
         end
 
-        local section = wrap_fields(fields)
+        local section = wrap_fields(fields, depth + 1, field_prefix(class_name))
         if section ~= nil then
             parts[#parts + 1] = class_name .. " = " .. section
         end
     end
 
-    return wrap_fields(parts)
+    return wrap_fields(parts, depth, prefix)
 end
 
-local function append_overrides(parts, inst, key, serialize_section, path)
+local function append_overrides(parts, inst, key, serialize_section, path, depth)
     local overrides = inst[key]
     if type(overrides) ~= "table" then
         return
     end
 
-    local section = serialize_section(overrides, path .. "." .. key)
+    local section = serialize_section(overrides, path .. "." .. key, depth, field_prefix(key))
     if section ~= nil then
         parts[#parts + 1] = key .. " = " .. section
     end
 end
 
-local function serialize_instance(inst, path)
+local function serialize_instance(inst, path, depth, prefix)
     if type(inst.prefab) ~= "string" then
         fail(path, "does not name a prefab")
     end
 
     local parts = { "prefab = " .. DefRegistry.ENTITIES .. "." .. inst.prefab }
 
-    append_overrides(parts, inst, SceneKey.POSE_OVERRIDES, serialize_pose_overrides, path)
-    append_overrides(parts, inst, SceneKey.CPP_OVERRIDES, serialize_cpp_overrides, path)
-    append_overrides(parts, inst, SceneKey.LUA_OVERRIDES, serialize_lua_overrides, path)
+    append_overrides(parts, inst, SceneKey.POSE_OVERRIDES, serialize_pose_overrides, path, depth + 1)
+    append_overrides(parts, inst, SceneKey.CPP_OVERRIDES, serialize_cpp_overrides, path, depth + 1)
+    append_overrides(parts, inst, SceneKey.LUA_OVERRIDES, serialize_lua_overrides, path, depth + 1)
 
-    return "{ " .. table.concat(parts, ", ") .. " }"
+    return wrap_fields(parts, depth, prefix)
 end
 
 ---@param name string
@@ -344,7 +363,7 @@ function Editor.serialize_scene(name)
     lines[#lines + 1] = INDENT .. "entities = {"
 
     for index, inst in ipairs(def.entities) do
-        lines[#lines + 1] = INDENT .. INDENT .. serialize_instance(inst, "entities[" .. index .. "]") .. ","
+        lines[#lines + 1] = indent_of(2) .. serialize_instance(inst, "entities[" .. index .. "]", 2, 0) .. ","
     end
 
     lines[#lines + 1] = INDENT .. "},"

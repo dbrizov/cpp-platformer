@@ -1,4 +1,7 @@
 DefineEntity.StaticBox = {
+    transform = {
+        scale = Vector2(2, 2),
+    },
     rigidbody = {},
     box_collider = {
         collision_layer = CollisionLayer.Static,
@@ -44,6 +47,9 @@ DefineEntity.TriggerBox = {
 }
 
 DefineEntity.StaticCircle = {
+    transform = {
+        scale = Vector2(2, 2),
+    },
     rigidbody = {},
     circle_collider = {
         collision_layer = CollisionLayer.Static,
@@ -62,6 +68,9 @@ DefineEntity.DynamicCircle = {
 }
 
 DefineEntity.TriggerCircle = {
+    transform = {
+        scale = Vector2(2, 2),
+    },
     rigidbody = {},
     circle_collider = {
         trigger = true,

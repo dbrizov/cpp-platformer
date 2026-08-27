@@ -134,6 +134,7 @@ namespace hob::editor {
 
         void update_input();
         void update_window_title();
+        void sync_simulation_state();
         bool is_context_active(EditorActionContext context) const;
 
         void prune_selection();
