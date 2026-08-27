@@ -30,5 +30,5 @@ namespace hob::detail {
     }                                                                                                                  \
     while (false)
 #else
-#define HOB_ASSERT(cond, ...) ((void)0)
+#define HOB_ASSERT(cond, ...) ((void)sizeof(static_cast<bool>(cond)))
 #endif
