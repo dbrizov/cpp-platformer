@@ -57,7 +57,7 @@ namespace hob {
             .method("rotate_around", &Vector2::rotate_around, {"point", "pivot", "radians"});
 
         bind_usertype<AABB>(m_lua, m_meta)
-            .ctors<sol::types<const Vector2&, const Vector2&>>()
+            .ctors<sol::types<>, sol::types<const Vector2&, const Vector2&>>()
             .field("center", &AABB::center)
             .field("extents", &AABB::extents)
             .method("min", &AABB::min)
@@ -65,14 +65,14 @@ namespace hob {
             .method("size", &AABB::size);
 
         bind_usertype<Capsule>(m_lua, m_meta)
-            .ctors<sol::types<const Vector2&, const Vector2&, float>>()
+            .ctors<sol::types<>, sol::types<const Vector2&, const Vector2&, float>>()
             .field("center_a", &Capsule::center_a)
             .field("center_b", &Capsule::center_b)
             .field("radius", &Capsule::radius)
             .method("get_height", &Capsule::get_height);
 
         bind_usertype<Circle>(m_lua, m_meta)
-            .ctors<sol::types<const Vector2&, float>>()
+            .ctors<sol::types<>, sol::types<const Vector2&, float>>()
             .field("center", &Circle::center)
             .field("radius", &Circle::radius);
 

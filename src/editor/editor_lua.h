@@ -26,6 +26,10 @@ namespace hob::editor {
     namespace editor_func {
         constexpr const char* GET_SCENE_NAMES = "get_scene_names";
         constexpr const char* IS_SCENE_DIRTY = "is_scene_dirty";
+        constexpr const char* MARK_SCENE_SAVED = "mark_scene_saved";
+        constexpr const char* GET_SCENE_FILE = "get_scene_file";
+        constexpr const char* GET_SCENE_SAVE_ERROR = "get_scene_save_error";
+        constexpr const char* SERIALIZE_SCENE = "serialize_scene";
         constexpr const char* OPEN_SCENE = "open_scene";
         constexpr const char* LOAD_SCENE = "load_scene";
         constexpr const char* CLEAR_WORLD = "clear_world";
@@ -57,7 +61,7 @@ namespace hob::editor {
         sol::protected_function_result result = func(std::forward<Args>(args)...);
         if (!result.valid()) {
             const sol::error error = result;
-            log::engine.error("Editor.{}: {}", name, error.what());
+            log::editor.error("Editor.{}: {}", name, error.what());
 
             return sol::object{};
         }

@@ -59,7 +59,7 @@ namespace hob::editor {
             file >> json;
         }
         catch (const nlohmann::json::exception& e) {
-            log::engine.error("Cannot parse editor config file '{}': {}", json_path.string(), e.what());
+            log::editor.error("Cannot parse the config file '{}': {}", json_path.string(), e.what());
             return;
         }
 
@@ -77,7 +77,7 @@ namespace hob::editor {
 
         std::ofstream out(json_path);
         if (!out.is_open()) {
-            log::engine.error("Cannot write editor config file '{}'", json_path.string());
+            log::editor.error("Cannot write the config file '{}'", json_path.string());
             return;
         }
         out << json.dump(JSON_INDENT) << '\n';

@@ -443,6 +443,7 @@ _G.Vector2 = Vector2
 ---@class AABB
 ---@field center Vector2
 ---@field extents Vector2
+---@overload fun(): AABB
 ---@overload fun(center: Vector2, extents: Vector2): AABB
 local AABB = {}
 
@@ -462,6 +463,7 @@ _G.AABB = AABB
 ---@field center_a Vector2
 ---@field center_b Vector2
 ---@field radius number
+---@overload fun(): Capsule
 ---@overload fun(center_a: Vector2, center_b: Vector2, radius: number): Capsule
 local Capsule = {}
 
@@ -474,6 +476,7 @@ _G.Capsule = Capsule
 ---@class Circle
 ---@field center Vector2
 ---@field radius number
+---@overload fun(): Circle
 ---@overload fun(center: Vector2, radius: number): Circle
 local Circle = {}
 

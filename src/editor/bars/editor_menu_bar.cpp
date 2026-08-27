@@ -21,6 +21,7 @@ namespace hob::editor {
                 end_submenu();
             }
 
+            action_menu_item(editor, EditorActionId::SaveScene);
             action_menu_item(editor, EditorActionId::Quit);
             end_menu();
         }

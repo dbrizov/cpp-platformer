@@ -54,7 +54,7 @@ namespace hob::editor {
 
         m_reset_layout = !std::filesystem::exists(m_imgui_ini_path);
 
-        log::engine.info("Editor::Initialise");
+        log::editor.info("Editor::Initialise");
     }
 
     Editor::~Editor() {
@@ -68,7 +68,7 @@ namespace hob::editor {
         m_scene_view.release_color_target(*this);
         m_inspector.reset_edit_state();
 
-        log::engine.info("Editor::Shutdown");
+        log::editor.info("Editor::Shutdown");
     }
 
     Engine& Editor::get_engine() const {
@@ -253,7 +253,7 @@ namespace hob::editor {
     void Editor::init() {
         const std::vector<std::string> names = get_scene_names();
         if (names.empty()) {
-            log::engine.info("Editor: the project defines no scenes; starting with an empty world");
+            log::editor.info("The project defines no scenes; starting with an empty world");
             return;
         }
 

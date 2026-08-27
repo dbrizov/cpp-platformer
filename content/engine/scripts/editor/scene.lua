@@ -49,6 +49,33 @@ function Editor.mark_scene_saved()
     scene_state.is_dirty = false
 end
 
+---@param name string
+---@return string|nil
+function Editor.get_scene_file(name)
+    return __get_def_source(DefRegistry.SCENES, name)
+end
+
+---@param name string
+---@return string|nil reason, nil when the scene can be written back to its file
+function Editor.get_scene_save_error(name)
+    if name == nil or _G.__scene_registry[name] == nil then
+        return "scene '" .. tostring(name) .. "' is not registered"
+    end
+
+    local path = Editor.get_scene_file(name)
+    if path == nil then
+        return "scene '" .. name .. "' has no recorded source file"
+    end
+
+    local count = __count_defs_in_file(path)
+    if count > 1 then
+        return "'" .. path .. "' declares " .. count ..
+            " definitions, and the editor only writes files holding a single one"
+    end
+
+    return nil
+end
+
 local function get_or_create(owner, key)
     local existing = owner[key]
     if existing == nil then

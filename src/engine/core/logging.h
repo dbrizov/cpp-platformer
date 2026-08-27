@@ -58,4 +58,7 @@ namespace hob::log {
     inline constexpr LogChannel sol2{"sol2"};
     inline constexpr LogChannel rmlui{"RmlUi"};
     inline constexpr LogChannel imgui{"ImGui"};
+
+    // Hosts
+    inline constexpr LogChannel editor{"Editor"};
 } // namespace hob::log

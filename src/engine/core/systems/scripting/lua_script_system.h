@@ -38,6 +38,7 @@ namespace hob {
 
         bool hot_reload();
         void poll_hot_reload(float delta_time);
+        void rebaseline_script_watch();
 
         bool run_file(const std::filesystem::path& base, const std::filesystem::path& relative_path);
         bool run_folder(const std::filesystem::path& base,
@@ -58,6 +59,8 @@ namespace hob {
     private:
         void install_log_redirects();
         void install_entity_lifetime_handlers();
+
+        std::filesystem::file_time_type scan_newest_script_write_time() const;
 
         void refresh_lua_component_class_caches();
 

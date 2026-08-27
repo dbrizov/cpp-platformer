@@ -61,6 +61,7 @@ local function install_asset_factory(factory_name, schema)
     end
 
     local ref_mt = {
+        __registry = factory_name,
         __tostring = function(self)
             return schema.lua_type .. "(" .. self.__name .. ")"
         end,

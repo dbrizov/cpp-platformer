@@ -5,6 +5,7 @@
 #include <imgui_internal.h>
 
 #include "editor/editor.h"
+#include "editor/editor_files.h"
 #include "editor/editor_gui_utils.h"
 #include "engine/core/assert.h"
 
@@ -235,6 +236,21 @@ namespace hob::editor {
                 .run =
                     [](Editor& editor) {
                         editor.open_pending_scene();
+                    },
+            },
+            {
+                .id = EditorActionId::SaveScene,
+                .label = "Save Scene",
+                .chord = ImGuiMod_Ctrl | ImGuiKey_S,
+                .context = EditorActionContext::Global,
+                .is_enabled =
+                    [](const Editor& editor) {
+                        return can_save_scene(editor);
+                    },
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        save_scene(editor);
                     },
             },
             {

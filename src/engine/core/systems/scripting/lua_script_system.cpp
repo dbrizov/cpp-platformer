@@ -110,6 +110,28 @@ namespace hob {
         }
         m_script_watch_accumulator = 0.0f;
 
+        const std::filesystem::file_time_type newest = scan_newest_script_write_time();
+
+        // First poll just records the baseline; never reload on startup.
+        if (!m_has_script_write_baseline) {
+            m_last_script_write_time = newest;
+            m_has_script_write_baseline = true;
+            return;
+        }
+
+        if (newest > m_last_script_write_time) {
+            m_last_script_write_time = newest;
+            hot_reload();
+        }
+    }
+
+    void LuaScriptSystem::rebaseline_script_watch() {
+        m_last_script_write_time = scan_newest_script_write_time();
+        m_has_script_write_baseline = true;
+        m_script_watch_accumulator = 0.0f;
+    }
+
+    std::filesystem::file_time_type LuaScriptSystem::scan_newest_script_write_time() const {
         std::filesystem::file_time_type newest = std::filesystem::file_time_type::min();
         std::error_code ec;
 
@@ -132,17 +154,7 @@ namespace hob {
             }
         }
 
-        // First poll just records the baseline; never reload on startup.
-        if (!m_has_script_write_baseline) {
-            m_last_script_write_time = newest;
-            m_has_script_write_baseline = true;
-            return;
-        }
-
-        if (newest > m_last_script_write_time) {
-            m_last_script_write_time = newest;
-            hot_reload();
-        }
+        return newest;
     }
 
     bool LuaScriptSystem::run_file(const std::filesystem::path& base, const std::filesystem::path& relative_path) {
