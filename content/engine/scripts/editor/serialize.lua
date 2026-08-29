@@ -303,8 +303,6 @@ serialize_value = function(value, field_meta, path, depth, prefix)
     fail(path, "holds a " .. value_type .. " value, which cannot be written to a scene file")
 end
 
--- The pose is the transform section spelled differently: the document stores degrees where the schema
--- declares radians, and position is never elided because it is the field being edited.
 local function get_pose_baseline(prefab, field)
     local transform = get_prefab_section(prefab, TransformKey.SECTION)
     local defaults = __get_component_defaults(TransformKey.SECTION)
@@ -361,10 +359,9 @@ local function serialize_cpp_overrides(cpp_overrides, path, depth, prefix, prefa
     for _, key in ipairs(ordered_keys(cpp_overrides, schemas.__order)) do
         local schema = schemas[key]
 
-        -- A section the schema does not know, and a map_setter one, have no per-field baseline to elide against.
-        local has_fields = schema ~= nil and schema.map_setter == nil
-        local prefab_section = has_fields and get_prefab_section(prefab, key) or nil
-        local defaults = has_fields and __get_component_defaults(key) or nil
+        local has_elidable_fields = schema ~= nil and schema.map_setter == nil
+        local prefab_section = has_elidable_fields and get_prefab_section(prefab, key) or nil
+        local defaults = has_elidable_fields and __get_component_defaults(key) or nil
 
         local section = serialize_cpp_section(cpp_overrides[key], schema, path .. "." .. key,
             depth + 1, field_prefix(key), prefab_section, defaults)

@@ -40,6 +40,7 @@ namespace hob {
         void poll_hot_reload(float delta_time);
         void rebaseline_script_watch();
 
+        bool run_file(const std::filesystem::path& full_path);
         bool run_file(const std::filesystem::path& base, const std::filesystem::path& relative_path);
         bool run_folder(const std::filesystem::path& base,
                         const std::filesystem::path& relative_path,

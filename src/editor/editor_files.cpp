@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <optional>
 #include <string>
 
 #include "editor.h"
@@ -13,26 +14,6 @@
 
 namespace hob::editor {
     namespace {
-        std::string get_scene_save_error(const Editor& editor) {
-            if (editor.get_current_scene().empty()) {
-                return "no scene is open";
-            }
-
-            if (editor.get_state() != WorldState::Stopped) {
-                return "the scene document is only editable while the world is stopped";
-            }
-
-            Engine& engine = editor.get_engine();
-            if (!get_editor_func(engine, editor_func::GET_SCENE_SAVE_ERROR).valid()) {
-                return std::format("{} is unavailable", editor_func::GET_SCENE_SAVE_ERROR);
-            }
-
-            const sol::object result =
-                editor_call(engine, editor_func::GET_SCENE_SAVE_ERROR, editor.get_current_scene());
-
-            return result.is<std::string>() ? result.as<std::string>() : std::string();
-        }
-
         bool write_file(const std::filesystem::path& path, const std::string& text) {
             std::ofstream out(path, std::ios::binary | std::ios::trunc);
             if (!out) {
@@ -52,19 +33,41 @@ namespace hob::editor {
         }
     } // namespace
 
+    std::optional<std::string> get_scene_save_error(const Editor& editor) {
+        if (editor.get_current_scene().empty()) {
+            return "no scene is open";
+        }
+
+        if (editor.get_state() != WorldState::Stopped) {
+            return "the scene document is only editable while the world is stopped";
+        }
+
+        Engine& engine = editor.get_engine();
+        if (!get_editor_func(engine, editor_func::GET_SCENE_SAVE_ERROR).valid()) {
+            return std::format("{} is unavailable", editor_func::GET_SCENE_SAVE_ERROR);
+        }
+
+        const sol::object result = editor_call(engine, editor_func::GET_SCENE_SAVE_ERROR, editor.get_current_scene());
+        if (result.is<std::string>()) {
+            return result.as<std::string>();
+        }
+
+        return std::nullopt;
+    }
+
     bool can_save_scene(const Editor& editor) {
-        return get_scene_save_error(editor).empty();
+        return !get_scene_save_error(editor).has_value();
     }
 
     void save_scene(Editor& editor) {
-        const std::string reason = get_scene_save_error(editor);
-        if (!reason.empty()) {
-            log::editor.error("Cannot save the scene because {}", reason);
+        const std::optional<std::string> reason = get_scene_save_error(editor);
+        if (reason.has_value()) {
+            log::editor.error("Cannot save the scene because {}", *reason);
             return;
         }
 
         Engine& engine = editor.get_engine();
-        const std::string scene_name = editor.get_current_scene();
+        const std::string& scene_name = editor.get_current_scene();
 
         const sol::object file = editor_call(engine, editor_func::GET_SCENE_FILE, scene_name);
         if (!file.is<std::string>()) {
@@ -89,5 +92,25 @@ namespace hob::editor {
         lua_script_system.rebaseline_script_watch();
 
         log::editor.info("Saved scene '{}' to '{}'", scene_name, path.string());
+    }
+
+    void revert_scene(Editor& editor) {
+        Engine& engine = editor.get_engine();
+        const std::string& scene_name = editor.get_current_scene();
+
+        const sol::object file = editor_call(engine, editor_func::GET_SCENE_FILE, scene_name);
+        if (!file.is<std::string>()) {
+            log::editor.error("Cannot revert scene '{}' because it has no recorded source file", scene_name);
+            return;
+        }
+
+        const std::filesystem::path path = file.as<std::string>();
+        if (!engine.get_lua_script_system().run_file(path)) {
+            return;
+        }
+
+        editor_call(engine, editor_func::MARK_SCENE_SAVED);
+
+        log::editor.info("Reverted scene '{}' from '{}'", scene_name, path.string());
     }
 } // namespace hob::editor

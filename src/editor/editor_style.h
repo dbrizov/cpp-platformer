@@ -99,7 +99,6 @@ namespace hob::editor {
     constexpr ImVec4 COLOR_NAV_WINDOWING_HIGHLIGHT = with_alpha(COLOR_ACCENT, 0.70f);
     constexpr ImVec4 COLOR_TABLE_ROW_ALT{1.0f, 1.0f, 1.0f, 0.02f};
     constexpr ImVec4 COLOR_NAV_WINDOWING_DIM_BG{0.0f, 0.0f, 0.0f, 0.45f};
-    constexpr ImVec4 COLOR_MODAL_DIM_BG{0.0f, 0.0f, 0.0f, 0.55f};
 
     // Item (shared by bar items, bar popup rows, hierarchy rows and frame widgets)
     constexpr ImVec4 COLOR_ITEM_HOVER = COLOR_MAIN_LIGHT;
@@ -117,6 +116,17 @@ namespace hob::editor {
 
     constexpr ImVec4 COLOR_DOCK_BORDER = COLOR_BORDER_DARK;
     constexpr ImVec4 COLOR_DOCK_BORDER_FLOATING = COLOR_BORDER_LIGHT;
+
+    // Modal (borders match a floating dock)
+    constexpr ImVec2 MODAL_PADDING{16.0f, 14.0f};
+    constexpr float MODAL_MIN_WIDTH = 380.0f;
+    constexpr float MODAL_BUTTON_MIN_WIDTH = 110.0f;
+    constexpr float MODAL_MESSAGE_SPACING = 12.0f;
+    constexpr float MODAL_BORDER_SIZE = DOCK_BORDER_SIZE_FLOATING;
+
+    constexpr ImVec4 COLOR_MODAL_BG = COLOR_MAIN_DARK;
+    constexpr ImVec4 COLOR_MODAL_BORDER = COLOR_DOCK_BORDER_FLOATING;
+    constexpr ImVec4 COLOR_MODAL_REASON = COLOR_TEXT_DIM;
 
     // Bar (shared by the menu bar, the main toolbar and the dock toolbars)
     struct EditorBarMetrics {

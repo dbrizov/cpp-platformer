@@ -157,9 +157,7 @@ namespace hob {
         return newest;
     }
 
-    bool LuaScriptSystem::run_file(const std::filesystem::path& base, const std::filesystem::path& relative_path) {
-        const std::filesystem::path full_path = base / relative_path;
-
+    bool LuaScriptSystem::run_file(const std::filesystem::path& full_path) {
         auto result = m_impl->lua.safe_script_file(full_path.string(), sol::script_pass_on_error);
         if (!result.valid()) {
             const sol::error err = result;
@@ -168,6 +166,10 @@ namespace hob {
         }
 
         return true;
+    }
+
+    bool LuaScriptSystem::run_file(const std::filesystem::path& base, const std::filesystem::path& relative_path) {
+        return run_file(base / relative_path);
     }
 
     bool LuaScriptSystem::run_folder(const std::filesystem::path& base,

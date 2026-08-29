@@ -128,9 +128,8 @@ local function resolve_field_value(section, field, defaults)
     return unwrap_def(defaults[field])
 end
 
--- The probe never enters play, so its spawn and destroy both resolve synchronously and leave the live entity
--- list untouched, which is what makes this callable from inside for_each_entity. Caching values past the
--- probe's lifetime relies on every schema getter returning something that does not alias the component.
+-- The probe never enters play, so its spawn and destroy both resolve synchronously
+-- and leave the live entity list untouched, which is what makes this callable from inside for_each_entity.
 ---@param key string
 ---@return table
 function _G.__get_component_defaults(key)

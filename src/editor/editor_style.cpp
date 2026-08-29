@@ -126,6 +126,6 @@ namespace hob::editor {
         colors[ImGuiCol_NavCursor] = COLOR_NAV_CURSOR;
         colors[ImGuiCol_NavWindowingHighlight] = COLOR_NAV_WINDOWING_HIGHLIGHT;
         colors[ImGuiCol_NavWindowingDimBg] = COLOR_NAV_WINDOWING_DIM_BG;
-        colors[ImGuiCol_ModalWindowDimBg] = COLOR_MODAL_DIM_BG;
+        colors[ImGuiCol_ModalWindowDimBg] = COLOR_TRANSPARENT;
     }
 } // namespace hob::editor

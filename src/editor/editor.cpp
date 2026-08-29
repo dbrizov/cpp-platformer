@@ -2,6 +2,10 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <format>
+#include <optional>
+#include <string>
+#include <utility>
 
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_video.h>
@@ -10,6 +14,7 @@
 
 #include "actions/editor_action.h"
 #include "editor_config.h"
+#include "editor_files.h"
 #include "editor_gui_utils.h"
 #include "editor_lua.h"
 #include "editor_style.h"
@@ -22,6 +27,7 @@
 namespace hob::editor {
     namespace {
         constexpr const char* EDITOR_SCRIPTS_FOLDER = "scripts/editor";
+        constexpr const char* UNSAVED_CHANGES_MODAL_ID = "Unsaved Changes";
 
         constexpr float LAYOUT_RIGHT_COLUMNS_RATIO = 0.46f;
         constexpr float LAYOUT_INSPECTOR_RATIO = 0.50f;
@@ -90,6 +96,10 @@ namespace hob::editor {
         const bool entering_play = (previous == WorldState::Stopped);
         const bool leaving_play = (state == WorldState::Stopped);
 
+        if (entering_play && is_scene_dirty() && can_save_scene(*this)) {
+            save_scene(*this);
+        }
+
         if (entering_play || leaving_play) {
             const EditorSelectionInstanceIds captured = capture_selection_instance_ids();
 
@@ -129,8 +139,13 @@ namespace hob::editor {
     }
 
     void Editor::request_open_scene(const std::string& name) {
-        m_pending_scene_open = name;
-        request_action(EditorActionId::OpenScene);
+        if (is_scene_dirty() && get_state() == WorldState::Stopped) {
+            m_pending_scene_open = name;
+            m_pending_confirm = EditorPendingConfirm::OpenScene;
+            return;
+        }
+
+        open_scene_without_prompt(name);
     }
 
     std::vector<std::string> Editor::get_scene_names() const {
@@ -294,6 +309,8 @@ namespace hob::editor {
         for (EditorDock* dock : get_docks()) {
             dock->draw(*this);
         }
+
+        draw_unsaved_changes_modal();
     }
 
     void Editor::render_passes() {
@@ -306,28 +323,28 @@ namespace hob::editor {
 
         const sol::object rebound = editor_call(m_engine, editor_func::REBIND_INSTANCE_DEFS);
         if (rebound.is<bool>() && !rebound.as<bool>()) {
-            request_open_scene(m_current_scene);
+            open_scene_without_prompt(m_current_scene);
         }
     }
 
     bool Editor::on_quit_requested() {
         const Window* game_window = m_engine.get_game_window();
-        if (game_window == nullptr || !game_window->has_focus()) {
-            return false;
+        if (game_window != nullptr && game_window->has_focus()) {
+            set_state(WorldState::Stopped);
+            return true;
         }
 
-        set_state(WorldState::Stopped);
-        return true;
+        return try_prompt_unsaved_changes();
     }
 
     bool Editor::on_window_close_requested(SDL_WindowID window_id) {
         const Window* game_window = m_engine.get_game_window();
-        if (game_window == nullptr || game_window->get_id() != window_id) {
-            return false;
+        if (game_window != nullptr && game_window->get_id() == window_id) {
+            set_state(WorldState::Stopped);
+            return true;
         }
 
-        set_state(WorldState::Stopped);
-        return true;
+        return try_prompt_unsaved_changes();
     }
 
     std::array<EditorDock*, Editor::DOCK_COUNT> Editor::get_docks() {
@@ -381,6 +398,75 @@ namespace hob::editor {
 
     bool Editor::is_context_active(EditorActionContext context) const {
         return (m_active_contexts & context_bit(context)) != 0;
+    }
+
+    void Editor::open_scene_without_prompt(const std::string& name) {
+        m_pending_scene_open = name;
+        request_action(EditorActionId::OpenScene);
+    }
+
+    bool Editor::try_prompt_unsaved_changes() {
+        if (m_quit_confirmed) {
+            return false;
+        }
+
+        if (!is_scene_dirty() || get_state() != WorldState::Stopped) {
+            return false;
+        }
+
+        m_pending_confirm = EditorPendingConfirm::Quit;
+        return true;
+    }
+
+    void Editor::draw_unsaved_changes_modal() {
+        if (m_pending_confirm == EditorPendingConfirm::None) {
+            return;
+        }
+
+        if (!ImGui::IsPopupOpen(UNSAVED_CHANGES_MODAL_ID)) {
+            ImGui::OpenPopup(UNSAVED_CHANGES_MODAL_ID);
+        }
+
+        if (!begin_modal(UNSAVED_CHANGES_MODAL_ID)) {
+            return;
+        }
+
+        const std::optional<std::string> save_error = get_scene_save_error(*this);
+        modal_message(std::format("'{}' has unsaved changes.", m_current_scene).c_str(), save_error);
+
+        resolve_pending_confirm(modal_confirm_row(!save_error.has_value()));
+
+        end_modal();
+    }
+
+    void Editor::resolve_pending_confirm(EditorModalChoice choice) {
+        if (choice == EditorModalChoice::None) {
+            return;
+        }
+
+        const EditorPendingConfirm pending = std::exchange(m_pending_confirm, EditorPendingConfirm::None);
+
+        if (choice == EditorModalChoice::Cancel) {
+            m_pending_scene_open.clear();
+            return;
+        }
+
+        const bool is_switching_scene = (pending == EditorPendingConfirm::OpenScene);
+
+        if (choice == EditorModalChoice::Save) {
+            save_scene(*this);
+        }
+        else if (is_switching_scene) {
+            revert_scene(*this);
+        }
+
+        if (is_switching_scene) {
+            open_scene_without_prompt(std::move(m_pending_scene_open));
+            return;
+        }
+
+        m_quit_confirmed = true;
+        request_quit();
     }
 
     void Editor::prune_selection() {
