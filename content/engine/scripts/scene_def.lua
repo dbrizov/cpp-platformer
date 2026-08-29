@@ -15,10 +15,8 @@ function _G.__clear_scene_defs()
     _G.__scene_registry = {}
 end
 
-local SCENE_FILE_SUFFIX = ".scene.lua"
-
 function _G.__scene_name_from_file(path)
-    return __def_name_from_file(path, SCENE_FILE_SUFFIX)
+    return __def_name_from_file(path, FileExtension.SCENE)
 end
 
 local function check_file_name_matches(name)
@@ -30,7 +28,7 @@ local function check_file_name_matches(name)
     local expected = __scene_name_from_file(path)
     if expected == nil then
         Log.error("DefineScene." .. tostring(name) .. " is declared in '" .. path ..
-            "', which is not a '" .. SCENE_FILE_SUFFIX .. "' file. The scene still loads and saves back " ..
+            "', which is not a '" .. FileExtension.SCENE .. "' file. The scene still loads and saves back " ..
             "to that file, but the editor cannot create scenes there.")
         return
     end

@@ -424,24 +424,42 @@ local function serialize_instance(inst, path, depth, prefix)
     return wrap_fields(parts, depth, prefix)
 end
 
+local EMPTY_SCENE = { entities = {} }
+
+local function serialize_scene_def(def, name)
+    local lines = { "DefineScene." .. name .. " = {" }
+
+    if #def.entities == 0 then
+        lines[#lines + 1] = INDENT .. "entities = {},"
+    else
+        lines[#lines + 1] = INDENT .. "entities = {"
+
+        for index, inst in ipairs(def.entities) do
+            lines[#lines + 1] = indent_of(2) .. serialize_instance(inst, "entities[" .. index .. "]", 2, 0) .. ","
+        end
+
+        lines[#lines + 1] = INDENT .. "},"
+    end
+
+    lines[#lines + 1] = "}"
+
+    return table.concat(lines, "\n") .. "\n"
+end
+
 ---@param name string
+---@param as_name string|nil the name to declare it under; defaults to `name`
 ---@return string
-function Editor.serialize_scene(name)
+function Editor.serialize_scene(name, as_name)
     local def = _G.__scene_registry[name]
     if def == nil then
         error("Editor.serialize_scene: scene '" .. tostring(name) .. "' is not registered", 0)
     end
 
-    local lines = {}
-    lines[#lines + 1] = "DefineScene." .. name .. " = {"
-    lines[#lines + 1] = INDENT .. "entities = {"
+    return serialize_scene_def(def, as_name or name)
+end
 
-    for index, inst in ipairs(def.entities) do
-        lines[#lines + 1] = indent_of(2) .. serialize_instance(inst, "entities[" .. index .. "]", 2, 0) .. ","
-    end
-
-    lines[#lines + 1] = INDENT .. "},"
-    lines[#lines + 1] = "}"
-
-    return table.concat(lines, "\n") .. "\n"
+---@param name string
+---@return string
+function Editor.serialize_new_scene(name)
+    return serialize_scene_def(EMPTY_SCENE, name)
 end

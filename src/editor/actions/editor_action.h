@@ -25,8 +25,10 @@ namespace hob::editor {
         GizmoToggleSpace,
         FocusSelection,
         ResetLayout,
+        NewScene,
         OpenScene,
         SaveScene,
+        SaveSceneAs,
         Quit,
         Count,
     };

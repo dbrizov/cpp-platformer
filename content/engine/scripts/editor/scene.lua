@@ -76,6 +76,37 @@ function Editor.get_scene_save_error(name)
     return nil
 end
 
+---@param path string
+---@return string|nil
+function Editor.get_scene_name_for_file(path)
+    return __scene_name_from_file(path)
+end
+
+---@param path string
+---@return string|nil reason, nil when a scene may be created at this path
+function Editor.get_scene_create_error(path)
+    local name = __scene_name_from_file(path)
+    if name == nil then
+        return "'" .. path .. "' is not a '" .. FileExtension.SCENE .. "' file"
+    end
+
+    -- The name is written straight into "DefineScene.<name>", so it has to parse as an identifier.
+    if not name:match("^%a%w*$") then
+        return "'" .. path .. "' derives the scene name '" .. name .. "', which is not a valid Lua name"
+    end
+
+    local owner = Editor.get_scene_file(name)
+    if owner ~= nil then
+        return "scene '" .. name .. "' is already declared in '" .. owner .. "'"
+    end
+
+    if _G.__scene_registry[name] ~= nil then
+        return "scene '" .. name .. "' is already registered"
+    end
+
+    return nil
+end
+
 local function get_or_create(owner, key)
     local existing = owner[key]
     if existing == nil then

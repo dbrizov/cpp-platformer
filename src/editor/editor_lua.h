@@ -29,7 +29,10 @@ namespace hob::editor {
         constexpr const char* MARK_SCENE_SAVED = "mark_scene_saved";
         constexpr const char* GET_SCENE_FILE = "get_scene_file";
         constexpr const char* GET_SCENE_SAVE_ERROR = "get_scene_save_error";
+        constexpr const char* GET_SCENE_NAME_FOR_FILE = "get_scene_name_for_file";
+        constexpr const char* GET_SCENE_CREATE_ERROR = "get_scene_create_error";
         constexpr const char* SERIALIZE_SCENE = "serialize_scene";
+        constexpr const char* SERIALIZE_NEW_SCENE = "serialize_new_scene";
         constexpr const char* OPEN_SCENE = "open_scene";
         constexpr const char* LOAD_SCENE = "load_scene";
         constexpr const char* CLEAR_WORLD = "clear_world";

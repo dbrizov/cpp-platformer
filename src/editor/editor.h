@@ -18,6 +18,7 @@
 #include "docks/editor_dock_scene_view.h"
 #include "editor_config.h"
 #include "editor_entity_selection.h"
+#include "editor_file_dialog.h"
 #include "editor_icons.h"
 #include "editor_modal.h"
 #include "engine/core/engine_hooks.h"
@@ -33,13 +34,11 @@ namespace hob::editor {
 
         std::string m_imgui_ini_path;
         bool m_reset_layout = false;
+        bool m_quit_confirmed = false;
 
         std::string m_window_title;
         std::string m_current_scene;
         std::string m_pending_scene_open;
-
-        EditorModal m_modal;
-        bool m_quit_confirmed = false;
 
         EditorEntitySelection m_selection;
 
@@ -49,6 +48,9 @@ namespace hob::editor {
         uint32_t m_active_contexts = 0;
 
         EditorIcons m_icons;
+
+        EditorModal m_modal;
+        EditorFileDialog m_file_dialog;
 
         EditorMenuBar m_menu_bar;
         EditorToolbar m_toolbar;
@@ -91,6 +93,12 @@ namespace hob::editor {
         const EditorCommandStack& get_commands() const;
 
         const EditorIcons& get_icons() const;
+
+        EditorModal& get_modal();
+        const EditorModal& get_modal() const;
+
+        EditorFileDialog& get_file_dialog();
+        const EditorFileDialog& get_file_dialog() const;
 
         EditorMenuBar& get_menu_bar();
         const EditorMenuBar& get_menu_bar() const;

@@ -10,6 +10,8 @@
 namespace hob::editor {
     void EditorMenuBar::draw(Editor& editor) {
         if (begin_menu("File")) {
+            action_menu_item(editor, EditorActionId::NewScene);
+
             const std::vector<std::string> scene_names = editor.get_scene_names();
             if (begin_submenu("Open Scene", !scene_names.empty())) {
                 const std::string& current = editor.get_current_scene();
@@ -22,6 +24,7 @@ namespace hob::editor {
             }
 
             action_menu_item(editor, EditorActionId::SaveScene);
+            action_menu_item(editor, EditorActionId::SaveSceneAs);
             action_menu_item(editor, EditorActionId::Quit);
             end_menu();
         }

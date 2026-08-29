@@ -227,6 +227,21 @@ namespace hob::editor {
                     },
             },
             {
+                .id = EditorActionId::NewScene,
+                .label = "New Scene...",
+                .chord = ImGuiMod_Ctrl | ImGuiKey_N,
+                .context = EditorActionContext::Global,
+                .is_enabled =
+                    [](const Editor& editor) {
+                        return can_new_scene(editor);
+                    },
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        show_new_scene_dialog(editor);
+                    },
+            },
+            {
                 .id = EditorActionId::OpenScene,
                 .label = "Open Scene",
                 .chord = ImGuiKey_None,
@@ -251,6 +266,21 @@ namespace hob::editor {
                 .run =
                     [](Editor& editor) {
                         save_scene(editor);
+                    },
+            },
+            {
+                .id = EditorActionId::SaveSceneAs,
+                .label = "Save Scene As...",
+                .chord = ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_S,
+                .context = EditorActionContext::Global,
+                .is_enabled =
+                    [](const Editor& editor) {
+                        return can_save_scene_as(editor);
+                    },
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        show_save_scene_as_dialog(editor);
                     },
             },
             {

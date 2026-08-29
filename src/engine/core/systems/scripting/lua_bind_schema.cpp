@@ -9,10 +9,7 @@ namespace hob {
         sol::state& lua = m_impl->lua;
         LuaMetaRegistry& meta = m_impl->meta;
 
-        bind_table(lua, meta, "SceneKey")
-            .constant("POSE_OVERRIDES", scene_key::POSE_OVERRIDES)
-            .constant("CPP_OVERRIDES", scene_key::CPP_OVERRIDES)
-            .constant("LUA_OVERRIDES", scene_key::LUA_OVERRIDES);
+        bind_table(lua, meta, "FileExtension").constant("SCENE", file_extension::SCENE);
 
         bind_table(lua, meta, "DefRegistry")
             .constant("SCENES", def_registry::SCENES)
@@ -23,6 +20,11 @@ namespace hob {
             .constant("MATERIALS", def_registry::MATERIALS)
             .constant("ANIMATION_CLIPS", def_registry::ANIMATION_CLIPS)
             .constant("AUDIO_CLIPS", def_registry::AUDIO_CLIPS);
+
+        bind_table(lua, meta, "SceneKey")
+            .constant("POSE_OVERRIDES", scene_key::POSE_OVERRIDES)
+            .constant("CPP_OVERRIDES", scene_key::CPP_OVERRIDES)
+            .constant("LUA_OVERRIDES", scene_key::LUA_OVERRIDES);
 
         bind_table(lua, meta, "TransformKey")
             .constant("SECTION", transform_key::SECTION)

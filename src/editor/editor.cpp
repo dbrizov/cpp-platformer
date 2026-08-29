@@ -218,6 +218,22 @@ namespace hob::editor {
         return m_icons;
     }
 
+    EditorModal& Editor::get_modal() {
+        return m_modal;
+    }
+
+    const EditorModal& Editor::get_modal() const {
+        return m_modal;
+    }
+
+    EditorFileDialog& Editor::get_file_dialog() {
+        return m_file_dialog;
+    }
+
+    const EditorFileDialog& Editor::get_file_dialog() const {
+        return m_file_dialog;
+    }
+
     EditorMenuBar& Editor::get_menu_bar() {
         return m_menu_bar;
     }
@@ -289,6 +305,7 @@ namespace hob::editor {
     }
 
     void Editor::end_frame() {
+        m_file_dialog.poll();
         m_actions.flush(*this);
     }
 
