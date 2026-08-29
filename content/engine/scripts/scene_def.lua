@@ -139,7 +139,8 @@ function Scene.load(name)
     local spawned = {}
     for index, inst in ipairs(def.entities) do
         local pose = inst[SceneKey.POSE_OVERRIDES] or NO_POSE
-        local entity = EntitySpawner.spawn_entity(inst.prefab, pose.position, pose.rotation_deg, pose.scale)
+        local entity = EntitySpawner.spawn_entity(inst.prefab, pose[TransformKey.POSITION],
+            pose[TransformKey.ROTATION_DEG], pose[TransformKey.SCALE])
 
         if entity then
             apply_overrides(entity, inst)

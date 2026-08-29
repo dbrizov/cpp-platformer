@@ -12,6 +12,7 @@ __clear_component_defs()
 __clear_entity_defs()
 __clear_scene_defs()
 __clear_def_sources()
+__clear_component_defaults()
 
 -- 2a. Re-run the same definition files bootstrap uses, then re-finalize.
 __load_project_definitions()

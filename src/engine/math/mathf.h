@@ -32,4 +32,8 @@ namespace hob::math {
 
         return normalized;
     }
+
+    inline bool approx_equal(float a, float b, float epsilon = EPSILON) {
+        return std::abs(a - b) < epsilon;
+    }
 } // namespace hob::math

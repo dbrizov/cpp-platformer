@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "mathf.h"
+
 namespace hob {
     struct Color {
         float r;
@@ -19,6 +21,15 @@ namespace hob {
             , a(a_) {}
 
         std::string to_string() const;
+
+        bool operator==(const Color& right) const {
+            return math::approx_equal(r, right.r) && math::approx_equal(g, right.g) && math::approx_equal(b, right.b) &&
+                   math::approx_equal(a, right.a);
+        }
+
+        bool operator!=(const Color& right) const {
+            return !operator==(right);
+        }
 
         // clang-format off
         static constexpr Color black() { return Color(0.0f, 0.0f, 0.0f); }

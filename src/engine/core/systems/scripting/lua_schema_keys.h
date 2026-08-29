@@ -31,6 +31,9 @@ namespace hob {
         constexpr const char* POSITION = "position";
         constexpr const char* ROTATION = "rotation";
         constexpr const char* SCALE = "scale";
+
+        // The scene document spells the transform's rotation in degrees, under its own key.
+        constexpr const char* ROTATION_DEG = "rotation_deg";
     } // namespace transform_key
 
     namespace field_type {

@@ -28,6 +28,7 @@ namespace hob {
             .constant("SECTION", transform_key::SECTION)
             .constant("POSITION", transform_key::POSITION)
             .constant("ROTATION", transform_key::ROTATION)
+            .constant("ROTATION_DEG", transform_key::ROTATION_DEG)
             .constant("SCALE", transform_key::SCALE);
 
         bind_table(lua, meta, "FieldType")

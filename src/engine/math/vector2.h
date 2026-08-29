@@ -5,6 +5,7 @@
 
 #include "constants.h"
 #include "engine/core/assert.h"
+#include "mathf.h"
 
 namespace hob {
     struct Vector2 {
@@ -79,7 +80,7 @@ namespace hob {
         }
 
         bool operator==(const Vector2& right) const {
-            return (std::abs(x - right.x) < EPSILON) && (std::abs(y - right.y) < EPSILON);
+            return math::approx_equal(x, right.x) && math::approx_equal(y, right.y);
         }
 
         bool operator!=(const Vector2& right) const {

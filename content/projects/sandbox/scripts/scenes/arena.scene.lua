@@ -3,8 +3,8 @@ DefineScene.Arena = {
         { prefab = Entities.Camera, pose_overrides = { position = Vector2(0.0, 0.0) } },
         {
             prefab = Entities.Player,
-            pose_overrides = { position = Vector2(0.0, 0.0), rotation_deg = 0.0 },
-            cpp_overrides = { sprite = { texture = Textures.PlayerIdle01, material = Materials.WhiteOutline } },
+            pose_overrides = { position = Vector2(0.0, 0.0) },
+            cpp_overrides = { sprite = { material = Materials.WhiteOutline } },
         },
         { prefab = Entities.Enemy, pose_overrides = { position = Vector2(0.0, 4.0), rotation_deg = -90.0 } },
         { prefab = Entities.Enemy, pose_overrides = { position = Vector2(-4.0, 0.0) } },

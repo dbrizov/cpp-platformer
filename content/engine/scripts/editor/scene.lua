@@ -95,8 +95,8 @@ local function set_pose_field(inst, field, value)
 
     if field == TransformKey.ROTATION then
         local rotation_deg = value * Math.RAD_TO_DEG
-        local changed = pose.rotation_deg ~= rotation_deg
-        pose.rotation_deg = rotation_deg
+        local changed = pose[TransformKey.ROTATION_DEG] ~= rotation_deg
+        pose[TransformKey.ROTATION_DEG] = rotation_deg
         return changed
     end
 

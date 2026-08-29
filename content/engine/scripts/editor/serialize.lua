@@ -15,8 +15,8 @@ local SHAPES = {
     [FieldType.CIRCLE] = { ctor = "Circle", fields = { "center", "radius" } },
 }
 
-local POSE_ORDER = { "position", "rotation_deg", "scale" }
-local POSE_TYPES = { rotation_deg = { type = FieldType.FLOAT } }
+local POSE_ORDER = { TransformKey.POSITION, TransformKey.ROTATION_DEG, TransformKey.SCALE }
+local POSE_TYPES = { [TransformKey.ROTATION_DEG] = { type = FieldType.FLOAT } }
 
 local shape_by_metatable = nil
 
@@ -36,6 +36,51 @@ end
 
 local function fail(path, message)
     error("Editor.serialize_scene: " .. path .. " " .. message, 0)
+end
+
+-- Lua dispatches __eq off the left operand whenever both sides are userdata, and sol2's __eq raises
+-- when it cannot convert the right one, so mismatched shapes must not reach it.
+local function is_baseline(value, baseline)
+    if value == baseline then
+        return true
+    end
+
+    if type(value) == "userdata" then
+        return type(baseline) == "userdata" and getmetatable(value) == getmetatable(baseline) and value == baseline
+    end
+
+    -- Integers stay exact: approx_equal narrows to float, which would collapse adjacent int64 bitmasks.
+    if type(value) == "number" and type(baseline) == "number" and
+        (math.type(value) == "float" or math.type(baseline) == "float") then
+        return Math.approx_equal(value, baseline)
+    end
+
+    return false
+end
+
+local function get_prefab_section(prefab, key)
+    if prefab == nil then
+        return nil
+    end
+
+    local section = prefab[key]
+    if type(section) ~= "table" then
+        return nil
+    end
+
+    return section
+end
+
+local function resolve_baseline(prefab_section, defaults, field)
+    if prefab_section ~= nil and prefab_section[field] ~= nil then
+        return prefab_section[field]
+    end
+
+    if defaults ~= nil then
+        return defaults[field]
+    end
+
+    return nil
 end
 
 local function format_number(value, path)
@@ -258,17 +303,38 @@ serialize_value = function(value, field_meta, path, depth, prefix)
     fail(path, "holds a " .. value_type .. " value, which cannot be written to a scene file")
 end
 
-local function serialize_pose_overrides(pose, path, depth, prefix)
+-- The pose is the transform section spelled differently: the document stores degrees where the schema
+-- declares radians, and position is never elided because it is the field being edited.
+local function get_pose_baseline(prefab, field)
+    local transform = get_prefab_section(prefab, TransformKey.SECTION)
+    local defaults = __get_component_defaults(TransformKey.SECTION)
+
+    if field == TransformKey.ROTATION_DEG then
+        local radians = resolve_baseline(transform, defaults, TransformKey.ROTATION)
+        return type(radians) == "number" and radians * Math.RAD_TO_DEG or nil
+    end
+
+    if field == TransformKey.SCALE then
+        return resolve_baseline(transform, defaults, TransformKey.SCALE)
+    end
+
+    return nil
+end
+
+local function serialize_pose_overrides(pose, path, depth, prefix, prefab)
     local parts = {}
     for _, field in ipairs(ordered_keys(pose, POSE_ORDER)) do
-        parts[#parts + 1] = field .. " = " ..
-            serialize_value(pose[field], POSE_TYPES[field], path .. "." .. field, depth + 1, field_prefix(field))
+        local baseline = get_pose_baseline(prefab, field)
+        if baseline == nil or not is_baseline(pose[field], baseline) then
+            parts[#parts + 1] = field .. " = " ..
+                serialize_value(pose[field], POSE_TYPES[field], path .. "." .. field, depth + 1, field_prefix(field))
+        end
     end
 
     return wrap_fields(parts, depth, prefix)
 end
 
-local function serialize_cpp_section(section, schema, path, depth, prefix)
+local function serialize_cpp_section(section, schema, path, depth, prefix, prefab_section, defaults)
     if type(section) ~= "table" then
         fail(path, "is not a table")
     end
@@ -277,21 +343,31 @@ local function serialize_cpp_section(section, schema, path, depth, prefix)
 
     local parts = {}
     for _, field in ipairs(ordered_keys(section, schema and schema.__order)) do
-        local field_meta = types and types[field]
-        parts[#parts + 1] = field .. " = " ..
-            serialize_value(section[field], field_meta, path .. "." .. field, depth + 1, field_prefix(field))
+        local baseline = resolve_baseline(prefab_section, defaults, field)
+        if baseline == nil or not is_baseline(section[field], baseline) then
+            local field_meta = types and types[field]
+            parts[#parts + 1] = field .. " = " ..
+                serialize_value(section[field], field_meta, path .. "." .. field, depth + 1, field_prefix(field))
+        end
     end
 
     return wrap_fields(parts, depth, prefix)
 end
 
-local function serialize_cpp_overrides(cpp_overrides, path, depth, prefix)
+local function serialize_cpp_overrides(cpp_overrides, path, depth, prefix, prefab)
     local schemas = _G.__component_schemas
 
     local parts = {}
     for _, key in ipairs(ordered_keys(cpp_overrides, schemas.__order)) do
-        local section = serialize_cpp_section(cpp_overrides[key], schemas[key], path .. "." .. key,
-            depth + 1, field_prefix(key))
+        local schema = schemas[key]
+
+        -- A section the schema does not know, and a map_setter one, have no per-field baseline to elide against.
+        local has_fields = schema ~= nil and schema.map_setter == nil
+        local prefab_section = has_fields and get_prefab_section(prefab, key) or nil
+        local defaults = has_fields and __get_component_defaults(key) or nil
+
+        local section = serialize_cpp_section(cpp_overrides[key], schema, path .. "." .. key,
+            depth + 1, field_prefix(key), prefab_section, defaults)
         if section ~= nil then
             parts[#parts + 1] = key .. " = " .. section
         end
@@ -324,13 +400,13 @@ local function serialize_lua_overrides(lua_overrides, path, depth, prefix)
     return wrap_fields(parts, depth, prefix)
 end
 
-local function append_overrides(parts, inst, key, serialize_section, path, depth)
+local function append_overrides(parts, inst, key, serialize_section, path, depth, prefab)
     local overrides = inst[key]
     if type(overrides) ~= "table" then
         return
     end
 
-    local section = serialize_section(overrides, path .. "." .. key, depth, field_prefix(key))
+    local section = serialize_section(overrides, path .. "." .. key, depth, field_prefix(key), prefab)
     if section ~= nil then
         parts[#parts + 1] = key .. " = " .. section
     end
@@ -341,11 +417,12 @@ local function serialize_instance(inst, path, depth, prefix)
         fail(path, "does not name a prefab")
     end
 
+    local prefab = _G.__entity_prefab_registry[inst.prefab]
     local parts = { "prefab = " .. DefRegistry.ENTITIES .. "." .. inst.prefab }
 
-    append_overrides(parts, inst, SceneKey.POSE_OVERRIDES, serialize_pose_overrides, path, depth + 1)
-    append_overrides(parts, inst, SceneKey.CPP_OVERRIDES, serialize_cpp_overrides, path, depth + 1)
-    append_overrides(parts, inst, SceneKey.LUA_OVERRIDES, serialize_lua_overrides, path, depth + 1)
+    append_overrides(parts, inst, SceneKey.POSE_OVERRIDES, serialize_pose_overrides, path, depth + 1, prefab)
+    append_overrides(parts, inst, SceneKey.CPP_OVERRIDES, serialize_cpp_overrides, path, depth + 1, prefab)
+    append_overrides(parts, inst, SceneKey.LUA_OVERRIDES, serialize_lua_overrides, path, depth + 1, prefab)
 
     return wrap_fields(parts, depth, prefix)
 end

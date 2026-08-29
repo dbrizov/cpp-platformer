@@ -15,6 +15,12 @@ function _G.__clear_entity_defs()
     _G.__entity_prefab_registry = {}
 end
 
+local component_defaults_cache = {}
+
+function _G.__clear_component_defaults()
+    component_defaults_cache = {}
+end
+
 ---@class DefineEntity
 _G.DefineEntity = setmetatable({}, {
     __newindex = function(_, name, def)
@@ -122,14 +128,50 @@ local function resolve_field_value(section, field, defaults)
     return unwrap_def(defaults[field])
 end
 
-local function reapply_prefab(entity, prefab, get_defaults)
+-- The probe never enters play, so its spawn and destroy both resolve synchronously and leave the live entity
+-- list untouched, which is what makes this callable from inside for_each_entity. Caching values past the
+-- probe's lifetime relies on every schema getter returning something that does not alias the component.
+---@param key string
+---@return table
+function _G.__get_component_defaults(key)
+    local cached = component_defaults_cache[key]
+    if cached then
+        return cached
+    end
+
+    local defaults = {}
+    local schema = _G.__component_schemas[key]
+
+    -- A map_setter section (sockets) has no getters to read.
+    if schema ~= nil and schema.getters ~= nil then
+        local probe = spawn_entity_c()
+        local component = probe[schema.add](probe)
+        if component ~= nil then
+            for field, getter in pairs(schema.getters) do
+                local value = component[getter](component)
+                if value == nil then
+                    value = None
+                end
+                defaults[field] = value
+            end
+        end
+
+        destroy_entity_c(probe)
+    end
+
+    component_defaults_cache[key] = defaults
+
+    return defaults
+end
+
+local function reapply_prefab(entity, prefab)
     entity:set_ticking(resolve_ticking(prefab))
 
     for_each_section(entity, prefab, "get", function(key, schema, section, component)
         if schema.map_setter then
             call_setter(component, schema.map_setter, unwrap_def(section))
         else
-            local defaults = get_defaults(key)
+            local defaults = __get_component_defaults(key)
             for field, setter in pairs(schema.setters) do
                 if should_reapply_field(schema, field) then
                     call_setter(component, setter, resolve_field_value(section, field, defaults))
@@ -140,37 +182,8 @@ local function reapply_prefab(entity, prefab, get_defaults)
 end
 
 function _G.__reapply_prefabs_to_spawned_entities()
-    local schemas = _G.__component_schemas
-    local defaults_cache = {}
-    local probes = {}
-
-    local function get_defaults(key)
-        local cached = defaults_cache[key]
-        if cached then
-            return cached
-        end
-
-        local schema = schemas[key]
-        local probe = spawn_entity_c()
-        probes[#probes + 1] = probe
-
-        local component = probe[schema.add](probe)
-        local defaults = {}
-        if component ~= nil then
-            for field, getter in pairs(schema.getters) do
-                local v = component[getter](component)
-                if v == nil then
-                    v = None
-                end
-                defaults[field] = v
-            end
-        end
-
-        defaults_cache[key] = defaults
-        return defaults
-    end
-
     local live = {}
+
     EntitySpawner.for_each_entity(function(entity)
         local id = entity:get_id()
         local name = _G.__entity_prefab_name_by_id[id]
@@ -178,16 +191,12 @@ function _G.__reapply_prefabs_to_spawned_entities()
             live[id] = name
             local prefab = _G.__entity_prefab_registry[name]
             if prefab then
-                reapply_prefab(entity, prefab, get_defaults)
+                reapply_prefab(entity, prefab)
             end
         end
     end)
-    _G.__entity_prefab_name_by_id = live
 
-    -- Probes are pending (never entered play), so this drops them from the spawn queue synchronously.
-    for _, probe in ipairs(probes) do
-        destroy_entity_c(probe)
-    end
+    _G.__entity_prefab_name_by_id = live
 end
 
 ---@param prefab_name string

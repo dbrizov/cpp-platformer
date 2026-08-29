@@ -1,9 +1,8 @@
 #pragma once
 
-#include <cmath>
 #include <string>
 
-#include "constants.h"
+#include "mathf.h"
 #include "vector2.h"
 
 namespace hob {
@@ -22,8 +21,7 @@ namespace hob {
         std::string to_string() const;
 
         bool operator==(const Capsule& right) const {
-            return center_a == right.center_a && center_b == right.center_b &&
-                   std::abs(radius - right.radius) < EPSILON;
+            return center_a == right.center_a && center_b == right.center_b && math::approx_equal(radius, right.radius);
         }
 
         bool operator!=(const Capsule& right) const {

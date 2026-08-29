@@ -26,6 +26,7 @@ DefRegistry = {}
 ---@field SECTION string
 ---@field POSITION string
 ---@field ROTATION string
+---@field ROTATION_DEG string
 ---@field SCALE string
 TransformKey = {}
 
@@ -83,6 +84,12 @@ function Math.lerp(a, b, t) end
 ---@param t number
 ---@return number
 function Math.lerp_angle(a_deg, b_deg, t) end
+
+---@param a number
+---@param b number
+---@param epsilon number?
+---@return boolean
+function Math.approx_equal(a, b, epsilon) end
 
 -- Camera
 ---@class Camera

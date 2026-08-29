@@ -94,7 +94,7 @@ namespace hob::editor {
         }
 
         bool is_changed(float a, float b) {
-            return std::abs(a - b) > EPSILON;
+            return !math::approx_equal(a, b);
         }
 
         bool is_changed(const Vector2& a, const Vector2& b) {

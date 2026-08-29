@@ -29,7 +29,13 @@ namespace hob {
             .func("normalize_angle_deg", &math::normalize_angle_deg, {"angle_deg"})
             .func("wrap_angle_rad", &math::wrap_angle_rad, {"angle_rad"})
             .func("lerp", &math::lerp, {"a", "b", "t"})
-            .func("lerp_angle", &math::lerp_angle, {"a_deg", "b_deg", "t"});
+            .func("lerp_angle", &math::lerp_angle, {"a_deg", "b_deg", "t"})
+            .func_sig(
+                "approx_equal",
+                [](float a, float b, sol::optional<float> epsilon) {
+                    return math::approx_equal(a, b, epsilon.value_or(EPSILON));
+                },
+                "(a: number, b: number, epsilon: number?): boolean");
 
         bind_usertype<Vector2>(m_lua, m_meta)
             .ctors<sol::types<>, sol::types<float, float>>()
@@ -60,6 +66,8 @@ namespace hob {
             .ctors<sol::types<>, sol::types<const Vector2&, const Vector2&>>()
             .field("center", &AABB::center)
             .field("extents", &AABB::extents)
+            .op_eq(&AABB::operator==)
+            .op_tostring(&AABB::to_string)
             .method("min", &AABB::min)
             .method("max", &AABB::max)
             .method("size", &AABB::size);
@@ -69,12 +77,16 @@ namespace hob {
             .field("center_a", &Capsule::center_a)
             .field("center_b", &Capsule::center_b)
             .field("radius", &Capsule::radius)
+            .op_eq(&Capsule::operator==)
+            .op_tostring(&Capsule::to_string)
             .method("get_height", &Capsule::get_height);
 
         bind_usertype<Circle>(m_lua, m_meta)
             .ctors<sol::types<>, sol::types<const Vector2&, float>>()
             .field("center", &Circle::center)
-            .field("radius", &Circle::radius);
+            .field("radius", &Circle::radius)
+            .op_eq(&Circle::operator==)
+            .op_tostring(&Circle::to_string);
 
         bind_usertype<Color>(m_lua, m_meta)
             .ctors<sol::types<>, sol::types<float, float, float>, sol::types<float, float, float, float>>()
@@ -82,6 +94,7 @@ namespace hob {
             .field("g", &Color::g)
             .field("b", &Color::b)
             .field("a", &Color::a)
+            .op_eq(&Color::operator==)
             .op_tostring(&Color::to_string)
             .method("black", &Color::black)
             .method("white", &Color::white)
