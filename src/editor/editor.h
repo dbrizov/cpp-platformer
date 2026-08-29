@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -17,8 +18,8 @@
 #include "docks/editor_dock_scene_view.h"
 #include "editor_config.h"
 #include "editor_entity_selection.h"
-#include "editor_gui_utils.h"
 #include "editor_icons.h"
+#include "editor_modal.h"
 #include "engine/core/engine_hooks.h"
 #include "engine/core/world_state.h"
 
@@ -27,12 +28,6 @@ namespace hob {
 } // namespace hob
 
 namespace hob::editor {
-    enum class EditorPendingConfirm : uint8_t {
-        None,
-        OpenScene,
-        Quit,
-    };
-
     class Editor : public EngineHooks {
         Engine& m_engine;
 
@@ -43,7 +38,7 @@ namespace hob::editor {
         std::string m_current_scene;
         std::string m_pending_scene_open;
 
-        EditorPendingConfirm m_pending_confirm = EditorPendingConfirm::None;
+        EditorModal m_modal;
         bool m_quit_confirmed = false;
 
         EditorEntitySelection m_selection;
@@ -139,9 +134,9 @@ namespace hob::editor {
         bool is_context_active(EditorActionContext context) const;
 
         void open_scene_without_prompt(const std::string& name);
+        void quit_without_prompting();
         bool try_prompt_unsaved_changes();
-        void draw_unsaved_changes_modal();
-        void resolve_pending_confirm(EditorModalChoice choice);
+        void prompt_unsaved_changes(std::function<void()> revert_changes, std::function<void()> proceed);
 
         void prune_selection();
         EditorSelectionInstanceIds capture_selection_instance_ids() const;

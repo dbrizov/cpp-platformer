@@ -17,13 +17,6 @@
 #include "engine/math/vector2.h"
 
 namespace hob::editor {
-    enum class EditorModalChoice : uint8_t {
-        None,
-        Save,
-        Discard,
-        Cancel,
-    };
-
     struct EditorStyleColorStack {
         int32_t count = 0;
 
@@ -75,11 +68,6 @@ namespace hob::editor {
     bool begin_submenu(const char* label, bool enabled = true);
     void end_submenu();
     bool menu_item(const char* label, const char* shortcut = nullptr, bool enabled = true, bool selected = false);
-
-    bool begin_modal(const char* id);
-    void end_modal();
-    void modal_message(const char* message, const std::optional<std::string>& reason);
-    EditorModalChoice modal_confirm_row(bool can_save);
 
     bool begin_combo(const char* preview);
     void end_combo();

@@ -17,6 +17,7 @@
 #include "editor_files.h"
 #include "editor_gui_utils.h"
 #include "editor_lua.h"
+#include "editor_modal.h"
 #include "editor_style.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
@@ -27,7 +28,7 @@
 namespace hob::editor {
     namespace {
         constexpr const char* EDITOR_SCRIPTS_FOLDER = "scripts/editor";
-        constexpr const char* UNSAVED_CHANGES_MODAL_ID = "Unsaved Changes";
+        constexpr const char* UNSAVED_CHANGES_TITLE = "Unsaved Changes";
 
         constexpr float LAYOUT_RIGHT_COLUMNS_RATIO = 0.46f;
         constexpr float LAYOUT_INSPECTOR_RATIO = 0.50f;
@@ -139,13 +140,18 @@ namespace hob::editor {
     }
 
     void Editor::request_open_scene(const std::string& name) {
-        if (is_scene_dirty() && get_state() == WorldState::Stopped) {
-            m_pending_scene_open = name;
-            m_pending_confirm = EditorPendingConfirm::OpenScene;
+        if (!is_scene_dirty() || get_state() != WorldState::Stopped) {
+            open_scene_without_prompt(name);
             return;
         }
 
-        open_scene_without_prompt(name);
+        prompt_unsaved_changes(
+            [this] {
+                revert_scene(*this);
+            },
+            [this, name] {
+                open_scene_without_prompt(name);
+            });
     }
 
     std::vector<std::string> Editor::get_scene_names() const {
@@ -310,7 +316,7 @@ namespace hob::editor {
             dock->draw(*this);
         }
 
-        draw_unsaved_changes_modal();
+        m_modal.draw();
     }
 
     void Editor::render_passes() {
@@ -405,68 +411,54 @@ namespace hob::editor {
         request_action(EditorActionId::OpenScene);
     }
 
+    void Editor::quit_without_prompting() {
+        m_quit_confirmed = true;
+        request_quit();
+    }
+
     bool Editor::try_prompt_unsaved_changes() {
         if (m_quit_confirmed) {
             return false;
+        }
+
+        if (m_modal.is_open()) {
+            return true;
         }
 
         if (!is_scene_dirty() || get_state() != WorldState::Stopped) {
             return false;
         }
 
-        m_pending_confirm = EditorPendingConfirm::Quit;
+        prompt_unsaved_changes(nullptr, [this] {
+            quit_without_prompting();
+        });
         return true;
     }
 
-    void Editor::draw_unsaved_changes_modal() {
-        if (m_pending_confirm == EditorPendingConfirm::None) {
-            return;
-        }
-
-        if (!ImGui::IsPopupOpen(UNSAVED_CHANGES_MODAL_ID)) {
-            ImGui::OpenPopup(UNSAVED_CHANGES_MODAL_ID);
-        }
-
-        if (!begin_modal(UNSAVED_CHANGES_MODAL_ID)) {
-            return;
-        }
-
+    void Editor::prompt_unsaved_changes(std::function<void()> revert_changes, std::function<void()> proceed) {
         const std::optional<std::string> save_error = get_scene_save_error(*this);
-        modal_message(std::format("'{}' has unsaved changes.", m_current_scene).c_str(), save_error);
 
-        resolve_pending_confirm(modal_confirm_row(!save_error.has_value()));
-
-        end_modal();
-    }
-
-    void Editor::resolve_pending_confirm(EditorModalChoice choice) {
-        if (choice == EditorModalChoice::None) {
-            return;
-        }
-
-        const EditorPendingConfirm pending = std::exchange(m_pending_confirm, EditorPendingConfirm::None);
-
-        if (choice == EditorModalChoice::Cancel) {
-            m_pending_scene_open.clear();
-            return;
-        }
-
-        const bool is_switching_scene = (pending == EditorPendingConfirm::OpenScene);
-
-        if (choice == EditorModalChoice::Save) {
-            save_scene(*this);
-        }
-        else if (is_switching_scene) {
-            revert_scene(*this);
-        }
-
-        if (is_switching_scene) {
-            open_scene_without_prompt(std::move(m_pending_scene_open));
-            return;
-        }
-
-        m_quit_confirmed = true;
-        request_quit();
+        m_modal.open({
+            .title = UNSAVED_CHANGES_TITLE,
+            .message = std::format("'{}' has unsaved changes.", m_current_scene),
+            .reason = save_error,
+            .buttons = {.confirm = "Save",
+                        .discard = "Don't Save",
+                        .cancel = "Cancel",
+                        .is_confirm_enabled = !save_error.has_value()},
+            .on_confirm =
+                [this, proceed] {
+                    save_scene(*this);
+                    proceed();
+                },
+            .on_discard =
+                [revert_changes, proceed] {
+                    if (revert_changes) {
+                        revert_changes();
+                    }
+                    proceed();
+                },
+        });
     }
 
     void Editor::prune_selection() {
