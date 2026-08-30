@@ -1,8 +1,10 @@
 #pragma once
 
 #include <algorithm>
+#include <utility>
 #include <vector>
 
+#include "editor_definition.h"
 #include "engine/entity/entity.h"
 
 namespace hob::editor {
@@ -15,12 +17,15 @@ namespace hob::editor {
         bool range = false; // Shift
     };
 
-    struct EditorEntitySelection {
+    // The Inspector shows one thing, so entities and a definition document are mutually exclusive:
+    // selecting either clears the other, which is why they share a struct rather than a panel each.
+    struct EditorSelection {
         std::vector<EntityId> ids;
         EntityId range_anchor = INVALID_ENTITY_ID;
+        EditorDefinitionRef definition;
 
         bool empty() const {
-            return ids.empty();
+            return ids.empty() && !definition.is_valid();
         }
 
         bool contains(EntityId id) const {
@@ -34,16 +39,25 @@ namespace hob::editor {
         void clear() {
             ids.clear();
             range_anchor = INVALID_ENTITY_ID;
+            definition = EditorDefinitionRef{};
         }
 
         void set(EntityId id) {
             ids.clear();
+            definition = EditorDefinitionRef{};
             ids.push_back(id);
         }
 
         void add(EntityId id) {
             remove(id);
+            definition = EditorDefinitionRef{};
             ids.push_back(id);
+        }
+
+        void select_definition(EditorDefinitionRef selected) {
+            ids.clear();
+            range_anchor = INVALID_ENTITY_ID;
+            definition = std::move(selected);
         }
 
         void remove(EntityId id) {

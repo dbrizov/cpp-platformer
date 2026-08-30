@@ -1,10 +1,9 @@
-#include "editor_entity_selection.h"
+#include "editor_selection.h"
 
 #include <utility>
 
 namespace hob::editor {
-    void EditorEntitySelection::apply_click(const EditorSelectionClick& click,
-                                            const std::vector<EntityId>& visible_order) {
+    void EditorSelection::apply_click(const EditorSelectionClick& click, const std::vector<EntityId>& visible_order) {
         if (click.additive) {
             toggle(click.entity_id);
             range_anchor = click.entity_id;

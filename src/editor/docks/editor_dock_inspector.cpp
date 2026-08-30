@@ -12,10 +12,12 @@
 #include "editor/commands/editor_command_set_field.h"
 #include "editor/editor.h"
 #include "editor/editor_asset_value.h"
+#include "editor/editor_definition.h"
 #include "editor/editor_field_target.h"
 #include "editor/editor_gui_utils.h"
 #include "editor/editor_lua.h"
 #include "engine/core/engine.h"
+#include "engine/core/path_utils.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/scripting/lua_schema_keys.h"
 #include "engine/core/systems/scripting/lua_script_system.h"
@@ -304,6 +306,43 @@ namespace hob::editor {
                 }
             }
         }
+
+        void draw_definition(Editor& editor, EditorDockInspectorPendingEdit& pending, const EditorDefinitionRef& ref) {
+            clear_pending_edit(pending);
+
+            Engine& engine = editor.get_engine();
+
+            ImGui::Text("%s", ref.name.c_str());
+            ImGui::SameLine();
+            ImGui::TextDisabled("%s", ref.registry.c_str());
+
+            const EditorDefinition* definition = find_definition(engine, ref);
+            if (definition != nullptr && !definition->file.empty()) {
+                ImGui::TextDisabled("%s",
+                                    PathUtils::to_project_relative_path(definition->file).generic_string().c_str());
+            }
+
+            const sol::object result =
+                editor_call(engine, editor_func::GET_DEFINITION_SECTIONS, ref.registry, ref.name);
+            if (!result.is<sol::table>()) {
+                ImGui::TextDisabled("Editor.get_definition_sections is unavailable");
+                return;
+            }
+
+            // A definition document has no write path until M10, and disabling the rows is what keeps
+            // the field widgets from needing one -- an inert widget never reports a change.
+            ImGui::BeginDisabled();
+
+            const sol::table sections = result.as<sol::table>();
+            for (int32_t i = 1; i <= sections.size(); ++i) {
+                const sol::object section = sections[i];
+                if (section.is<sol::table>()) {
+                    draw_component(editor, pending, INVALID_ENTITY_ID, i, section.as<sol::table>());
+                }
+            }
+
+            ImGui::EndDisabled();
+        }
     } // namespace
 
     EditorDockInspector::EditorDockInspector()
@@ -314,12 +353,15 @@ namespace hob::editor {
 
     void EditorDockInspector::draw(Editor& editor) {
         if (begin()) {
-            const EditorEntitySelection& selection = editor.get_selection();
+            const EditorSelection& selection = editor.get_selection();
 
             // Multi-selection inspects the primary; the rest still move together via the SceneView.
             Entity* entity = editor.get_engine().get_entity_spawner().get_entity(selection.primary());
-            if (entity == nullptr) {
-                ImGui::TextDisabled("Select an entity");
+            if (selection.definition.is_valid()) {
+                draw_definition(editor, *m_pending, selection.definition);
+            }
+            else if (entity == nullptr) {
+                ImGui::TextDisabled("Select an entity or an asset");
             }
             else {
                 ImGui::Text("%s", entity->get_display_name().c_str());

@@ -26,6 +26,7 @@ namespace hob::editor {
             std::string label;
             std::string tooltip;
             std::string texture_name;
+            EditorDefinitionRef definition;
             bool is_folder = false;
             bool read_only = false;
             std::vector<EditorFileNode> children;
@@ -70,14 +71,10 @@ namespace hob::editor {
                 });
         }
 
-        std::string to_relative_label(const std::filesystem::path& path) {
-            return path.lexically_relative(PathUtils::get_project_root()).generic_string();
-        }
-
         EditorFileNode build_file(const std::filesystem::path& path, const DefinitionsByFile& by_file) {
             EditorFileNode node;
             node.label = path.filename().string();
-            node.tooltip = to_relative_label(path);
+            node.tooltip = PathUtils::to_project_relative_path(path).generic_string();
 
             const std::vector<const EditorDefinition*>* declared = find_definitions(by_file, path);
             if (declared == nullptr) {
@@ -89,11 +86,15 @@ namespace hob::editor {
             }
 
             for (const EditorDefinition* definition : *declared) {
-                node.tooltip += "\n" + definition->registry + "." + definition->name;
+                node.tooltip += "\n" + definition->ref.registry + "." + definition->ref.name;
                 node.read_only = node.read_only || definition->read_only;
 
-                if (definition->registry == def_registry::TEXTURES) {
-                    node.texture_name = definition->name;
+                if (!node.definition.is_valid()) {
+                    node.definition = definition->ref;
+                }
+
+                if (definition->ref.registry == def_registry::TEXTURES) {
+                    node.texture_name = definition->ref.name;
                 }
             }
 
@@ -111,7 +112,7 @@ namespace hob::editor {
         EditorFileNode build_folder(const std::filesystem::path& folder, const DefinitionsByFile& by_file) {
             EditorFileNode node;
             node.label = folder.filename().string();
-            node.tooltip = to_relative_label(folder);
+            node.tooltip = PathUtils::to_project_relative_path(folder).generic_string();
             node.is_folder = true;
 
             std::vector<std::filesystem::path> sub_folders;
@@ -176,7 +177,13 @@ namespace hob::editor {
             // to be measured before the row is submitted and painted after, over the row highlight.
             const float gutter_x = ImGui::GetCursorScreenPos().x;
 
-            tree_item(node.label.c_str(), flags, false, "%s", node.label.c_str());
+            const bool is_selected = node.definition.is_valid() && editor.get_selection().definition == node.definition;
+
+            tree_item(node.label.c_str(), flags, is_selected, "%s", node.label.c_str());
+
+            if (node.definition.is_valid() && ImGui::IsItemClicked()) {
+                editor.get_selection().select_definition(node.definition);
+            }
 
             const ImVec2 row_min = ImGui::GetItemRectMin();
             const ImVec2 row_max = ImGui::GetItemRectMax();

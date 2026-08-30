@@ -66,7 +66,7 @@ namespace hob::editor {
         const Entity& entity = transform->get_entity();
         const EntityId entity_id = entity.get_id();
         const std::vector<TransformComponent*>& children = transform->get_children();
-        const EditorEntitySelection& selection = editor.get_selection();
+        const EditorSelection& selection = editor.get_selection();
 
         visible_order.push_back(entity_id);
 

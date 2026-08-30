@@ -125,8 +125,8 @@ namespace hob::editor {
             }
 
             const sol::table entry = row.as<sol::table>();
-            g_definitions.push_back({.registry = entry.get_or<std::string>(query_key::REGISTRY, ""),
-                                     .name = entry.get_or<std::string>(query_key::NAME, ""),
+            g_definitions.push_back({.ref = {.registry = entry.get_or<std::string>(query_key::REGISTRY, ""),
+                                             .name = entry.get_or<std::string>(query_key::NAME, "")},
                                      .file = entry.get_or<std::string>(query_key::FILE, ""),
                                      .read_only = entry.get_or(query_key::READ_ONLY, true)});
         }
@@ -134,6 +134,16 @@ namespace hob::editor {
         g_definitions_cached = true;
 
         return g_definitions;
+    }
+
+    const EditorDefinition* find_definition(Engine& engine, const EditorDefinitionRef& ref) {
+        for (const EditorDefinition& definition : get_definitions(engine)) {
+            if (definition.ref == ref) {
+                return &definition;
+            }
+        }
+
+        return nullptr;
     }
 
     TextureRef get_texture(Engine& engine, const std::string& asset_name) {

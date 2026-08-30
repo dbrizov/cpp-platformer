@@ -18,6 +18,7 @@ namespace hob {
         static const std::filesystem::path& get_project_scripts_root();
         static const std::filesystem::path& get_project_assets_root();
         static const std::filesystem::path& get_project_config_root();
+        static std::filesystem::path to_project_relative_path(const std::filesystem::path& path);
 
         // The folders the Lua definition scan runs and the hot-reload watcher polls.
         static std::span<const std::filesystem::path> get_project_definition_roots();

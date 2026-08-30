@@ -350,19 +350,23 @@ local DEFINITION_REGISTRY_TABLE = {
     [DefRegistry.ENTITIES] = function() return _G.__entity_prefab_registry end,
 }
 
+local function sorted_string_keys(source)
+    local keys = {}
+    for key in pairs(source) do
+        if type(key) == "string" then
+            keys[#keys + 1] = key
+        end
+    end
+    table.sort(keys)
+
+    return keys
+end
+
 local function get_definition_names(registry)
     local get_table = DEFINITION_REGISTRY_TABLE[registry]
     local source = get_table ~= nil and get_table() or _G.__asset_defs[registry]
 
-    local names = {}
-    if source ~= nil then
-        for name in pairs(source) do
-            names[#names + 1] = name
-        end
-        table.sort(names)
-    end
-
-    return names
+    return source ~= nil and sorted_string_keys(source) or {}
 end
 
 local function count_defs_per_file()
@@ -406,6 +410,135 @@ function Editor.build_asset(factory_name, asset_name)
     end
 
     return unwrap_def(asset_factory_table[asset_name])
+end
+
+
+-- ---------------------------------------------------------------------------------------------
+-- Definition documents
+-- ---------------------------------------------------------------------------------------------
+
+local function get_definition_table(registry, name)
+    local get_table = DEFINITION_REGISTRY_TABLE[registry]
+    if get_table ~= nil then
+        return get_table()[name]
+    end
+
+    local asset_defs = _G.__asset_defs[registry]
+    return asset_defs ~= nil and asset_defs[name] or nil
+end
+
+-- A deferred reference (Textures.X, Shaders.X) is a table whose metatable names its registry.
+local function is_asset_ref(value)
+    local mt = getmetatable(value)
+    return mt ~= nil and mt.__registry ~= nil
+end
+
+local function describe_item(value)
+    if type(value) ~= "table" or is_asset_ref(value) then
+        return tostring(value)
+    end
+
+    return nil
+end
+
+local function describe_table(value)
+    local parts = {}
+    for _, item in ipairs(value) do
+        local text = describe_item(item)
+        if text == nil then
+            return #value .. " items"
+        end
+
+        parts[#parts + 1] = text
+    end
+
+    if #parts > 0 then
+        return table.concat(parts, ", ")
+    end
+
+    return "{" .. table.concat(sorted_string_keys(value), ", ") .. "}"
+end
+
+-- A prefab section is a component section, so its declared field metadata is the same one the
+-- Inspector uses for a live component -- without it a collision mask reads as a bare integer.
+local function get_section_schema(registry, section_key)
+    if registry ~= DefRegistry.ENTITIES then
+        return nil
+    end
+
+    local schemas = _G.__component_schemas
+    return schemas ~= nil and schemas[section_key] or nil
+end
+
+local function to_definition_field(key, value, schema)
+    if type(value) == "table" then
+        if is_asset_ref(value) then
+            return { name = key, value = value, type = FieldType.OTHER }
+        end
+
+        return { name = key, value = describe_table(value), type = FieldType.OTHER }
+    end
+
+    local row = {}
+    local field_meta = schema ~= nil and schema.types ~= nil and schema.types[key] or nil
+
+    if field_meta ~= nil then
+        for meta_key, meta_value in pairs(field_meta) do
+            row[meta_key] = meta_value
+        end
+    end
+
+    row.name = key
+    row.value = value
+    row.type = (field_meta ~= nil and field_meta.type) or get_field_type_from_value(value)
+
+    return row
+end
+
+-- An array is a value; a map is a section, which is what makes a prefab read as its components.
+local function is_section(value)
+    return type(value) == "table" and not is_asset_ref(value) and #value == 0
+end
+
+local function to_definition_fields(source, schema)
+    local fields = {}
+    for _, key in ipairs(sorted_string_keys(source)) do
+        fields[#fields + 1] = to_definition_field(key, source[key], schema)
+    end
+
+    return fields
+end
+
+---@param registry string
+---@param name string
+---@return table|nil
+function Editor.get_definition_sections(registry, name)
+    local def = get_definition_table(registry, name)
+    if type(def) ~= "table" then
+        return nil
+    end
+
+    local sections = {}
+    local root_fields = {}
+
+    for _, key in ipairs(sorted_string_keys(def)) do
+        local value = def[key]
+        if is_section(value) then
+            sections[#sections + 1] = {
+                name = key,
+                is_lua = false,
+                fields = to_definition_fields(value, get_section_schema(registry, key)),
+            }
+        else
+            root_fields[#root_fields + 1] = to_definition_field(key, value)
+        end
+    end
+
+    if #root_fields > 0 then
+        table.insert(sections, 1, { name = name, is_lua = false, fields = root_fields })
+    end
+
+    return sections
 end
 
 -- ---------------------------------------------------------------------------------------------

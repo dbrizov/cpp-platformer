@@ -53,6 +53,7 @@ namespace hob::editor {
         constexpr const char* GET_ASSET_NAME = "get_asset_name";
         constexpr const char* GET_ASSET_REF = "get_asset_ref";
         constexpr const char* GET_DEFINITIONS = "get_definitions";
+        constexpr const char* GET_DEFINITION_SECTIONS = "get_definition_sections";
         constexpr const char* BUILD_ASSET = "build_asset";
 
         constexpr const char* SET_COMPONENT_FIELD = "set_component_field";
@@ -87,6 +88,7 @@ namespace hob::editor {
     void clear_lua_query_caches();
     const std::vector<EditorInspectorEntryAsset>& get_asset_entries(Engine& engine, const std::string& factory_name);
     const std::vector<EditorDefinition>& get_definitions(Engine& engine);
+    const EditorDefinition* find_definition(Engine& engine, const EditorDefinitionRef& ref);
     TextureRef get_texture(Engine& engine, const std::string& asset_name);
     std::vector<EditorInspectorEntryEnum> get_enum_entries(Engine& engine, const std::string& name);
 

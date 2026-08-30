@@ -125,6 +125,10 @@ namespace hob {
         return s_project_config_root;
     }
 
+    std::filesystem::path PathUtils::to_project_relative_path(const std::filesystem::path& path) {
+        return path.lexically_relative(get_project_root());
+    }
+
     std::span<const std::filesystem::path> PathUtils::get_project_definition_roots() {
         HOB_CHECK(!s_project_root.empty(), "Project definition roots requested before set_project_root() was called");
         return s_project_definition_roots;

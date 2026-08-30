@@ -303,7 +303,7 @@ namespace hob::editor {
                                           const Vector2& mouse_screen_pos,
                                           const Vector2& mouse_world_pos) {
         const bool additive = ImGui::GetIO().KeyCtrl;
-        EditorEntitySelection& selection = editor.get_selection();
+        EditorSelection& selection = editor.get_selection();
 
         std::vector<EntityId> candidates;
         gather_pick_candidates(editor, mouse_world_pos, candidates);
@@ -509,7 +509,7 @@ namespace hob::editor {
                                                      ImDrawList* draw_list,
                                                      const EditorSceneRect& scene_rect) const {
         const EntitySpawner& spawner = editor.get_engine().get_entity_spawner();
-        const EditorEntitySelection& selection = editor.get_selection();
+        const EditorSelection& selection = editor.get_selection();
         const EntityId primary_entity_id = selection.primary();
 
         // selection.ids is ordered with the primary last, so it naturally paints on top.

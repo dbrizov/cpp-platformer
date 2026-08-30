@@ -206,7 +206,7 @@ namespace hob::editor {
                 .context = EditorActionContext::Global,
                 .is_enabled =
                     [](const Editor& editor) {
-                        return !editor.get_selection().empty();
+                        return !editor.get_selection().ids.empty();
                     },
                 .format_label = nullptr,
                 .run =

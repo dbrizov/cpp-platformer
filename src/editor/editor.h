@@ -17,10 +17,10 @@
 #include "docks/editor_dock_output.h"
 #include "docks/editor_dock_scene_view.h"
 #include "editor_config.h"
-#include "editor_entity_selection.h"
 #include "editor_file_dialog.h"
 #include "editor_icons.h"
 #include "editor_modal.h"
+#include "editor_selection.h"
 #include "engine/core/engine_hooks.h"
 #include "engine/core/world_state.h"
 
@@ -40,7 +40,7 @@ namespace hob::editor {
         std::string m_current_scene;
         std::string m_pending_scene_open;
 
-        EditorEntitySelection m_selection;
+        EditorSelection m_selection;
 
         EditorCommandStack m_commands;
 
@@ -86,8 +86,8 @@ namespace hob::editor {
         bool is_scene_dirty() const;
         void open_pending_scene();
 
-        EditorEntitySelection& get_selection();
-        const EditorEntitySelection& get_selection() const;
+        EditorSelection& get_selection();
+        const EditorSelection& get_selection() const;
 
         EditorCommandStack& get_commands();
         const EditorCommandStack& get_commands() const;

@@ -199,11 +199,11 @@ namespace hob::editor {
         reset_edit_session();
     }
 
-    EditorEntitySelection& Editor::get_selection() {
+    EditorSelection& Editor::get_selection() {
         return m_selection;
     }
 
-    const EditorEntitySelection& Editor::get_selection() const {
+    const EditorSelection& Editor::get_selection() const {
         return m_selection;
     }
 
@@ -489,6 +489,10 @@ namespace hob::editor {
 
         if (m_selection.range_anchor != INVALID_ENTITY_ID && spawner.get_entity(m_selection.range_anchor) == nullptr) {
             m_selection.range_anchor = INVALID_ENTITY_ID;
+        }
+
+        if (m_selection.definition.is_valid() && find_definition(m_engine, m_selection.definition) == nullptr) {
+            m_selection.definition = EditorDefinitionRef{};
         }
     }
 
