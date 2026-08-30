@@ -412,7 +412,6 @@ function Editor.build_asset(factory_name, asset_name)
     return unwrap_def(asset_factory_table[asset_name])
 end
 
-
 -- ---------------------------------------------------------------------------------------------
 -- Definition documents
 -- ---------------------------------------------------------------------------------------------
@@ -459,18 +458,15 @@ local function describe_table(value)
     return "{" .. table.concat(sorted_string_keys(value), ", ") .. "}"
 end
 
--- A prefab section is a component section, so its declared field metadata is the same one the
--- Inspector uses for a live component -- without it a collision mask reads as a bare integer.
-local function get_section_schema(registry, section_key)
-    if registry ~= DefRegistry.ENTITIES then
-        return nil
-    end
-
-    local schemas = _G.__component_schemas
-    return schemas ~= nil and schemas[section_key] or nil
+local function get_field_meta(schema, field)
+    return schema ~= nil and schema.types ~= nil and schema.types[field] or nil
 end
 
-local function to_definition_field(key, value, schema)
+local function to_definition_field(key, value, field_meta)
+    if value == None then
+        value = nil
+    end
+
     if type(value) == "table" then
         if is_asset_ref(value) then
             return { name = key, value = value, type = FieldType.OTHER }
@@ -480,7 +476,6 @@ local function to_definition_field(key, value, schema)
     end
 
     local row = {}
-    local field_meta = schema ~= nil and schema.types ~= nil and schema.types[key] or nil
 
     if field_meta ~= nil then
         for meta_key, meta_value in pairs(field_meta) do
@@ -495,18 +490,83 @@ local function to_definition_field(key, value, schema)
     return row
 end
 
--- An array is a value; a map is a section, which is what makes a prefab read as its components.
+local function to_definition_fields(source, schema)
+    local fields = {}
+    for _, key in ipairs(sorted_string_keys(source)) do
+        fields[#fields + 1] = to_definition_field(key, source[key], get_field_meta(schema, key))
+    end
+
+    return fields
+end
+
+-- An array is a value; a map is a section, which is what makes a definition read as its parts.
 local function is_section(value)
     return type(value) == "table" and not is_asset_ref(value) and #value == 0
 end
 
-local function to_definition_fields(source, schema)
-    local fields = {}
-    for _, key in ipairs(sorted_string_keys(source)) do
-        fields[#fields + 1] = to_definition_field(key, source[key], schema)
+-- ---------------------------------------------------------------------------------------------
+-- Prefab documents
+-- ---------------------------------------------------------------------------------------------
+
+-- Cleared for free by a hot reload, which re-runs this file and with it the local.
+local prefab_sections_cache = {}
+
+-- A prefab declares a subset of what it produces: every entity has a transform, a component
+-- constructor can add siblings, and a Lua component only has fields once init() has run. Spawning
+-- one and reading it back is the only source for that, and it is what makes this panel agree with
+-- the Hierarchy field for field. The probe resolves synchronously and never enters play.
+local function build_prefab_sections(name, def)
+    local probe = EntitySpawner.spawn_entity(name)
+    if probe == nil then
+        return {}
     end
 
-    return fields
+    local sections = Editor.get_components(probe:get_id()) or {}
+    EntitySpawner.destroy_entity(probe)
+
+    local schemas = _G.__component_schemas
+    local root_fields = {}
+
+    for _, key in ipairs(sorted_string_keys(def)) do
+        if key ~= "lua_components" and schemas[key] == nil then
+            root_fields[#root_fields + 1] = to_definition_field(key, def[key], nil)
+        end
+    end
+
+    if #root_fields > 0 then
+        table.insert(sections, 1, { name = name, is_lua = false, fields = root_fields })
+    end
+
+    return sections
+end
+
+local function get_prefab_sections(name, def)
+    local cached = prefab_sections_cache[name]
+    if cached == nil then
+        cached = build_prefab_sections(name, def)
+        prefab_sections_cache[name] = cached
+    end
+
+    return cached
+end
+
+local function get_asset_sections(name, def)
+    local sections = {}
+    local root_fields = {}
+
+    for _, key in ipairs(sorted_string_keys(def)) do
+        if is_section(def[key]) then
+            sections[#sections + 1] = { name = key, is_lua = false, fields = to_definition_fields(def[key], nil) }
+        else
+            root_fields[#root_fields + 1] = to_definition_field(key, def[key], nil)
+        end
+    end
+
+    if #root_fields > 0 then
+        table.insert(sections, 1, { name = name, is_lua = false, fields = root_fields })
+    end
+
+    return sections
 end
 
 ---@param registry string
@@ -518,27 +578,11 @@ function Editor.get_definition_sections(registry, name)
         return nil
     end
 
-    local sections = {}
-    local root_fields = {}
-
-    for _, key in ipairs(sorted_string_keys(def)) do
-        local value = def[key]
-        if is_section(value) then
-            sections[#sections + 1] = {
-                name = key,
-                is_lua = false,
-                fields = to_definition_fields(value, get_section_schema(registry, key)),
-            }
-        else
-            root_fields[#root_fields + 1] = to_definition_field(key, value)
-        end
+    if registry == DefRegistry.ENTITIES then
+        return get_prefab_sections(name, def)
     end
 
-    if #root_fields > 0 then
-        table.insert(sections, 1, { name = name, is_lua = false, fields = root_fields })
-    end
-
-    return sections
+    return get_asset_sections(name, def)
 end
 
 -- ---------------------------------------------------------------------------------------------
