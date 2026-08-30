@@ -19,26 +19,6 @@ function _G.__scene_name_from_file(path)
     return __def_name_from_file(path, FileExtension.SCENE)
 end
 
-local function check_file_name_matches(name)
-    local path = __get_def_source(DefRegistry.SCENES, name)
-    if path == nil then
-        return
-    end
-
-    local expected = __scene_name_from_file(path)
-    if expected == nil then
-        Log.error("DefineScene." .. tostring(name) .. " is declared in '" .. path ..
-            "', which is not a '" .. FileExtension.SCENE .. "' file. The scene still loads and saves back " ..
-            "to that file, but the editor cannot create scenes there.")
-        return
-    end
-
-    if expected ~= name then
-        Log.error("DefineScene." .. tostring(name) .. " lives in a file named for '" .. expected ..
-            "' ('" .. path .. "'). The scene still loads, but the editor names new files after the scene.")
-    end
-end
-
 ---@class DefineScene
 _G.DefineScene = setmetatable({}, {
     __newindex = function(_, name, def)
@@ -52,7 +32,6 @@ _G.DefineScene = setmetatable({}, {
         end
 
         _G.__scene_registry[name] = def
-        check_file_name_matches(name)
     end,
     __index = function(_, name)
         return _G.__scene_registry[name]

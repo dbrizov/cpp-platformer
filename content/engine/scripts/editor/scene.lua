@@ -91,7 +91,7 @@ function Editor.get_scene_create_error(path)
     end
 
     -- The name is written straight into "DefineScene.<name>", so it has to parse as an identifier.
-    if not name:match("^%a%w*$") then
+    if not name:match("^[%a_][%w_]*$") then
         return "'" .. path .. "' derives the scene name '" .. name .. "', which is not a valid Lua name"
     end
 

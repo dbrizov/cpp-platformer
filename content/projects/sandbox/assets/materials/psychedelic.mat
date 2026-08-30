@@ -1,4 +1,4 @@
----@type MaterialParams.Psychedelic
-DefineMaterial.Psychedelic = {
-    shader = Shaders.Psychedelic,
+---@type MaterialParams.psychedelic
+DefineMaterial.psychedelic = {
+    shader = Shaders.psychedelic,
 }

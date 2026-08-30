@@ -160,13 +160,15 @@ namespace hob {
     }
 
     void LuaScriptSystem::dump_shader_params_meta() {
+        constexpr const char* DEFAULT_SHADER_CLASS_NAME = "sprite";
+
         const std::filesystem::path out_path =
             PathUtils::get_project_root() / "scripts" / "meta" / "shader_params_meta.generated.lua";
 
         sol::state& lua = m_impl->lua;
 
         // (class name, shader). The class name is the Shaders.X alias the material references; the
-        // builtin default sprite shader has no alias, so it is exposed under "Sprite".
+        // builtin default sprite shader has no alias, so it is exposed under the stem of its own file.
         struct Entry {
             std::string name;
             ShaderRef shader;
@@ -191,10 +193,10 @@ namespace hob {
 
         if (const ShaderRef def = m_engine.get_renderer().get_default_shader()) {
             const bool taken = std::any_of(entries.begin(), entries.end(), [](const Entry& e) {
-                return e.name == "Sprite";
+                return e.name == DEFAULT_SHADER_CLASS_NAME;
             });
             if (!taken) {
-                entries.emplace_back("Sprite", def);
+                entries.emplace_back(DEFAULT_SHADER_CLASS_NAME, def);
             }
         }
 
@@ -204,8 +206,8 @@ namespace hob {
         out << "-- Source of truth: the SPIR-V reflection of each shader's `Material` cbuffer.\n";
         out << "-- One class per shader lists its settable params (and texture bindings). Annotate a\n";
         out << "-- DefineMaterial assignment to get autocomplete + type checks for that shader's params:\n";
-        out << "--   ---@type MaterialParams.Outline\n";
-        out << "--   DefineMaterial.WhiteOutline = { shader = Shaders.Outline, outline_color = Color.white() }\n\n";
+        out << "--   ---@type MaterialParams.outline\n";
+        out << "--   DefineMaterial.white_outline = { shader = Shaders.outline, outline_color = Color.white() }\n\n";
 
         for (const Entry& entry : entries) {
             const Shader* shader = entry.shader.get();

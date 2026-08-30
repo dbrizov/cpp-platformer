@@ -1,8 +1,8 @@
-DefineComponent.Character = {}
----@class Character : LuaComponent
-local Character = Character
+DefineComponent.CharacterComponent = {}
+---@class CharacterComponent : LuaComponent
+local CharacterComponent = CharacterComponent
 
-function Character:move(movement_input, fixed_delta_time)
+function CharacterComponent:move(movement_input, fixed_delta_time)
     local movement = movement_input
     if movement:length_sqr() > 1.0 then
         movement = movement:normalized()

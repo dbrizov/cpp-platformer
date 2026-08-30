@@ -1,4 +1,4 @@
-DefineEntity.TriggerCircle = {
+DefineEntity.trigger_circle = {
     transform = {
         scale = Vector2(2, 2),
     },

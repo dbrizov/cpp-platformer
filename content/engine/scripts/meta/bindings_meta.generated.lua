@@ -4,7 +4,13 @@
 
 -- FileExtension
 ---@class FileExtension
+---@field LUA string
 ---@field SCENE string
+---@field PREFAB string
+---@field MATERIAL string
+---@field ANIMATION_CLIP string
+---@field SHADER string
+---@field META string
 FileExtension = {}
 
 -- DefRegistry

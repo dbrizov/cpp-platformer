@@ -1,4 +1,4 @@
-DefineEntity.DynamicCircle = {
+DefineEntity.dynamic_circle = {
     rigidbody = {
         body_type = BodyType.Dynamic,
     },

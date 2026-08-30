@@ -1,1 +1,1 @@
-DefineTexture.DistortNoise = { path = "images/distort_noise.png", wrap = "repeat" }
+DefineTexture.distort_noise = { path = "images/distort_noise.png", wrap = "repeat" }

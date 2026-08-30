@@ -1,8 +1,8 @@
-DefineComponent.EnemyHealthbar = {}
----@class EnemyHealthbar : LuaComponent
-local EnemyHealthbar = EnemyHealthbar
+DefineComponent.EnemyHealthComponent = {}
+---@class EnemyHealthComponent : LuaComponent
+local EnemyHealthComponent = EnemyHealthComponent
 
-function EnemyHealthbar:init()
+function EnemyHealthComponent:init()
     self.max_health = 100
     self.health = self.max_health
     self.head_offset = Vector2(0.0, 1.6)
@@ -12,21 +12,21 @@ function EnemyHealthbar:init()
     self._fill = nil
 end
 
-function EnemyHealthbar:enter_play()
+function EnemyHealthComponent:enter_play()
     self._doc = UI.load_document("ui/enemy_healthbar.rml")
     UI.show_document(self._doc)
     self._root = UI.get_element(self._doc, "enemy_healthbar")
     self._fill = UI.get_element(self._doc, "enemy_health_fill")
 end
 
-function EnemyHealthbar:exit_play()
+function EnemyHealthComponent:exit_play()
     UI.unload_document(self._doc)
     self._doc = nil
     self._root = nil
     self._fill = nil
 end
 
-function EnemyHealthbar:late_tick(delta_time)
+function EnemyHealthComponent:late_tick(delta_time)
     if self._root == nil then
         return
     end
@@ -35,7 +35,7 @@ function EnemyHealthbar:late_tick(delta_time)
     UI.set_element_position(self._root, UI.world_to_ui(world_pos))
 end
 
-function EnemyHealthbar:set_health(value)
+function EnemyHealthComponent:set_health(value)
     self.health = math.max(0, math.min(self.max_health, value))
     if self._fill == nil then
         return

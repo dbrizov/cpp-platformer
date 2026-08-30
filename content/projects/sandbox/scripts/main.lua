@@ -1,1 +1,1 @@
-Scene.load(Scenes.Arena)
+Scene.load(Scenes.arena)

@@ -1,6 +1,6 @@
-DefineScene.ArenaEmpty = {
+DefineScene.arena_empty = {
     entities = {
-        { prefab = Entities.Camera, pose_overrides = { position = Vector2(0.0, 0.0) } },
-        { prefab = Entities.Player, pose_overrides = { position = Vector2(0.0, 0.0) }, cpp_overrides = { sprite = { texture = Textures.PlayerIdle02 } } },
+        { prefab = Entities.camera, pose_overrides = { position = Vector2(0.0, 0.0) } },
+        { prefab = Entities.player, pose_overrides = { position = Vector2(0.0, 0.0) }, cpp_overrides = { sprite = { texture = Textures.HJ_idle02 } } },
     },
 }

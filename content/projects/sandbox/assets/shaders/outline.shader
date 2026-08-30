@@ -1,4 +1,4 @@
-DefineShader.Outline = {
+DefineShader.outline = {
     path = "shaders/outline",
     defaults = {
         tint = Color.white(),

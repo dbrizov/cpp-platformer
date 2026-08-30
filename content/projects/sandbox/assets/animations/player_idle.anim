@@ -1,9 +1,9 @@
-DefineAnimationClip.PlayerIdle = {
+DefineAnimationClip.player_idle = {
     textures = {
-        Textures.PlayerIdle01,
-        Textures.PlayerIdle02,
-        Textures.PlayerIdle03,
-        Textures.PlayerIdle04,
+        Textures.HJ_idle01,
+        Textures.HJ_idle02,
+        Textures.HJ_idle03,
+        Textures.HJ_idle04,
     },
     fps = 4,
     looping = true,

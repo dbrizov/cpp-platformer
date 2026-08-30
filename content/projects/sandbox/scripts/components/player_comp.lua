@@ -1,10 +1,10 @@
-DefineComponent.Player = {
-    __parent = Components.Character,
+DefineComponent.PlayerComponent = {
+    __parent = Components.CharacterComponent,
 }
----@class Player : Character
-local Player = Player
+---@class PlayerComponent : CharacterComponent
+local PlayerComponent = PlayerComponent
 
-function Player:init()
+function PlayerComponent:init()
     self.speed = 7.0
     self.camera_follow_speed = 10.0
     self.max_health = 100
@@ -24,7 +24,7 @@ function Player:init()
     self._hud_doc = nil
 end
 
-function Player:enter_play()
+function PlayerComponent:enter_play()
     -- The data model must exist before the document that binds to it loads.
     self._hud_model = UI.create_model("player_hud", {
         health = self.health,
@@ -64,7 +64,7 @@ function Player:enter_play()
         local distance = direction:length()
         local hit = Physics.raycast(player_pos, direction, distance)
         if hit.hit then
-            local health_comp = hit.entity:get_lua_component(Components.EnemyHealthbar)
+            local health_comp = hit.entity:get_lua_component(Components.EnemyHealthComponent)
             if health_comp then
                 local new_health = health_comp.health - self.fire_damage
                 if new_health <= 0 then
@@ -82,7 +82,7 @@ function Player:enter_play()
     end)
 end
 
-function Player:exit_play()
+function PlayerComponent:exit_play()
     local input = self.entity:get_input()
     input:unbind_axis("horizontal", self._x_axis_id)
     input:unbind_axis("vertical", self._y_axis_id)
@@ -98,11 +98,11 @@ function Player:exit_play()
     self._hud_model = nil
 end
 
-function Player:physics_tick(fixed_delta_time)
+function PlayerComponent:physics_tick(fixed_delta_time)
     self:move(self._movement_input, fixed_delta_time)
 end
 
-function Player:late_tick(delta_time)
+function PlayerComponent:late_tick(delta_time)
     self:update_animation()
 
     if self.health < self.max_health then
@@ -114,7 +114,7 @@ function Player:late_tick(delta_time)
     self:update_rotation(delta_time)
 end
 
-function Player:debug_draw_tick(delta_time)
+function PlayerComponent:debug_draw_tick(delta_time)
     if not Input.is_mouse_over_game_window() then
         return
     end
@@ -135,7 +135,7 @@ function Player:debug_draw_tick(delta_time)
     end
 end
 
-function Player:set_health(value)
+function PlayerComponent:set_health(value)
     self.health = math.max(0, math.min(self.max_health, value))
     if self._hud_model == nil then
         return
@@ -146,7 +146,7 @@ function Player:set_health(value)
     UI.set(self._hud_model, "fill_width", string.format("%d%%", percent))
 end
 
-function Player:update_animation()
+function PlayerComponent:update_animation()
     local animator = self.entity:get_sprite_animator()
     if animator == nil then
         return
@@ -161,13 +161,13 @@ function Player:update_animation()
     end
 end
 
-function Player:update_camera_position(target_position, delta_time)
+function PlayerComponent:update_camera_position(target_position, delta_time)
     local current_position = Camera.get_position()
     local new_position = Vector2.lerp(current_position, target_position, delta_time * self.camera_follow_speed)
     Camera.set_position(new_position)
 end
 
-function Player:update_rotation(delta_time)
+function PlayerComponent:update_rotation(delta_time)
     local character_body = self.entity:get_character_body()
 
     if self._aim_input:length_sqr() > 0.0 then

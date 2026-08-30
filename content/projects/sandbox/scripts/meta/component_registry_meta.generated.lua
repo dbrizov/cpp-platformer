@@ -5,8 +5,8 @@
 -- editors autocomplete `Components.Foo`.
 
 ---@class Components
----@field Character string
----@field ContactLogger string
----@field EnemyHealthbar string
----@field Player string
+---@field CharacterComponent string
+---@field ContactComponent string
+---@field EnemyHealthComponent string
+---@field PlayerComponent string
 Components = {}

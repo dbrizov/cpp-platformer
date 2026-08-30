@@ -1,4 +1,4 @@
-DefineShader.Psychedelic = {
+DefineShader.psychedelic = {
     path = "shaders/psychedelic",
     defaults = {
         tint = Color.white(),

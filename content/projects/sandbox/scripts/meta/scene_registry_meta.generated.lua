@@ -5,6 +5,6 @@
 -- editors autocomplete `Scenes.Foo`.
 
 ---@class Scenes
----@field Arena string
----@field ArenaEmpty string
+---@field arena string
+---@field arena_empty string
 Scenes = {}

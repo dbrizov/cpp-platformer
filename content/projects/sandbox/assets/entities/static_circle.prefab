@@ -1,4 +1,4 @@
-DefineEntity.StaticCircle = {
+DefineEntity.static_circle = {
     transform = {
         scale = Vector2(2, 2),
     },

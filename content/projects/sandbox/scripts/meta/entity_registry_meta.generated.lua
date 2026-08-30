@@ -5,13 +5,13 @@
 -- editors autocomplete `Entities.Foo`.
 
 ---@class Entities
----@field Camera string
----@field DynamicBox string
----@field DynamicCircle string
----@field Enemy string
----@field Player string
----@field StaticBox string
----@field StaticCircle string
----@field TriggerBox string
----@field TriggerCircle string
+---@field camera string
+---@field dynamic_box string
+---@field dynamic_circle string
+---@field enemy string
+---@field player string
+---@field static_box string
+---@field static_circle string
+---@field trigger_box string
+---@field trigger_circle string
 Entities = {}

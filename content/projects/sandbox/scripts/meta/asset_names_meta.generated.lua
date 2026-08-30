@@ -5,42 +5,42 @@
 -- `---@field` entries so editors autocomplete `Materials.Foo`, etc.
 
 ---@class AnimationClips
----@field PlayerIdle AnimationClip
----@field PlayerRun AnimationClip
+---@field player_idle AnimationClip
+---@field player_run AnimationClip
 
 ---@class Textures
----@field DistortNoise Texture
----@field PlayerIdle01 Texture
----@field PlayerIdle02 Texture
----@field PlayerIdle03 Texture
----@field PlayerIdle04 Texture
----@field PlayerRun01 Texture
----@field PlayerRun02 Texture
----@field PlayerRun03 Texture
----@field PlayerRun04 Texture
----@field PlayerRun05 Texture
----@field PlayerRun06 Texture
----@field PlayerRun07 Texture
----@field PlayerRun08 Texture
----@field PlayerRun09 Texture
----@field PlayerRun10 Texture
----@field WhiteCircle Texture
----@field WhiteRect Texture
+---@field HJ_idle01 Texture
+---@field HJ_idle02 Texture
+---@field HJ_idle03 Texture
+---@field HJ_idle04 Texture
+---@field HJ_run01 Texture
+---@field HJ_run010 Texture
+---@field HJ_run02 Texture
+---@field HJ_run03 Texture
+---@field HJ_run04 Texture
+---@field HJ_run05 Texture
+---@field HJ_run06 Texture
+---@field HJ_run07 Texture
+---@field HJ_run08 Texture
+---@field HJ_run09 Texture
+---@field distort_noise Texture
+---@field white_circle Texture
+---@field white_rect Texture
 
 ---@class Shaders
----@field Distort Shader
----@field Outline Shader
----@field Psychedelic Shader
+---@field distort Shader
+---@field outline Shader
+---@field psychedelic Shader
 
 ---@class Materials
----@field BlueOutline Material
----@field CyanOutline Material
----@field Distort Material
----@field GreenOutline Material
----@field Psychedelic Material
----@field RedOutline Material
----@field WhiteOutline Material
+---@field blue_outline Material
+---@field cyan_outline Material
+---@field distort Material
+---@field green_outline Material
+---@field psychedelic Material
+---@field red_outline Material
+---@field white_outline Material
 
 ---@class AudioClips
----@field Whoosh AudioClip
+---@field whoosh_single AudioClip
 

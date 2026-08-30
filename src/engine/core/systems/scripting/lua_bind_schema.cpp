@@ -9,7 +9,14 @@ namespace hob {
         sol::state& lua = m_impl->lua;
         LuaMetaRegistry& meta = m_impl->meta;
 
-        bind_table(lua, meta, "FileExtension").constant("SCENE", file_extension::SCENE);
+        bind_table(lua, meta, "FileExtension")
+            .constant("LUA", file_extension::LUA)
+            .constant("SCENE", file_extension::SCENE)
+            .constant("PREFAB", file_extension::PREFAB)
+            .constant("MATERIAL", file_extension::MATERIAL)
+            .constant("ANIMATION_CLIP", file_extension::ANIMATION_CLIP)
+            .constant("SHADER", file_extension::SHADER)
+            .constant("META", file_extension::META);
 
         bind_table(lua, meta, "DefRegistry")
             .constant("SCENES", def_registry::SCENES)

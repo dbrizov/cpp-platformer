@@ -6,6 +6,29 @@ function _G.__clear_def_sources()
     _G.__def_sources = {}
 end
 
+local DEF_FILE_EXTENSION = {
+    [DefRegistry.SCENES] = FileExtension.SCENE,
+    [DefRegistry.ENTITIES] = FileExtension.PREFAB,
+    [DefRegistry.MATERIALS] = FileExtension.MATERIAL,
+    [DefRegistry.ANIMATION_CLIPS] = FileExtension.ANIMATION_CLIP,
+    [DefRegistry.SHADERS] = FileExtension.SHADER,
+    [DefRegistry.TEXTURES] = FileExtension.META,
+    [DefRegistry.AUDIO_CLIPS] = FileExtension.META,
+}
+
+local function check_file_name_matches(registry, name, path)
+    local extension = DEF_FILE_EXTENSION[registry]
+    if extension == nil or path:sub(- #extension) ~= extension then
+        return
+    end
+
+    local expected = __def_name_from_file(path, extension)
+    if expected ~= name then
+        Log.error(registry .. "." .. tostring(name) .. " is declared in '" .. path .. "', which names '" ..
+            tostring(expected) .. "'. A definition is named after its file.")
+    end
+end
+
 -- debug.getinfo counts frames outwards from here: 1 is this function, 2 the DefineX __newindex
 -- that called it, 3 the chunk that made the assignment. Callers must therefore be metamethods.
 local DEFINITION_STACK_LEVEL = 3
@@ -35,6 +58,8 @@ function _G.__record_def_source(registry, name)
     end
 
     by_name[name] = path
+    check_file_name_matches(registry, name, path)
+
     return true
 end
 
@@ -63,8 +88,10 @@ function _G.__def_name_from_file(path, suffix)
     end
 
     local stem = file_name:sub(1, #file_name - #suffix)
-    local name = stem:gsub("(%a)([%w]*)", function(first, rest) return first:upper() .. rest end)
-    name = name:gsub("_", "")
 
-    return name
+    if suffix == FileExtension.META then
+        stem = stem:gsub("%.[^.]*$", "")
+    end
+
+    return stem
 end

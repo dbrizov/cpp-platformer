@@ -3,33 +3,33 @@
 -- Source of truth: the SPIR-V reflection of each shader's `Material` cbuffer.
 -- One class per shader lists its settable params (and texture bindings). Annotate a
 -- DefineMaterial assignment to get autocomplete + type checks for that shader's params:
---   ---@type MaterialParams.Outline
---   DefineMaterial.WhiteOutline = { shader = Shaders.Outline, outline_color = Color.white() }
+--   ---@type MaterialParams.outline
+--   DefineMaterial.white_outline = { shader = Shaders.outline, outline_color = Color.white() }
 
----@class MaterialParams.Distort
+---@class MaterialParams.distort
 ---@field shader? Shader
 ---@field tint? Color
 ---@field alpha_threshold? number
 ---@field distort_strength? number
 ---@field distort_speed? number
----@field textures? MaterialTextures.Distort
+---@field textures? MaterialTextures.distort
 
----@class MaterialTextures.Distort
+---@class MaterialTextures.distort
 ---@field distort_tex? Texture|string
 
----@class MaterialParams.Outline
+---@class MaterialParams.outline
 ---@field shader? Shader
 ---@field tint? Color
 ---@field outline_color? Color
 ---@field outline_width? number
 ---@field alpha_threshold? number
 
----@class MaterialParams.Psychedelic
+---@class MaterialParams.psychedelic
 ---@field shader? Shader
 ---@field tint? Color
 ---@field alpha_threshold? number
 
----@class MaterialParams.Sprite
+---@class MaterialParams.sprite
 ---@field shader? Shader
 ---@field tint? Color
 ---@field alpha_threshold? number

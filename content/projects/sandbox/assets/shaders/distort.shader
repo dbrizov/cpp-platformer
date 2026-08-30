@@ -1,4 +1,4 @@
-DefineShader.Distort = {
+DefineShader.distort = {
     path = "shaders/distort",
     defaults = {
         tint = Color.white(),
