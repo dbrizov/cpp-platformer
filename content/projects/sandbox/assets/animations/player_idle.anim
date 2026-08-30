@@ -1,0 +1,10 @@
+DefineAnimationClip.PlayerIdle = {
+    textures = {
+        Textures.PlayerIdle01,
+        Textures.PlayerIdle02,
+        Textures.PlayerIdle03,
+        Textures.PlayerIdle04,
+    },
+    fps = 4,
+    looping = true,
+}

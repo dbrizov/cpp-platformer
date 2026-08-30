@@ -1,0 +1,6 @@
+---@type MaterialParams.Outline
+DefineMaterial.WhiteOutline = {
+    shader = Shaders.Outline,
+    outline_color = Color.white(),
+    outline_width = 2.0,
+}

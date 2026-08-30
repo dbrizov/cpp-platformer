@@ -1,0 +1,15 @@
+DefineEntity.DynamicBox = {
+    rigidbody = {
+        body_type = BodyType.Dynamic,
+    },
+    box_collider = {
+        collision_layer = CollisionLayer.Dynamic,
+        collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Kinematic | CollisionLayer.Trigger,
+    },
+    sprite = {
+        texture = Textures.WhiteRect,
+        material = Material {
+            tint = Color.green(),
+        },
+    },
+}

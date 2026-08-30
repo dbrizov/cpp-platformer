@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <format>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "engine/components/lua_script_component.h"
@@ -17,9 +18,35 @@
 #include "engine/core/path_utils.h"
 #include "engine/core/systems/console.h"
 #include "engine/core/systems/entity_spawner.h"
+#include "engine/core/systems/scripting/lua_schema_keys.h"
 #include "engine/entity/entity.h"
 
 namespace hob {
+    namespace {
+        constexpr std::string_view LUA_SOURCE_EXTENSIONS[] = {file_extension::LUA,
+                                                              file_extension::SCENE,
+                                                              file_extension::PREFAB,
+                                                              file_extension::MATERIAL,
+                                                              file_extension::ANIMATION_CLIP,
+                                                              file_extension::SHADER,
+                                                              file_extension::META};
+
+        bool is_lua_source_file(const std::filesystem::directory_entry& entry) {
+            if (!entry.is_regular_file()) {
+                return false;
+            }
+
+            const std::string extension = entry.path().extension().string();
+            for (const std::string_view candidate : LUA_SOURCE_EXTENSIONS) {
+                if (extension == candidate) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    } // namespace
+
     LuaScriptSystem::LuaScriptSystem(Engine& engine, bool run_project_main_on_boot)
         : m_engine(engine)
         , m_impl(std::make_unique<LuaScriptSystemImpl>()) {
@@ -142,7 +169,7 @@ namespace hob {
                     break;
                 }
 
-                if (!entry.is_regular_file() || entry.path().extension() != ".lua") {
+                if (!is_lua_source_file(entry)) {
                     continue;
                 }
 
@@ -201,7 +228,7 @@ namespace hob {
 
         std::vector<std::filesystem::path> files;
         for (const auto& entry : std::filesystem::recursive_directory_iterator(root)) {
-            if (!entry.is_regular_file() || entry.path().extension() != ".lua") {
+            if (!is_lua_source_file(entry)) {
                 continue;
             }
 

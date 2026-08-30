@@ -1,0 +1,6 @@
+---@type MaterialParams.Outline
+DefineMaterial.RedOutline = {
+    shader = Shaders.Outline,
+    outline_color = Color.red(),
+    outline_width = 2.0,
+}

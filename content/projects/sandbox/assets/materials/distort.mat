@@ -1,0 +1,7 @@
+---@type MaterialParams.Distort
+DefineMaterial.Distort = {
+    shader = Shaders.Distort,
+    textures = {
+        distort_tex = Textures.DistortNoise,
+    },
+}

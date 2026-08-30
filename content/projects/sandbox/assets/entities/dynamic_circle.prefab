@@ -1,0 +1,9 @@
+DefineEntity.DynamicCircle = {
+    rigidbody = {
+        body_type = BodyType.Dynamic,
+    },
+    circle_collider = {
+        collision_layer = CollisionLayer.Dynamic,
+        collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Kinematic | CollisionLayer.Trigger,
+    },
+}

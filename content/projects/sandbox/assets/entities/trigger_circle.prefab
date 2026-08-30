@@ -1,0 +1,11 @@
+DefineEntity.TriggerCircle = {
+    transform = {
+        scale = Vector2(2, 2),
+    },
+    rigidbody = {},
+    circle_collider = {
+        trigger = true,
+        collision_layer = CollisionLayer.Trigger,
+        collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Kinematic,
+    },
+}

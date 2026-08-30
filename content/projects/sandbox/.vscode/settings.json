@@ -6,7 +6,13 @@
     "editor.tabSize": 4,
     "editor.insertSpaces": true,
     "files.associations": {
-        "*.lua": "lua"
+        "*.lua": "lua",
+        "*.scene": "lua",
+        "*.prefab": "lua",
+        "*.mat": "lua",
+        "*.anim": "lua",
+        "*.shader": "lua",
+        "*.meta": "lua"
     },
     "Lua.hint.enable": true,
     "Lua.workspace.checkThirdParty": false,

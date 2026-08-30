@@ -1,0 +1,10 @@
+DefineEntity.StaticCircle = {
+    transform = {
+        scale = Vector2(2, 2),
+    },
+    rigidbody = {},
+    circle_collider = {
+        collision_layer = CollisionLayer.Static,
+        collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Kinematic,
+    },
+}

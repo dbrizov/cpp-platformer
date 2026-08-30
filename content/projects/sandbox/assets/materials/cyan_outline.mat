@@ -1,0 +1,6 @@
+---@type MaterialParams.Outline
+DefineMaterial.CyanOutline = {
+    shader = Shaders.Outline,
+    outline_color = Color.cyan(),
+    outline_width = 2.0,
+}

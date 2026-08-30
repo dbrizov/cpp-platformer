@@ -1,0 +1,14 @@
+DefineEntity.TriggerBox = {
+    rigidbody = {},
+    box_collider = {
+        trigger = true,
+        collision_layer = CollisionLayer.Trigger,
+        collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Kinematic,
+    },
+    sprite = {
+        texture = Textures.WhiteRect,
+        material = Material {
+            tint = Color.cyan(),
+        },
+    },
+}

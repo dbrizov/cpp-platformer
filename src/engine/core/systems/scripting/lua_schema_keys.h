@@ -1,8 +1,17 @@
 #pragma once
 
 namespace hob {
+    // Definition files are Lua source under an extension that names what they declare. The suffix is
+    // what tells the editor which files it owns, and `.meta` is the companion of an imported binary
+    // rather than an asset of its own, so it keeps the full original filename: "player.png.meta".
     namespace file_extension {
-        constexpr const char* SCENE = ".scene.lua";
+        constexpr const char* LUA = ".lua";
+        constexpr const char* SCENE = ".scene";
+        constexpr const char* PREFAB = ".prefab";
+        constexpr const char* MATERIAL = ".mat";
+        constexpr const char* ANIMATION_CLIP = ".anim";
+        constexpr const char* SHADER = ".shader";
+        constexpr const char* META = ".meta";
     } // namespace file_extension
 
     namespace def_registry {
