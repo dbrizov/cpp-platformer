@@ -38,7 +38,7 @@ namespace hob {
         install_entity_lifetime_handlers();
 
         // Make `require` find modules in the engine's scripts/lib (e.g. vendored lldebugger).
-        const std::string lib_path = (PathUtils::get_engine_root() / "scripts" / "lib" / "?.lua").string();
+        const std::string lib_path = (PathUtils::get_engine_scripts_root() / "lib" / "?.lua").string();
         sol::table package = lua["package"];
         package["path"] = lib_path + ";" + package["path"].get<std::string>();
 
@@ -135,10 +135,9 @@ namespace hob {
         std::filesystem::file_time_type newest = std::filesystem::file_time_type::min();
         std::error_code ec;
 
-        const std::filesystem::path roots[] = {PathUtils::get_engine_root() / "scripts",
-                                               PathUtils::get_project_root() / "scripts"};
-        for (const auto& scripts_root : roots) {
-            for (const auto& entry : std::filesystem::recursive_directory_iterator(scripts_root, ec)) {
+        auto scan_root = [&](const std::filesystem::path& root) {
+            ec.clear();
+            for (const auto& entry : std::filesystem::recursive_directory_iterator(root, ec)) {
                 if (ec) {
                     break;
                 }
@@ -152,6 +151,11 @@ namespace hob {
                     newest = t;
                 }
             }
+        };
+
+        scan_root(PathUtils::get_engine_scripts_root());
+        for (const auto& root : PathUtils::get_project_definition_roots()) {
+            scan_root(root);
         }
 
         return newest;
@@ -238,6 +242,11 @@ namespace hob {
 
     bool LuaScriptSystem::run_project_folder(const std::filesystem::path& relative_path,
                                              const std::vector<std::string>& excludes) {
+        // Unlike an engine folder, a project folder is allowed not to exist
+        if (!std::filesystem::exists(PathUtils::get_project_root() / relative_path)) {
+            return true;
+        }
+
         return run_folder(PathUtils::get_project_root(), relative_path, excludes);
     }
 

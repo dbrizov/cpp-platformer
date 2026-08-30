@@ -1,5 +1,6 @@
 #include "path_utils.h"
 
+#include <array>
 #include <cstdlib>
 #include <cstring>
 
@@ -12,8 +13,11 @@
 
 namespace hob {
     namespace {
+        constexpr size_t SCRIPTS_ROOT_INDEX = 0;
+        constexpr size_t ASSETS_ROOT_INDEX = 1;
+
         std::filesystem::path s_project_root;
-        std::filesystem::path s_project_assets_root;
+        std::array<std::filesystem::path, 2> s_project_definition_roots;
         std::filesystem::path s_project_config_root;
 
         // Root directory that holds the content/ tree (content/engine, content/projects) and hob2d.log.
@@ -36,6 +40,11 @@ namespace hob {
 
     const std::filesystem::path& PathUtils::get_engine_root() {
         static const std::filesystem::path root = root_dir() / "content" / "engine";
+        return root;
+    }
+
+    const std::filesystem::path& PathUtils::get_engine_scripts_root() {
+        static const std::filesystem::path root = get_engine_root() / "scripts";
         return root;
     }
 
@@ -91,7 +100,8 @@ namespace hob {
 
     void PathUtils::set_project_root(const std::filesystem::path& project_root) {
         s_project_root = project_root;
-        s_project_assets_root = project_root / "assets";
+        s_project_definition_roots[SCRIPTS_ROOT_INDEX] = project_root / "scripts";
+        s_project_definition_roots[ASSETS_ROOT_INDEX] = project_root / "assets";
         s_project_config_root = project_root / "config";
     }
 
@@ -100,14 +110,24 @@ namespace hob {
         return s_project_root;
     }
 
+    const std::filesystem::path& PathUtils::get_project_scripts_root() {
+        HOB_CHECK(!s_project_root.empty(), "Project scripts root requested before set_project_root() was called");
+        return s_project_definition_roots[SCRIPTS_ROOT_INDEX];
+    }
+
     const std::filesystem::path& PathUtils::get_project_assets_root() {
         HOB_CHECK(!s_project_root.empty(), "Project assets root requested before set_project_root() was called");
-        return s_project_assets_root;
+        return s_project_definition_roots[ASSETS_ROOT_INDEX];
     }
 
     const std::filesystem::path& PathUtils::get_project_config_root() {
         HOB_CHECK(!s_project_root.empty(), "Project config root requested before set_project_root() was called");
         return s_project_config_root;
+    }
+
+    std::span<const std::filesystem::path> PathUtils::get_project_definition_roots() {
+        HOB_CHECK(!s_project_root.empty(), "Project definition roots requested before set_project_root() was called");
+        return s_project_definition_roots;
     }
 
     std::filesystem::path PathUtils::get_engine_config_file_path() {

@@ -22,7 +22,6 @@
 
 namespace hob::editor {
     namespace {
-        constexpr const char* SCRIPTS_FOLDER = "scripts";
         constexpr const char* SCENES_FOLDER = "scenes";
 
         constexpr const char* SCENE_FILE_FILTER_NAME = "Scene";
@@ -49,15 +48,10 @@ namespace hob::editor {
             return true;
         }
 
-        std::filesystem::path get_project_scripts_root() {
-            return PathUtils::get_project_root() / SCRIPTS_FOLDER;
-        }
-
-        bool is_under_project_scripts(const std::filesystem::path& path) {
+        bool is_under(const std::filesystem::path& path, const std::filesystem::path& root) {
             std::error_code ec;
 
-            const std::filesystem::path scripts_root =
-                std::filesystem::weakly_canonical(get_project_scripts_root(), ec);
+            const std::filesystem::path resolved_root = std::filesystem::weakly_canonical(root, ec);
             if (ec) {
                 return false;
             }
@@ -67,9 +61,32 @@ namespace hob::editor {
                 return false;
             }
 
-            const std::filesystem::path relative = resolved.lexically_relative(scripts_root);
+            const std::filesystem::path relative = resolved.lexically_relative(resolved_root);
 
             return !relative.empty() && *relative.begin() != "..";
+        }
+
+        bool is_under_a_scanned_definition_root(const std::filesystem::path& path) {
+            for (const auto& root : PathUtils::get_project_definition_roots()) {
+                if (is_under(path, root)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        std::string describe_scanned_definition_roots() {
+            std::string described;
+            for (const auto& root : PathUtils::get_project_definition_roots()) {
+                if (!described.empty()) {
+                    described += " or ";
+                }
+
+                described += std::format("'{}'", root.string());
+            }
+
+            return described;
         }
 
         // The dialog filter spells extensions without the leading dot.
@@ -84,10 +101,13 @@ namespace hob::editor {
                 return std::filesystem::path(file.as<std::string>()).parent_path();
             }
 
-            const std::filesystem::path scripts_root = get_project_scripts_root();
-            const std::filesystem::path scenes_folder = scripts_root / SCENES_FOLDER;
+            const std::filesystem::path assets_root = PathUtils::get_project_assets_root();
+            const std::filesystem::path scenes_folder = assets_root / SCENES_FOLDER;
+            if (std::filesystem::exists(scenes_folder)) {
+                return scenes_folder;
+            }
 
-            return std::filesystem::exists(scenes_folder) ? scenes_folder : scripts_root;
+            return std::filesystem::exists(assets_root) ? assets_root : PathUtils::get_project_scripts_root();
         }
 
         EditorFileDialogConfig make_scene_file_dialog_config(Editor& editor, const char* title) {
@@ -239,8 +259,8 @@ namespace hob::editor {
     }
 
     std::optional<std::string> get_scene_create_error(const Editor& editor, const std::filesystem::path& path) {
-        if (!is_under_project_scripts(path)) {
-            return std::format("a scene must live under '{}'", get_project_scripts_root().string());
+        if (!is_under_a_scanned_definition_root(path)) {
+            return std::format("a scene must live under {}", describe_scanned_definition_roots());
         }
 
         Engine& engine = editor.get_engine();

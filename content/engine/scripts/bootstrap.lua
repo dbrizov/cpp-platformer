@@ -14,6 +14,7 @@ end
 
 function _G.__load_project_definitions()
     Scripts.run_project_folder("scripts", { "main.lua", "meta" })
+    Scripts.run_project_folder("assets", { "meta" })
     __finalize_components()
 end
 
