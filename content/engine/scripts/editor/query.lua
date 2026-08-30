@@ -332,6 +332,83 @@ function Editor.get_asset_ref(factory_name, asset_name)
 end
 
 -- ---------------------------------------------------------------------------------------------
+-- Definition catalogue
+-- ---------------------------------------------------------------------------------------------
+
+local CATALOGUE_REGISTRIES = {
+    DefRegistry.SCENES,
+    DefRegistry.ENTITIES,
+    DefRegistry.TEXTURES,
+    DefRegistry.MATERIALS,
+    DefRegistry.SHADERS,
+    DefRegistry.ANIMATION_CLIPS,
+    DefRegistry.AUDIO_CLIPS,
+}
+
+local DEFINITION_REGISTRY_TABLE = {
+    [DefRegistry.SCENES] = function() return _G.__scene_registry end,
+    [DefRegistry.ENTITIES] = function() return _G.__entity_prefab_registry end,
+}
+
+local function get_definition_names(registry)
+    local get_table = DEFINITION_REGISTRY_TABLE[registry]
+    local source = get_table ~= nil and get_table() or _G.__asset_defs[registry]
+
+    local names = {}
+    if source ~= nil then
+        for name in pairs(source) do
+            names[#names + 1] = name
+        end
+        table.sort(names)
+    end
+
+    return names
+end
+
+local function count_defs_per_file()
+    local counts = {}
+    for _, by_name in pairs(_G.__def_sources) do
+        for _, path in pairs(by_name) do
+            counts[path] = (counts[path] or 0) + 1
+        end
+    end
+
+    return counts
+end
+
+---@return table
+function Editor.get_definitions()
+    local def_count_by_file = count_defs_per_file()
+    local rows = {}
+
+    for _, registry in ipairs(CATALOGUE_REGISTRIES) do
+        for _, name in ipairs(get_definition_names(registry)) do
+            local file = __get_def_source(registry, name)
+            rows[#rows + 1] = {
+                registry = registry,
+                name = name,
+                file = file,
+                read_only = file == nil or def_count_by_file[file] ~= 1,
+            }
+        end
+    end
+
+    return rows
+end
+
+---@param factory_name string
+---@param asset_name string
+---@return any
+function Editor.build_asset(factory_name, asset_name)
+    local asset_factory_table = _G[factory_name]
+    if asset_factory_table == nil then
+        return nil
+    end
+
+    return unwrap_def(asset_factory_table[asset_name])
+end
+
+-- ---------------------------------------------------------------------------------------------
 -- Public query
 -- ---------------------------------------------------------------------------------------------
 

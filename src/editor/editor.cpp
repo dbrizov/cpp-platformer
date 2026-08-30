@@ -76,6 +76,7 @@ namespace hob::editor {
         save_layout();
         m_scene_view.release_color_target(*this);
         m_inspector.reset_edit_state();
+        clear_lua_query_caches();
 
         log::editor.info("Editor::Shutdown");
     }
@@ -342,7 +343,8 @@ namespace hob::editor {
 
     void Editor::on_lua_hot_reloaded() {
         m_engine.get_lua_script_system().run_engine_folder(EDITOR_SCRIPTS_FOLDER);
-        clear_asset_entry_cache();
+        clear_lua_query_caches();
+        m_assets.request_rebuild();
 
         const sol::object rebound = editor_call(m_engine, editor_func::REBIND_INSTANCE_DEFS);
         if (rebound.is<bool>() && !rebound.as<bool>()) {

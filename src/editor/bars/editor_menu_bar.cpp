@@ -37,6 +37,7 @@ namespace hob::editor {
 
         if (begin_menu("Editor")) {
             action_menu_item(editor, EditorActionId::ResetLayout);
+            action_menu_item(editor, EditorActionId::RefreshAssets);
             end_menu();
         }
     }

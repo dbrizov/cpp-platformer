@@ -439,35 +439,61 @@ namespace hob::editor {
         vars.pop();
     }
 
-    bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) {
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        ImDrawListSplitter splitter;
-        splitter.Split(draw_list, DRAW_CHANNEL_COUNT);
-        splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_FOREGROUND);
+    namespace {
+        template<typename IdType>
+        bool tree_item_v(IdType id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, va_list args) {
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+            ImDrawListSplitter splitter;
+            splitter.Split(draw_list, DRAW_CHANNEL_COUNT);
+            splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_FOREGROUND);
 
-        EditorStyleColorStack colors;
-        colors.push(ImGuiCol_Header, COLOR_TRANSPARENT);
-        colors.push(ImGuiCol_HeaderHovered, COLOR_TRANSPARENT);
-        colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
+            EditorStyleColorStack colors;
+            colors.push(ImGuiCol_Header, COLOR_TRANSPARENT);
+            colors.push(ImGuiCol_HeaderHovered, COLOR_TRANSPARENT);
+            colors.push(ImGuiCol_HeaderActive, COLOR_TRANSPARENT);
 
-        if (selected) {
-            flags |= ImGuiTreeNodeFlags_Selected;
+            // A tree row is otherwise exactly as tall as its text, where a menu row is a Selectable
+            // and carries ItemSpacing inside its own rect.
+            EditorStyleVarStack vars;
+            vars.push(ImGuiStyleVar_FramePadding, TREE_ITEM_PADDING);
+
+            flags |= ImGuiTreeNodeFlags_FramePadding;
+
+            if (selected) {
+                flags |= ImGuiTreeNodeFlags_Selected;
+            }
+
+            const bool open = ImGui::TreeNodeExV(id, flags, fmt, args);
+
+            vars.pop();
+            colors.pop();
+
+            if (selected || ImGui::IsItemHovered()) {
+                splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
+                draw_highlight(
+                    draw_list, row_rect(TREE_ITEM_INSET), selected ? COLOR_ITEM_ACTIVE : COLOR_ITEM_HOVER, ROUNDING);
+            }
+
+            splitter.Merge(draw_list);
+
+            return open;
         }
+    } // namespace
 
+    bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) {
         va_list args;
         va_start(args, fmt);
-        const bool open = ImGui::TreeNodeExV(id, flags, fmt, args);
+        const bool open = tree_item_v(id, flags, selected, fmt, args);
         va_end(args);
 
-        colors.pop();
+        return open;
+    }
 
-        if (selected || ImGui::IsItemHovered()) {
-            splitter.SetCurrentChannel(draw_list, DRAW_CHANNEL_BACKGROUND);
-            draw_highlight(
-                draw_list, row_rect(HIERARCHY_ITEM_INSET), selected ? COLOR_ITEM_ACTIVE : COLOR_ITEM_HOVER, ROUNDING);
-        }
-
-        splitter.Merge(draw_list);
+    bool tree_item(const char* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        const bool open = tree_item_v(id, flags, selected, fmt, args);
+        va_end(args);
 
         return open;
     }

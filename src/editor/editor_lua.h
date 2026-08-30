@@ -7,8 +7,10 @@
 
 #include <sol/sol.hpp>
 
+#include "editor_definition.h"
 #include "editor_inspector_entries.h"
 #include "engine/core/logging.h"
+#include "engine/core/systems/renderer/texture.h"
 
 namespace hob {
     class Engine;
@@ -21,6 +23,9 @@ namespace hob::editor {
         constexpr const char* TYPE = "type";
         constexpr const char* IS_LUA = "is_lua";
         constexpr const char* FIELDS = "fields";
+        constexpr const char* REGISTRY = "registry";
+        constexpr const char* FILE = "file";
+        constexpr const char* READ_ONLY = "read_only";
     } // namespace query_key
 
     namespace editor_func {
@@ -47,6 +52,8 @@ namespace hob::editor {
         constexpr const char* GET_ASSET_ENTRIES = "get_asset_entries";
         constexpr const char* GET_ASSET_NAME = "get_asset_name";
         constexpr const char* GET_ASSET_REF = "get_asset_ref";
+        constexpr const char* GET_DEFINITIONS = "get_definitions";
+        constexpr const char* BUILD_ASSET = "build_asset";
 
         constexpr const char* SET_COMPONENT_FIELD = "set_component_field";
         constexpr const char* SET_LUA_COMPONENT_FIELD = "set_lua_component_field";
@@ -77,8 +84,10 @@ namespace hob::editor {
     std::string get_asset_name(Engine& engine, const std::string& factory_name, const sol::object& object);
     const char* get_asset_factory_name_for_field_type(std::string_view type);
 
-    void clear_asset_entry_cache();
+    void clear_lua_query_caches();
     const std::vector<EditorInspectorEntryAsset>& get_asset_entries(Engine& engine, const std::string& factory_name);
+    const std::vector<EditorDefinition>& get_definitions(Engine& engine);
+    TextureRef get_texture(Engine& engine, const std::string& asset_name);
     std::vector<EditorInspectorEntryEnum> get_enum_entries(Engine& engine, const std::string& name);
 
     std::string lua_object_to_display_string(Engine& engine, const sol::object& value);

@@ -13,6 +13,9 @@ namespace hob::editor {
         constexpr const char* INSPECTOR_UNNAMED_LABEL = "(unnamed)";
 
         std::unordered_map<std::string, std::vector<EditorInspectorEntryAsset>> g_asset_entries;
+        std::unordered_map<std::string, TextureRef> g_textures;
+        std::vector<EditorDefinition> g_definitions;
+        bool g_definitions_cached = false;
     } // namespace
 
     sol::protected_function get_editor_func(Engine& engine, const char* name) {
@@ -65,8 +68,11 @@ namespace hob::editor {
         return nullptr;
     }
 
-    void clear_asset_entry_cache() {
+    void clear_lua_query_caches() {
         g_asset_entries.clear();
+        g_textures.clear();
+        g_definitions.clear();
+        g_definitions_cached = false;
     }
 
     const std::vector<EditorInspectorEntryAsset>& get_asset_entries(Engine& engine, const std::string& factory_name) {
@@ -97,6 +103,53 @@ namespace hob::editor {
         }
 
         return g_asset_entries.emplace(factory_name, std::move(entries)).first->second;
+    }
+
+    const std::vector<EditorDefinition>& get_definitions(Engine& engine) {
+        if (g_definitions_cached) {
+            return g_definitions;
+        }
+
+        const sol::object result = editor_call(engine, editor_func::GET_DEFINITIONS);
+        if (!result.is<sol::table>()) {
+            return g_definitions;
+        }
+
+        const sol::table rows = result.as<sol::table>();
+        g_definitions.reserve(rows.size());
+
+        for (int32_t i = 1; i <= static_cast<int32_t>(rows.size()); ++i) {
+            const sol::object row = rows[i];
+            if (!row.is<sol::table>()) {
+                continue;
+            }
+
+            const sol::table entry = row.as<sol::table>();
+            g_definitions.push_back({.registry = entry.get_or<std::string>(query_key::REGISTRY, ""),
+                                     .name = entry.get_or<std::string>(query_key::NAME, ""),
+                                     .file = entry.get_or<std::string>(query_key::FILE, ""),
+                                     .read_only = entry.get_or(query_key::READ_ONLY, true)});
+        }
+
+        g_definitions_cached = true;
+
+        return g_definitions;
+    }
+
+    TextureRef get_texture(Engine& engine, const std::string& asset_name) {
+        const auto cached = g_textures.find(asset_name);
+        if (cached != g_textures.end()) {
+            return cached->second;
+        }
+
+        const sol::object result = editor_call(engine, editor_func::BUILD_ASSET, def_registry::TEXTURES, asset_name);
+
+        TextureRef texture;
+        if (result.is<Texture>()) {
+            texture = result.as<TextureRef>();
+        }
+
+        return g_textures.emplace(asset_name, std::move(texture)).first->second;
     }
 
     std::vector<EditorInspectorEntryEnum> get_enum_entries(Engine& engine, const std::string& name) {

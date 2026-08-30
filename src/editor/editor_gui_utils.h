@@ -84,6 +84,7 @@ namespace hob::editor {
     void set_tooltip(const char* fmt, ...) IM_FMTARGS(1);
 
     bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) IM_FMTARGS(4);
+    bool tree_item(const char* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) IM_FMTARGS(4);
 
     bool component_header(const char* label);
 

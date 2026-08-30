@@ -227,6 +227,18 @@ namespace hob::editor {
                     },
             },
             {
+                .id = EditorActionId::RefreshAssets,
+                .label = "Refresh Assets",
+                .chord = ImGuiKey_None,
+                .context = EditorActionContext::Global,
+                .is_enabled = nullptr,
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        editor.get_assets().request_rebuild();
+                    },
+            },
+            {
                 .id = EditorActionId::NewScene,
                 .label = "New Scene...",
                 .chord = ImGuiMod_Ctrl | ImGuiKey_N,

@@ -159,9 +159,18 @@ namespace hob::editor {
     // Dock Toolbar
     constexpr ImVec4 COLOR_DOCK_TOOLBAR_BG = COLOR_BG_BASE;
 
-    // Hierarchy
-    constexpr ImVec2 HIERARCHY_ITEM_SPACING{0.0f, 2.0f};
-    constexpr ImVec2 HIERARCHY_ITEM_INSET{4.0f, 1.0f};
+    // Tree (shared by the Hierarchy and Assets docks)
+    constexpr ImVec2 TREE_ITEM_SPACING{0.0f, 0.0f};
+    constexpr ImVec2 TREE_ITEM_INSET{2.0f, 1.0f};
+    constexpr ImVec2 TREE_ITEM_PADDING{7.0f, 2.0f};
+
+    // Assets
+    constexpr float ASSETS_THUMBNAIL_SIZE_PX = 20.0f;
+    constexpr float ASSETS_BADGE_SPACING_PX = 8.0f;
+    constexpr int32_t ASSETS_DEFAULT_OPEN_DEPTH = 2;
+    constexpr const char* ASSETS_READ_ONLY_LABEL = "read-only";
+
+    constexpr ImVec4 COLOR_ASSETS_READ_ONLY = COLOR_TEXT_DIM;
 
     // Inspector
     constexpr float INSPECTOR_LABEL_WIDTH = 180.0f;
