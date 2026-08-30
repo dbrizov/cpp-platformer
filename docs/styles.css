@@ -32,7 +32,6 @@
 
 html {
     scroll-behavior: smooth;
-    scroll-padding-top: 72px;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
 }
@@ -65,6 +64,10 @@ a:hover {
     max-width: var(--maxw);
     margin: 0 auto;
     padding: 0 24px;
+}
+
+#features {
+    scroll-margin-top: 88px;
 }
 
 /* ---- Header ---- */
