@@ -83,6 +83,11 @@ namespace hob::editor {
 
     void set_tooltip(const char* fmt, ...) IM_FMTARGS(1);
 
+    constexpr const char* DRAG_PAYLOAD_PREFAB = "hob.prefab";
+
+    void set_drag_payload(const char* type, const std::string& text);
+    std::optional<std::string> accept_drag_payload(const char* type);
+
     bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) IM_FMTARGS(4);
     bool tree_item(const char* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) IM_FMTARGS(4);
 

@@ -267,6 +267,132 @@ function Editor.get_instance_def(instance_id)
     return scene_state.entity_def_by_instance_id[instance_id]
 end
 
+local function get_open_scene_def()
+    local name = scene_state.name
+    return name ~= nil and _G.__scene_registry[name] or nil
+end
+
+local function reindex_instances(scene_def)
+    local by_index = {}
+    for index, inst in ipairs(scene_def.entities) do
+        by_index[index] = inst.__instance_id
+    end
+
+    scene_state.instance_id_by_index = by_index
+    scene_state.instance_count = #scene_def.entities
+end
+
+-- Shares userdata leaves and asset refs rather than cloning them: an override is written by assigning
+-- a fresh value into the table, never by mutating the one already there, and cloning an asset ref
+-- would drop the metatable that names its registry.
+local function copy_instance_table(source)
+    local copy = {}
+    for key, value in pairs(source) do
+        if type(key) ~= "string" or key:sub(1, 2) ~= "__" then
+            if type(value) == "table" and getmetatable(value) == nil then
+                copy[key] = copy_instance_table(value)
+            else
+                copy[key] = value
+            end
+        end
+    end
+
+    return copy
+end
+
+---@param prefab_name string
+---@param position Vector2
+---@return table
+function Editor.create_instance_def(prefab_name, position)
+    return {
+        prefab = prefab_name,
+        [SceneKey.POSE_OVERRIDES] = { [TransformKey.POSITION] = position },
+    }
+end
+
+---@param instance_id integer
+---@return table|nil
+function Editor.copy_instance_def(instance_id)
+    local inst = scene_state.entity_def_by_instance_id[instance_id]
+    if inst == nil then
+        return nil
+    end
+
+    return copy_instance_table(inst)
+end
+
+---@param inst table
+---@param index integer|nil where to insert it; appends when omitted
+---@return integer|nil instance_id
+function Editor.add_instance(inst, index)
+    local scene_def = get_open_scene_def()
+    if scene_def == nil then
+        Log.error("Editor.add_instance: no scene is open")
+        return nil
+    end
+
+    local entity = Scene.spawn_instance(inst)
+    if entity == nil then
+        return nil
+    end
+
+    local instance_id = inst.__instance_id or alloc_instance_id()
+    local entity_id = entity:get_id()
+
+    inst.__instance_id = instance_id
+    table.insert(scene_def.entities, index or (#scene_def.entities + 1), inst)
+
+    scene_state.instance_id_by_entity_id[entity_id] = instance_id
+    scene_state.entity_id_by_instance_id[instance_id] = entity_id
+    scene_state.entity_def_by_instance_id[instance_id] = inst
+
+    reindex_instances(scene_def)
+    Editor.mark_scene_dirty()
+
+    return instance_id
+end
+
+---@param instance_id integer
+---@return integer|nil the index it was removed from
+function Editor.remove_instance(instance_id)
+    local scene_def = get_open_scene_def()
+    local inst = scene_state.entity_def_by_instance_id[instance_id]
+    if scene_def == nil or inst == nil then
+        return nil
+    end
+
+    local index = nil
+    for candidate_index, candidate in ipairs(scene_def.entities) do
+        if candidate == inst then
+            index = candidate_index
+            break
+        end
+    end
+
+    if index == nil then
+        return nil
+    end
+
+    table.remove(scene_def.entities, index)
+
+    local entity_id = scene_state.entity_id_by_instance_id[instance_id]
+    if entity_id ~= nil then
+        -- Destroying a spawn request that has not resolved yet fires no destroyed handler, so the
+        -- scene instance map cannot be left to the callback that normally clears it.
+        _G.__scene_instance_by_entity_id[entity_id] = nil
+        EntitySpawner.destroy_entity(EntitySpawner.get_entity(entity_id))
+        scene_state.instance_id_by_entity_id[entity_id] = nil
+    end
+
+    scene_state.entity_id_by_instance_id[instance_id] = nil
+    scene_state.entity_def_by_instance_id[instance_id] = nil
+
+    reindex_instances(scene_def)
+    Editor.mark_scene_dirty()
+
+    return index
+end
+
 -- Re-points the orphaned defs at the reloaded document and pushes them to the live entities;
 -- false means the caller must respawn instead.
 ---@return boolean

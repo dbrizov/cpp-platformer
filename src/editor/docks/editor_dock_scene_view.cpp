@@ -3,12 +3,14 @@
 #include <algorithm>
 #include <cmath>
 #include <optional>
+#include <string>
 
 #include <imgui.h>
 
 #include "editor/actions/editor_action.h"
 #include "editor/editor.h"
 #include "editor/editor_gui_utils.h"
+#include "editor/editor_instances.h"
 #include "editor/editor_style.h"
 #include "engine/components/camera_component.h"
 #include "engine/components/sprite_component.h"
@@ -196,6 +198,8 @@ namespace hob::editor {
                     m_rect = scene_rect;
                     m_rect_valid = true;
                     m_hovered = ImGui::IsItemHovered();
+
+                    handle_prefab_drop(editor, scene_rect);
 
                     ImDrawList* draw_list = ImGui::GetWindowDrawList();
                     draw_list->PushClipRect(
@@ -401,6 +405,21 @@ namespace hob::editor {
         for (const EditorOriginHit& hit : origin_hits) {
             out_candidates.push_back(hit.entity_id);
         }
+    }
+
+    void EditorDockSceneView::handle_prefab_drop(Editor& editor, const EditorSceneRect& scene_rect) {
+        if (!ImGui::BeginDragDropTarget()) {
+            return;
+        }
+
+        const std::optional<std::string> prefab_name = accept_drag_payload(DRAG_PAYLOAD_PREFAB);
+        if (prefab_name.has_value()) {
+            const ImVec2 mouse_pos = ImGui::GetMousePos();
+            add_prefab_instance(
+                editor, *prefab_name, m_camera.screen_to_world(Vector2(mouse_pos.x, mouse_pos.y), scene_rect));
+        }
+
+        ImGui::EndDragDropTarget();
     }
 
     void EditorDockSceneView::draw_toolbar(Editor& editor) {

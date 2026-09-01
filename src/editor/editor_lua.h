@@ -43,6 +43,11 @@ namespace hob::editor {
         constexpr const char* CLEAR_WORLD = "clear_world";
         constexpr const char* GET_ENTITY_ID = "get_entity_id";
         constexpr const char* GET_INSTANCE_ID = "get_instance_id";
+        constexpr const char* GET_INSTANCE_DEF = "get_instance_def";
+        constexpr const char* CREATE_INSTANCE_DEF = "create_instance_def";
+        constexpr const char* COPY_INSTANCE_DEF = "copy_instance_def";
+        constexpr const char* ADD_INSTANCE = "add_instance";
+        constexpr const char* REMOVE_INSTANCE = "remove_instance";
         constexpr const char* REBIND_INSTANCE_DEFS = "rebind_instance_defs";
         constexpr const char* SET_INSTANCE_FIELD = "set_instance_field";
         constexpr const char* SET_LUA_INSTANCE_FIELD = "set_lua_instance_field";

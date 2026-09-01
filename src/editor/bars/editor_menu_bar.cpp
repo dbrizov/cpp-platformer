@@ -32,6 +32,8 @@ namespace hob::editor {
         if (begin_menu("Edit")) {
             action_menu_item(editor, EditorActionId::Undo);
             action_menu_item(editor, EditorActionId::Redo);
+            action_menu_item(editor, EditorActionId::DuplicateSelection);
+            action_menu_item(editor, EditorActionId::DeleteSelection);
             end_menu();
         }
 

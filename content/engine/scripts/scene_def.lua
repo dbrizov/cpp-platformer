@@ -104,6 +104,23 @@ end
 
 local NO_POSE = {}
 
+---@param inst table
+---@return Entity|nil
+function Scene.spawn_instance(inst)
+    local pose = inst[SceneKey.POSE_OVERRIDES] or NO_POSE
+    local entity = EntitySpawner.spawn_entity(inst.prefab, pose[TransformKey.POSITION],
+        pose[TransformKey.ROTATION_DEG], pose[TransformKey.SCALE])
+
+    if entity == nil then
+        return nil
+    end
+
+    apply_overrides(entity, inst)
+    _G.__scene_instance_by_entity_id[entity:get_id()] = inst
+
+    return entity
+end
+
 ---@param name string
 ---@return { index: integer, entity: Entity }[]|nil
 function Scene.load(name)
@@ -115,14 +132,8 @@ function Scene.load(name)
 
     local spawned = {}
     for index, inst in ipairs(def.entities) do
-        local pose = inst[SceneKey.POSE_OVERRIDES] or NO_POSE
-        local entity = EntitySpawner.spawn_entity(inst.prefab, pose[TransformKey.POSITION],
-            pose[TransformKey.ROTATION_DEG], pose[TransformKey.SCALE])
-
+        local entity = Scene.spawn_instance(inst)
         if entity then
-            apply_overrides(entity, inst)
-            _G.__scene_instance_by_entity_id[entity:get_id()] = inst
-
             spawned[#spawned + 1] = { index = index, entity = entity }
         end
     end

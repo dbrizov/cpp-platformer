@@ -54,6 +54,8 @@ namespace hob::editor {
                                     const Vector2& world_pos,
                                     std::vector<EntityId>& out_candidates) const;
 
+        void handle_prefab_drop(Editor& editor, const EditorSceneRect& scene_rect);
+
         void draw_toolbar(Editor& editor);
         void draw_grid(ImDrawList* draw_list, const EditorSceneRect& scene_rect) const;
         void draw_camera_view_rect(const Editor& editor,

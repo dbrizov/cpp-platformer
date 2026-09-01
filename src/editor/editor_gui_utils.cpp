@@ -480,6 +480,19 @@ namespace hob::editor {
         }
     } // namespace
 
+    void set_drag_payload(const char* type, const std::string& text) {
+        ImGui::SetDragDropPayload(type, text.c_str(), text.size() + 1);
+    }
+
+    std::optional<std::string> accept_drag_payload(const char* type) {
+        const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(type);
+        if (payload == nullptr) {
+            return std::nullopt;
+        }
+
+        return std::string(static_cast<const char*>(payload->Data));
+    }
+
     bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) {
         va_list args;
         va_start(args, fmt);

@@ -14,6 +14,8 @@ namespace hob::editor {
     enum class EditorActionId : uint8_t {
         Undo,
         Redo,
+        DuplicateSelection,
+        DeleteSelection,
         Play,
         Pause,
         Step,

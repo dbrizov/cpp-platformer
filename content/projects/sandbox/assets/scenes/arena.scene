@@ -89,13 +89,5 @@ DefineScene.arena = {
         { prefab = Entities.static_box, pose_overrides = { position = Vector2(4.0, -4.0) } },
         { prefab = Entities.static_box, pose_overrides = { position = Vector2(6.0, 4.0) } },
         { prefab = Entities.static_box, pose_overrides = { position = Vector2(6.0, -4.0) } },
-        { prefab = Entities.static_circle, pose_overrides = { position = Vector2(-14.0, 8.0) } },
-        { prefab = Entities.static_circle, pose_overrides = { position = Vector2(14.0, 8.0) } },
-        { prefab = Entities.static_circle, pose_overrides = { position = Vector2(-14.0, -8.0) } },
-        { prefab = Entities.static_circle, pose_overrides = { position = Vector2(14.0, -8.0) } },
-        { prefab = Entities.static_circle, pose_overrides = { position = Vector2(-10.0, 0.0) } },
-        { prefab = Entities.static_circle, pose_overrides = { position = Vector2(10.0, 0.0) } },
-        { prefab = Entities.trigger_circle, pose_overrides = { position = Vector2(0.0, 8.0) } },
-        { prefab = Entities.trigger_circle, pose_overrides = { position = Vector2(0.0, -8.0) } },
     },
 }

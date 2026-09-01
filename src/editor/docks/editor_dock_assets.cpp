@@ -193,6 +193,13 @@ namespace hob::editor {
                 set_tooltip("%s", node.tooltip.c_str());
             }
 
+            // Before the badge, which submits an item of its own for BeginDragDropSource to read instead.
+            if (node.definition.registry == def_registry::ENTITIES && ImGui::BeginDragDropSource()) {
+                set_drag_payload(DRAG_PAYLOAD_PREFAB, node.definition.name);
+                ImGui::TextUnformatted(node.label.c_str());
+                ImGui::EndDragDropSource();
+            }
+
             if (node.read_only) {
                 ImGui::SameLine(0.0f, ASSETS_BADGE_SPACING_PX);
                 ImGui::TextColored(COLOR_ASSETS_READ_ONLY, "%s", ASSETS_READ_ONLY_LABEL);

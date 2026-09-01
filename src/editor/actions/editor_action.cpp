@@ -7,6 +7,7 @@
 #include "editor/editor.h"
 #include "editor/editor_files.h"
 #include "editor/editor_gui_utils.h"
+#include "editor/editor_instances.h"
 #include "engine/core/assert.h"
 
 namespace hob::editor {
@@ -46,6 +47,36 @@ namespace hob::editor {
                 .run =
                     [](Editor& editor) {
                         editor.get_commands().redo(editor);
+                    },
+            },
+            {
+                .id = EditorActionId::DuplicateSelection,
+                .label = "Duplicate",
+                .chord = ImGuiMod_Ctrl | ImGuiKey_D,
+                .context = EditorActionContext::Global,
+                .is_enabled =
+                    [](const Editor& editor) {
+                        return can_edit_selected_instances(editor);
+                    },
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        duplicate_selection(editor);
+                    },
+            },
+            {
+                .id = EditorActionId::DeleteSelection,
+                .label = "Delete",
+                .chord = ImGuiKey_Delete,
+                .context = EditorActionContext::Global,
+                .is_enabled =
+                    [](const Editor& editor) {
+                        return can_edit_selected_instances(editor);
+                    },
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        delete_selection(editor);
                     },
             },
             {
